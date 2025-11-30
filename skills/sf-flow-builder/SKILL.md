@@ -69,11 +69,35 @@ When a user requests flow creation, follow this structured workflow:
 
 2. **Check for existing flows:** `Glob: pattern="**/*.flow-meta.xml"`
 
-3. **Create task tracking with TodoWrite:**
+3. **🆕 Offer Reusable Subflows (from library):**
+   ```
+   AskUserQuestion: "Would you like to use any standard subflows?"
+   Options:
+   - Sub_LogError (error logging & observability)
+   - Sub_SendEmailAlert (notifications)
+   - Sub_ValidateRecord (validation patterns)
+   - Sub_UpdateRelatedRecords (bulk operations)
+   - Sub_QueryRecordsWithRetry (query with fault handling)
+   - None / Custom logic
+   ```
+   See: [Subflow Library Documentation](docs/subflow-library.md)
+
+4. **🆕 Assess Security & Governance:**
+   - If accessing sensitive data OR complex automation:
+     ```
+     AskUserQuestion: "Has this automation been through architecture review?"
+     Options:
+     - Yes, reviewed and approved
+     - No, but this is non-critical
+     - No, I need guidance on review process
+     ```
+   - Provide governance checklist if needed
+
+5. **Create task tracking with TodoWrite:**
    - Gather requirements ✓
    - Select and load template
    - Generate flow metadata XML
-   - Validate flow structure (strict mode)
+   - Validate flow structure (enhanced validation)
    - Deploy to org (two-step: validate, then deploy)
    - Test and verify
 
@@ -104,6 +128,25 @@ Scheduled → templates/scheduled-flow-template.xml
    - Flow paths and connectors
    - Error handling with fault paths
 
+5. **🆕 Suggest Orchestration Pattern (if complex):**
+   - Detect complexity indicators:
+     - Multiple objects updated
+     - Multiple distinct steps
+     - Cross-object updates
+     - Conditional logic with different actions
+
+   - If complex, suggest breaking into orchestrated flows:
+     ```
+     Pattern Suggestions:
+     - Parent-Child: Multiple independent responsibilities
+     - Sequential: Steps depend on previous outputs
+     - Conditional: Different scenarios need different logic
+     ```
+
+   - Ask: "Would you like me to create a parent flow and subflows?"
+
+   See: [Orchestration Guide](docs/orchestration-guide.md) for patterns
+
 ### Phase 3: Flow Generation & Validation
 
 **Actions:**
@@ -131,9 +174,18 @@ Write: force-app/main/default/flows/[FlowName].flow-meta.xml
 - Salesforce auto-positions elements optimally
 - Becomes standard in Summer '25 (API 64.0+)
 
-3. **Run Python validator (if available):**
+3. **🆕 Run Enhanced Validation Suite:**
 ```bash
-python3 ~/.claude/skills/sf-flow-builder/validators/flow_validator.py \
+# Enhanced validator with 6-category scoring
+python3 ~/.claude/skills/sf-flow-builder/validators/enhanced_validator.py \
+  force-app/main/default/flows/[FlowName].flow-meta.xml
+
+# Security & governance check
+python3 ~/.claude/skills/sf-flow-builder/validators/security_validator.py \
+  force-app/main/default/flows/[FlowName].flow-meta.xml
+
+# Naming convention check
+python3 ~/.claude/skills/sf-flow-builder/validators/naming_validator.py \
   force-app/main/default/flows/[FlowName].flow-meta.xml
 ```
 
@@ -188,24 +240,51 @@ python3 ~/.claude/skills/sf-flow-builder/validators/flow_simulator.py \
 
 **If simulation fails: STOP and fix issues before proceeding!**
 
-6. **Generate Validation Report with Scoring (0-100):**
+6. **🆕 Generate Enhanced Validation Report with 6-Category Scoring (0-110):**
 
 ```
-Flow Validation Report: [FlowName] (API 62.0)
----
-✓ XML Structure: Valid
-✓ API Version: 62.0 (Winter '26)
-✓ Required Elements: Present
-✓ Element References: Valid
-✓ Bulkification: No DML in loops
+═══════════════════════════════════════════════════════════════════
+   Flow Validation Report: [FlowName] (API 62.0)
+═══════════════════════════════════════════════════════════════════
 
-⚠ Warnings ([count]): [List with point deductions]
-✗ Errors: [None or list]
+🎯 Best Practices Score: 92/110 ⭐⭐⭐⭐ Very Good
 
-Best Practices Score: XX/100 ([Rating])
+──────────────────────────────────────────────────────────────────
+CATEGORY BREAKDOWN:
+──────────────────────────────────────────────────────────────────
 
-Auto-Fix: [Available fixes]
-Recommendations: [Specific improvements]
+✅ 📋 Design & Naming: 18/20 (90%)
+   ✓ Naming convention: RTF_Account_UpdateIndustry
+   ✓ Description present and clear
+   ℹ️  Could improve: Add more detailed description (-2 pts)
+
+✅ 🧩 Logic & Structure: 20/20 (100%)
+   ✓ No DML in loops
+   ✓ Simple decision structure
+   ✓ Transform element used
+
+⚠️  🏗️  Architecture & Orchestration: 12/15 (80%)
+   ℹ️  Single monolithic flow - could break into subflows (-3 pts)
+
+✅ ⚡ Performance & Bulk Safety: 20/20 (100%)
+   ✓ Bulk-safe design
+   ✓ Governor limits: Well within limits
+
+⚠️  🔧 Error Handling & Observability: 15/20 (75%)
+   ℹ️  No structured error logging (Sub_LogError not used) (-5 pts)
+
+✅ 🔒 Security & Governance: 15/15 (100%)
+   ✓ User mode (respects FLS/CRUD)
+   ✓ No sensitive data accessed
+
+═══════════════════════════════════════════════════════════════════
+✅ DEPLOYMENT APPROVED (advisory recommendations provided)
+═══════════════════════════════════════════════════════════════════
+
+💡 Recommendations for Improvement:
+1. [Error Handling] Add Sub_LogError for structured error logging
+2. [Architecture] Consider breaking into parent + subflows for complex logic
+3. [Documentation] Expand flow description for documentation
 ```
 
 **Scoring Formula:**
@@ -288,6 +367,50 @@ Options:
    - Re-deploy with updated status
    - Verify activation in target org
 
+7. **🆕 Generate Flow Documentation (Automated):**
+
+```bash
+# Auto-generate comprehensive documentation from flow XML
+python3 ~/.claude/skills/sf-flow-builder/generators/doc_generator.py \
+  force-app/main/default/flows/[FlowName].flow-meta.xml \
+  docs/flows/[FlowName]_documentation.md
+```
+
+**Documentation includes:**
+- Overview (purpose, type, business context)
+- Entry/Exit criteria
+- Logic design and decision points
+- Orchestration pattern used
+- Performance metrics and governor limit estimates
+- Error handling coverage
+- Security mode and data access
+- Testing status tracking
+- Dependencies (objects, fields, subflows, Apex)
+- Troubleshooting guide
+
+See: [Flow Documentation Template](templates/flow-documentation-template.md)
+
+8. **🆕 Complete Governance Checklist (if required):**
+
+If flow accesses sensitive data or is complex automation:
+
+```bash
+# Review governance checklist
+cat ~/.claude/skills/sf-flow-builder/docs/governance-checklist.md
+```
+
+**Key governance checkpoints:**
+- ✅ Business justification documented
+- ✅ Architecture review completed (if complex)
+- ✅ Security assessment done (if System mode or sensitive fields)
+- ✅ Testing plan approved
+- ✅ Rollback strategy defined
+- ✅ Production deployment authorized
+
+Minimum governance score: **140/200 points** for production deployment
+
+See: [Governance Checklist](docs/governance-checklist.md)
+
 ### Phase 5: Testing & Documentation
 
 **Actions:**
@@ -329,43 +452,64 @@ Options:
 **For detailed testing examples, see:**
 - examples/screen-flow-example.md
 - examples/record-trigger-example.md
+- examples/orchestration-parent-child.md
+- examples/orchestration-sequential.md
+- examples/orchestration-conditional.md
+- examples/error-logging-example.md
 
-2. **Generate Flow Documentation:**
+2. **🆕 Security & Profile Testing:**
 
-```
-## Flow Documentation: [FlowName]
+**If flow runs in User mode (respects FLS/CRUD):**
 
-**Purpose**: [User's description]
-**Type**: [Flow Type]
-**API Version**: 62.0 (Winter '26)
-**Status**: [Draft/Active]
+Test with multiple profiles to verify permissions are respected:
 
-### Trigger Configuration (if applicable)
-- Object: [Object API Name]
-- Trigger Type: [After/Before Save/Delete]
-- Conditions: [When it runs]
-- Bulk Support: ✓ Enabled
+```bash
+# Test as Standard User
+sf org login user --username standard.user@company.com --target-org [org]
 
-### Variables
-- Input: [varName]: [Type] - [Description]
-- Output: [varName]: [Type] - [Description]
-
-### Flow Logic
-[Step-by-step description]
-
-### Performance
-- Bulkified: ✓
-- Transform used: [Yes/No]
-- Estimated DML operations: [Count]
-- Governor limits: [Status]
-
-### Testing Status
-- Unit Tests: [Pass/Fail/Pending]
-- Bulk Tests: [Pass/Fail/Pending]
-- Production: [Yes/No]
+# Verify flow behavior with restricted access
+# - Should fail gracefully if missing permissions
+# - Error messages should be user-friendly
+# - No sensitive data exposed in errors
 ```
 
-3. **Generate Completion Summary:**
+**Testing checklist:**
+- ✅ **Standard User Profile**: Test with minimal permissions
+- ✅ **Custom Profiles**: Test with role-specific permissions
+- ✅ **Permission Sets**: Test permission set combinations
+- ✅ **FLS Validation**: Verify field-level security respected
+- ✅ **CRUD Validation**: Verify object-level permissions respected
+
+**If flow runs in System mode (bypasses permissions):**
+
+```
+⚠️  SECURITY REVIEW REQUIRED
+
+System mode bypasses FLS/CRUD checks. Ensure:
+1. Architecture review approved System mode usage
+2. Security team reviewed sensitive field access
+3. Documentation explains why System mode is required
+4. Audit logging enabled for compliance
+```
+
+See: [Security Best Practices](docs/security-best-practices.md)
+
+3. **🆕 Auto-Generate Flow Documentation:**
+
+Documentation is auto-generated by doc_generator.py (see Phase 4, step 7).
+
+**Review and update the generated documentation:**
+- Fill in business context details
+- Document test results (unit, bulk, integration)
+- Add troubleshooting notes as issues are discovered
+- Update support contacts
+- Link to related documentation
+
+**Documentation location**: `docs/flows/[FlowName]_documentation.md`
+
+**Template**: See [Flow Documentation Template](templates/flow-documentation-template.md) for structure
+
+4. **Generate Completion Summary:**
 
 ```
 ---
@@ -378,19 +522,34 @@ Options:
   Status: [Draft/Active]
   Location: force-app/main/default/flows/[FlowName].flow-meta.xml
 
-✓ Validation: PASSED (Score: XX/100)
+✅ Validation: PASSED (Best Practices Score: XX/110 ⭐⭐⭐⭐)
+   Categories:
+   - Design & Naming: XX/20
+   - Logic & Structure: XX/20
+   - Architecture & Orchestration: XX/15
+   - Performance & Bulk Safety: XX/20
+   - Error Handling & Observability: XX/20
+   - Security & Governance: XX/15
+
 ✓ Deployment: SUCCESSFUL
   Org: [target-org]
   Job ID: [deployment-job-id]
 
 📋 Next Steps:
-  1. Complete testing checklist
-  2. [If Draft] Activate after testing: Setup → Flows → [FlowName] → Activate
-  3. Monitor execution in Debug Logs
-  4. Document issues/improvements
+  1. Complete testing checklist (unit, bulk, security, integration)
+  2. Review auto-generated documentation at docs/flows/[FlowName]_documentation.md
+  3. [If Draft] Activate after testing: Setup → Flows → [FlowName] → Activate
+  4. Monitor execution in Debug Logs
+  5. Complete governance checklist (if required)
+  6. Document issues/improvements
 
 📚 Resources:
   - Testing Examples: examples/[type]-example.md
+  - Orchestration Examples: examples/orchestration-*.md
+  - Error Logging Example: examples/error-logging-example.md
+  - Subflow Library: docs/subflow-library.md
+  - Orchestration Guide: docs/orchestration-guide.md
+  - Governance Checklist: docs/governance-checklist.md
   - Salesforce Docs: https://help.salesforce.com/s/articleView?id=sf.flow.htm
 ---
 ```

@@ -103,6 +103,8 @@ Expert Salesforce Flow Builder with deep knowledge of best practices, bulkificat
    - Detect: Multiple objects/steps, cross-object updates, conditional logic
    - Suggest: Parent-Child (independent), Sequential (dependent), Conditional (scenarios)
    - Ask: "Create parent flow + subflows?"
+   - **CRITICAL LIMITATION**: Record-triggered flows (processType: AutoLaunchedFlow) CANNOT call subflows via `<actionCalls>` with `<actionType>flow</actionType>`
+   - **Workaround**: Use inline orchestration with organized sections (comments/element naming) instead of separate subflows
    - See: [docs/orchestration-guide.md](docs/orchestration-guide.md)
 
 ### Phase 3: Flow Generation & Validation
@@ -242,10 +244,11 @@ sf org login user --username standard.user@company.com --target-org [org]
 
 4. **Completion Summary:**
 
-**Query Flow ID** (required for direct link):
+**Query Flow ID** (optional - for direct link):
 ```bash
 sf data query --query "SELECT Id, DeveloperName, VersionNumber, ActiveVersionId FROM FlowDefinition WHERE DeveloperName='[FlowName]' LIMIT 1" --target-org [org] --json
 ```
+**Note**: FlowDefinition may not be queryable in all orgs (setup object). If query fails, navigate via Setup → Flows.
 
 **Generate Summary:**
 ```
@@ -255,8 +258,9 @@ sf data query --query "SELECT Id, DeveloperName, VersionNumber, ActiveVersionId 
   Validation: PASSED (Score: XX/110)
   Deployment: Org=[target-org], Job=[job-id]
 
-  🔗 Direct Flow Link: https://[instance-url]/lightning/setup/Flows/page?address=%2F[flow-id]
-     (Open in Salesforce to view/edit)
+  🔗 Navigate to Flow:
+     Setup → Process Automation → Flows → Search "[FlowName]"
+     Or: https://[instance-url]/lightning/setup/Flows/home
 
 Next Steps:
 1. Complete testing (unit, bulk, security, integration)
@@ -336,6 +340,13 @@ Correct order within `<recordLookups>`:
 - `inputReference` placement varies by context
 - Multiple conflicting rules in Metadata API
 - **Recommendation**: Create Transform elements in Flow Builder UI, then deploy - do NOT hand-write
+
+**actionCalls Limitation (Record-Triggered Flows):**
+- ❌ **CANNOT use** `<actionCalls>` with `<actionType>flow</actionType>` in record-triggered flows (processType: AutoLaunchedFlow)
+- Error: "You can't use the Flows action type in flows with the Autolaunched Flow process type"
+- ✅ **Solution**: Use inline orchestration with organized sections instead of calling subflows
+- Pattern: Section 1 (Contact creation) → Section 2 (Opportunity creation) → Section 3 (Notification) with clear element naming and comments
+- **Note**: Screen Flows and certain Autolaunched flows CAN call subflows - limitation is specific to record-triggered flows
 
 ## Edge Cases & Troubleshooting
 

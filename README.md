@@ -50,7 +50,6 @@ All scripts are located in the `scripts/` folder:
 | `./scripts/install.sh` | Install skills (use `--local` for project-only) |
 | `./scripts/upgrade.sh` | Upgrade to latest version |
 | `./scripts/uninstall.sh` | Remove all skills |
-| `./scripts/sync-skills.sh` | Sync from ~/.claude/skills to repo |
 
 ## Prerequisites
 

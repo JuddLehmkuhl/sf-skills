@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced Flow Validator with 6-Category Scoring (v2.0.0)
+Enhanced Flow Validator with 6-Category Scoring (v2.1.0)
 
 Validates Salesforce Flows across 6 best practice categories:
 1. Design & Naming
@@ -9,6 +9,12 @@ Validates Salesforce Flows across 6 best practice categories:
 4. Performance & Bulk Safety
 5. Error Handling & Observability
 6. Security & Governance
+
+v2.1.0 Fixes:
+- FIXED: DML-in-loop detection now traces actual connector paths
+- FIXED: Subflow recommendation skipped for record-triggered flows (can't call subflows via XML)
+- FIXED: Error logging detection includes inline patterns (not just subflows)
+- IMPROVED: Better understanding of $Record context in record-triggered flows
 
 v2.0.0 New Validations:
 - storeOutputAutomatically detection (data leak prevention)
@@ -228,7 +234,12 @@ class EnhancedFlowValidator:
         subflow_count = self._count_elements('subflows')
         decision_count = self._count_elements('decisions')
 
-        if subflow_count == 0:
+        # v2.1.0 FIX: Skip subflow recommendation for record-triggered flows
+        # Record-triggered flows (AutoLaunchedFlow with triggerType) CANNOT call subflows
+        # via XML deployment due to Metadata API limitations
+        is_record_triggered = self._is_record_triggered_flow()
+
+        if subflow_count == 0 and not is_record_triggered:
             # Check if flow is complex enough to warrant subflows
             total_elements = sum([
                 self._count_elements('recordCreates'),
@@ -244,6 +255,22 @@ class EnhancedFlowValidator:
                     'category': 'Orchestration',
                     'message': 'Complex flow with no subflows - consider breaking into components',
                     'suggestion': 'Use Parent-Child pattern for better maintainability'
+                })
+        elif subflow_count == 0 and is_record_triggered:
+            # For record-triggered flows, recommend inline orchestration instead
+            total_elements = sum([
+                self._count_elements('recordCreates'),
+                self._count_elements('recordUpdates'),
+                self._count_elements('recordDeletes'),
+                self._count_elements('recordLookups'),
+                decision_count
+            ])
+            if total_elements > 15:
+                # Only suggest for very complex flows, and don't deduct points
+                advisory.append({
+                    'category': 'Orchestration',
+                    'message': 'Complex record-triggered flow - consider inline section organization',
+                    'suggestion': 'Use XML comments and clear element naming to organize sections (subflows not supported via XML deployment)'
                 })
 
         # Modularity (5 points)
@@ -503,14 +530,120 @@ class EnhancedFlowValidator:
         ])
 
     def _has_dml_in_loops(self) -> bool:
-        """Check if DML operations exist inside loops."""
-        # Simplified check - would need more sophisticated analysis for production
+        """
+        Check if DML operations exist inside loops by tracing connector paths.
+
+        v2.1.0 FIX: Now properly traces connectors to determine if DML is actually
+        inside the loop path (nextValueConnector) vs. outside (noMoreValuesConnector).
+
+        The correct pattern is:
+        - Loop → Assignment (collect records) → back to Loop
+        - Loop (noMoreValuesConnector) → DML (OUTSIDE loop - this is correct!)
+
+        We should only flag DML that is reachable via nextValueConnector path.
+        """
         loops = self.root.findall('.//sf:loops', self.namespace)
         if not loops:
             return False
 
-        # Check if any DML elements exist (simplified)
-        return self._count_dml_operations() > 0 and len(loops) > 0
+        # Build element lookup map for faster access
+        element_map = self._build_element_map()
+
+        for loop in loops:
+            loop_name_elem = loop.find('sf:name', self.namespace)
+            loop_name = loop_name_elem.text if loop_name_elem is not None else ''
+
+            # Get the nextValueConnector target (this is the loop body - INSIDE the loop)
+            next_connector = loop.find('sf:nextValueConnector/sf:targetReference', self.namespace)
+            if next_connector is None:
+                continue
+
+            # Get the noMoreValuesConnector target (this is OUTSIDE the loop)
+            exit_connector = loop.find('sf:noMoreValuesConnector/sf:targetReference', self.namespace)
+            exit_target = exit_connector.text if exit_connector is not None else None
+
+            # Trace the path from nextValueConnector, stopping at the loop itself or exit
+            visited = set()
+            if self._has_dml_in_path(next_connector.text, loop_name, exit_target, visited, element_map):
+                return True
+
+        return False
+
+    def _build_element_map(self) -> Dict[str, ET.Element]:
+        """Build a map of element names to elements for fast lookup."""
+        element_map = {}
+        element_types = [
+            'assignments', 'decisions', 'recordCreates', 'recordUpdates',
+            'recordDeletes', 'recordLookups', 'loops', 'subflows', 'screens'
+        ]
+        for elem_type in element_types:
+            for elem in self.root.findall(f'.//sf:{elem_type}', self.namespace):
+                name_elem = elem.find('sf:name', self.namespace)
+                if name_elem is not None:
+                    element_map[name_elem.text] = (elem_type, elem)
+        return element_map
+
+    def _has_dml_in_path(self, current: str, loop_name: str, exit_target: str,
+                         visited: set, element_map: Dict) -> bool:
+        """
+        Recursively check if a path contains DML operations.
+
+        Args:
+            current: Current element name to check
+            loop_name: Name of the loop we started from (to detect loop-back)
+            exit_target: The noMoreValuesConnector target (path after loop exits)
+            visited: Set of visited elements to prevent infinite loops
+            element_map: Map of element names to (type, element) tuples
+
+        Returns:
+            True if DML is found in the loop body path
+        """
+        if current in visited:
+            return False
+        if current == loop_name:
+            # We've looped back to the loop itself - this is expected, no DML found on this path
+            return False
+        if current == exit_target:
+            # We've reached the exit path - DML here is OUTSIDE the loop (correct pattern)
+            return False
+
+        visited.add(current)
+
+        if current not in element_map:
+            return False
+
+        elem_type, elem = element_map[current]
+
+        # Check if this element is a DML operation
+        if elem_type in ['recordCreates', 'recordUpdates', 'recordDeletes']:
+            return True
+
+        # Follow all connectors from this element
+        connectors = []
+
+        # Standard connector
+        connector = elem.find('sf:connector/sf:targetReference', self.namespace)
+        if connector is not None:
+            connectors.append(connector.text)
+
+        # Fault connector (don't follow - error path)
+        # Decision rules
+        for rule in elem.findall('.//sf:rules', self.namespace):
+            rule_connector = rule.find('sf:connector/sf:targetReference', self.namespace)
+            if rule_connector is not None:
+                connectors.append(rule_connector.text)
+
+        # Default connector for decisions
+        default_connector = elem.find('sf:defaultConnector/sf:targetReference', self.namespace)
+        if default_connector is not None:
+            connectors.append(default_connector.text)
+
+        # Recursively check all paths
+        for next_target in connectors:
+            if self._has_dml_in_path(next_target, loop_name, exit_target, visited.copy(), element_map):
+                return True
+
+        return False
 
     def _has_transform(self) -> bool:
         """Check if flow uses Transform element."""
@@ -532,11 +665,58 @@ class EnhancedFlowValidator:
         return count
 
     def _has_error_logging(self) -> bool:
-        """Check if flow has error logging."""
+        """
+        Check if flow has error logging.
+
+        v2.1.0 FIX: Now also detects inline error logging patterns, not just subflows.
+        This is important because record-triggered flows can't call subflows via XML.
+        """
+        # Check for subflow-based error logging
         for subflow in self.root.findall('.//sf:subflows', self.namespace):
             flow_name = subflow.find('sf:flowName', self.namespace)
             if flow_name is not None and 'LogError' in flow_name.text:
                 return True
+
+        # Check for inline error logging patterns (v2.1.0)
+        # Pattern 1: Assignment that references $Flow.FaultMessage
+        for assignment in self.root.findall('.//sf:assignments', self.namespace):
+            for item in assignment.findall('.//sf:assignmentItems', self.namespace):
+                value_elem = item.find('sf:value/sf:elementReference', self.namespace)
+                if value_elem is not None and 'FaultMessage' in (value_elem.text or ''):
+                    return True
+
+        # Pattern 2: Record create with Error_Log or similar object
+        for create in self.root.findall('.//sf:recordCreates', self.namespace):
+            # Check input reference for error-related naming
+            input_ref = create.find('sf:inputReference', self.namespace)
+            if input_ref is not None:
+                ref_text = input_ref.text or ''
+                if any(pattern in ref_text.lower() for pattern in ['error', 'log', 'fault']):
+                    return True
+
+            # Check object type
+            obj = create.find('sf:object', self.namespace)
+            if obj is not None:
+                obj_text = obj.text or ''
+                if any(pattern in obj_text.lower() for pattern in ['error', 'log']):
+                    return True
+
+        return False
+
+    def _is_record_triggered_flow(self) -> bool:
+        """
+        Check if this is a record-triggered flow.
+
+        v2.1.0: Added to properly identify record-triggered flows which have
+        different constraints (e.g., can't call subflows via XML deployment).
+        """
+        start = self.root.find('.//sf:start', self.namespace)
+        if start is not None:
+            trigger_type = start.find('sf:triggerType', self.namespace)
+            if trigger_type is not None:
+                trigger_text = trigger_type.text or ''
+                if trigger_text in ['RecordAfterSave', 'RecordBeforeSave', 'RecordBeforeDelete']:
+                    return True
         return False
 
     def _estimate_line_count(self) -> int:

@@ -94,7 +94,7 @@ description: Clear description of what this skill does and when Claude should us
 
 ### Salesforce-Specific Testing
 
-For sf-deployment and sf-flow-builder:
+For sf-deploy and sf-flow:
 
 1. Test with multiple Salesforce orgs (sandbox, scratch orgs)
 2. Verify CLI command execution
@@ -125,7 +125,7 @@ For sf-deployment and sf-flow-builder:
 **Examples**:
 
 ```
-feat(sf-flow-builder): Add Platform Event flow template
+feat(sf-flow): Add Platform Event flow template
 
 - Added new template for platform event-triggered flows
 - Updated documentation with usage examples
@@ -135,7 +135,7 @@ Closes #123
 ```
 
 ```
-fix(sf-deployment): Fix dry-run flag in validation
+fix(sf-deploy): Fix dry-run flag in validation
 
 - Changed --check-only to --dry-run for sf CLI v2
 - Updated documentation to reflect modern CLI

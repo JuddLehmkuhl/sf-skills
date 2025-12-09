@@ -1,9 +1,9 @@
 ---
-name: sf-flow-builder
+name: sf-flow
 description: Creates and validates Salesforce flows using best practices and metadata standards. Expert Flow Builder with deep knowledge of bulkification, Winter '26 (API 62.0), and 110-point scoring validation. Supports 7 flow types with strict mode enforcement.
 ---
 
-# sf-flow-builder: Salesforce Flow Creation and Validation
+# sf-flow: Salesforce Flow Creation and Validation
 
 Expert Salesforce Flow Builder with deep knowledge of best practices, bulkification, and Winter '26 (API 62.0) metadata. Create production-ready, performant, secure, and maintainable flows.
 
@@ -27,7 +27,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-flow-builder/hooks/scripts/v
 
 1. **Flow Generation**: Create well-structured Flow metadata XML from requirements
 2. **Strict Validation**: Enforce best practices with comprehensive checks and scoring
-3. **Safe Deployment**: Integrate with sf-deployment skill for two-step validation and deployment
+3. **Safe Deployment**: Integrate with sf-deploy skill for two-step validation and deployment
 4. **Testing Guidance**: Provide type-specific testing checklists and verification steps
 
 ---
@@ -184,10 +184,10 @@ Score: 92/110 ⭐⭐⭐⭐ Very Good
 
 ### Phase 4: Deployment & Integration
 
-⚠️ **MANDATORY: Use sf-deployment Skill** ⚠️
+⚠️ **MANDATORY: Use sf-deploy Skill** ⚠️
 
 **NEVER use `sf project deploy` or any direct CLI commands via Bash for flow deployment.**
-**ALWAYS invoke the sf-deployment skill.**
+**ALWAYS invoke the sf-deploy skill.**
 
 This ensures:
 - Two-step validation (dry-run → actual deploy)
@@ -202,13 +202,13 @@ sf project deploy start --source-dir force-app/main/default/flows --target-org m
 
 ✅ **CORRECT** (required approach):
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Deploy flow at force-app/main/default/flows/[FlowName].flow-meta.xml to [target-org] with --dry-run first"
 ```
 
 **Step 1: Validation (Check-Only)**
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Deploy flow at force-app/main/default/flows/[FlowName].flow-meta.xml to [target-org] with --dry-run. Do NOT deploy yet."
 ```
 
@@ -216,14 +216,14 @@ Review: Check for field access, permissions, conflicts.
 
 **Step 2: Actual Deployment** (only if validation succeeds)
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Proceed with actual deployment of flow to [target-org]."
 ```
 
 **Step 3: Activation**
 ```
 Edit: <status>Draft</status> → <status>Active</status>
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Deploy activated flow to [target-org]"
 ```
 
@@ -520,7 +520,7 @@ Request: "Create test records to trigger Account_After_Save_Flow - include edge 
 ### Example Workflow
 
 1. Create record-triggered flow for Account
-2. Deploy to sandbox via sf-deployment
+2. Deploy to sandbox via sf-deploy
 3. Generate test data:
    ```
    Skill(skill="sf-data")
@@ -533,9 +533,9 @@ Request: "Create test records to trigger Account_After_Save_Flow - include edge 
 
 ## Dependencies
 
-- **sf-deployment** (optional): Required for deploying flows to Salesforce orgs
-  - If not installed, flows will be created locally but cannot be deployed via `Skill(skill="sf-deployment")`
-  - Install: `/plugin install github:Jaganpro/sf-skills/sf-deployment`
+- **sf-deploy** (optional): Required for deploying flows to Salesforce orgs
+  - If not installed, flows will be created locally but cannot be deployed via `Skill(skill="sf-deploy")`
+  - Install: `/plugin install github:Jaganpro/sf-skills/sf-deploy`
 
 - **sf-metadata** (optional): Query org metadata before flow creation
   - Verifies objects and fields exist before building flows

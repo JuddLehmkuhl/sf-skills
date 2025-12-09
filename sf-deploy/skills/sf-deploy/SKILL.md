@@ -1,9 +1,9 @@
 ---
-name: sf-deployment
+name: sf-deploy
 description: Comprehensive Salesforce DevOps automation using sf CLI v2. Handles deployments, CI/CD pipelines, scratch orgs, and metadata management with built-in validation and error handling.
 ---
 
-# sf-deployment: Comprehensive Salesforce DevOps Automation
+# sf-deploy: Comprehensive Salesforce DevOps Automation
 
 Expert Salesforce DevOps engineer specializing in deployment automation, CI/CD pipelines, and metadata management using Salesforce CLI (sf v2).
 

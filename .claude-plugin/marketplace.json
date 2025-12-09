@@ -16,10 +16,10 @@
       "strict": false,
       "skills": [
         "./sf-apex/skills/sf-apex",
-        "./sf-flow-builder/skills/sf-flow-builder",
+        "./sf-flow/skills/sf-flow",
         "./sf-metadata/skills/sf-metadata",
         "./sf-data/skills/sf-data",
-        "./sf-deployment/skills/sf-deployment",
+        "./sf-deploy/skills/sf-deploy",
         "./skill-builder/skills/skill-builder"
       ]
     },
@@ -29,9 +29,9 @@
       "source": "./sf-apex"
     },
     {
-      "name": "sf-flow-builder",
+      "name": "sf-flow",
       "description": "Salesforce Flow creation and validation with 110-point scoring",
-      "source": "./sf-flow-builder"
+      "source": "./sf-flow"
     },
     {
       "name": "sf-metadata",
@@ -44,9 +44,9 @@
       "source": "./sf-data"
     },
     {
-      "name": "sf-deployment",
+      "name": "sf-deploy",
       "description": "Salesforce DevOps automation using sf CLI v2",
-      "source": "./sf-deployment"
+      "source": "./sf-deploy"
     },
     {
       "name": "skill-builder",

@@ -51,10 +51,10 @@ sf-apex/
 | Skill | Description | Status |
 |-------|-------------|--------|
 | **[sf-apex](sf-apex/)** | Apex code generation & review with 150-point scoring | ✅ Live |
-| **[sf-flow-builder](sf-flow-builder/)** | Flow creation & validation with 110-point scoring | ✅ Live |
+| **[sf-flow](sf-flow/)** | Flow creation & validation with 110-point scoring | ✅ Live |
 | **[sf-metadata](sf-metadata/)** | Metadata generation & org querying with 120-point scoring | ✅ Live |
 | **[sf-data](sf-data/)** | Data operations, SOQL expertise & test data factories with 130-point scoring | ✅ Live |
-| **[sf-deployment](sf-deployment/)** | DevOps & CI/CD automation using sf CLI v2 | ✅ Live |
+| **[sf-deploy](sf-deploy/)** | DevOps & CI/CD automation using sf CLI v2 | ✅ Live |
 | **[skill-builder](skill-builder/)** | Claude Code skill creation wizard | ✅ Live |
 
 ## 🚀 Installation
@@ -78,7 +78,7 @@ First, add the marketplace to Claude Code:
 /plugin install sf-apex@sf-skills
 
 # Flow development
-/plugin install sf-flow-builder@sf-skills
+/plugin install sf-flow@sf-skills
 
 # Metadata management (objects, fields, profiles, permission sets)
 /plugin install sf-metadata@sf-skills
@@ -87,7 +87,7 @@ First, add the marketplace to Claude Code:
 /plugin install sf-data@sf-skills
 
 # Deployment automation
-/plugin install sf-deployment@sf-skills
+/plugin install sf-deploy@sf-skills
 
 # Skill creation wizard
 /plugin install skill-builder@sf-skills
@@ -119,7 +119,7 @@ Some skills work together for a complete workflow:
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  sf-flow-builder │────▶│  sf-metadata    │     │  sf-deployment  │
+│  sf-flow │────▶│  sf-metadata    │     │  sf-deploy  │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
         │                       ▲                       ▲
         │               ┌───────┴───────┐               │
@@ -134,10 +134,10 @@ Some skills work together for a complete workflow:
               (test data generation)
 ```
 
-- **sf-apex** and **sf-flow-builder** can query **sf-metadata** to discover object/field information before generating code
-- **sf-apex** and **sf-flow-builder** can use **sf-data** to generate test data for trigger/flow testing
+- **sf-apex** and **sf-flow** can query **sf-metadata** to discover object/field information before generating code
+- **sf-apex** and **sf-flow** can use **sf-data** to generate test data for trigger/flow testing
 - **sf-data** can query **sf-metadata** for object structure before creating test records
-- **sf-apex**, **sf-flow-builder**, and **sf-metadata** use **sf-deployment** for deploying to Salesforce orgs
+- **sf-apex**, **sf-flow**, and **sf-metadata** use **sf-deploy** for deploying to Salesforce orgs
 - Each skill works standalone, but will prompt you to install dependencies if needed
 
 ## 🔌 Plugin Features
@@ -148,7 +148,7 @@ Each skill includes validation hooks that run automatically when you write files
 
 | Skill | File Type | Validation |
 |-------|-----------|------------|
-| sf-flow-builder | `*.flow-meta.xml` | Flow best practices, 110-point scoring, bulk safety |
+| sf-flow | `*.flow-meta.xml` | Flow best practices, 110-point scoring, bulk safety |
 | sf-apex | `*.cls`, `*.trigger` | Apex anti-patterns, 150-point scoring, TAF compliance |
 | sf-metadata | `*.object-meta.xml`, `*.field-meta.xml`, etc. | Metadata best practices, 120-point scoring, FLS checks |
 | sf-data | `*.apex`, `*.soql` | SOQL patterns, 130-point scoring, governor limits |
@@ -247,13 +247,13 @@ Hooks provide **advisory feedback** after writes - they inform but don't block.
 
 ## What's Included
 
-### sf-flow-builder
+### sf-flow
 - Flow XML generation with API 62.0 (Winter '26)
 - 7 flow type templates (Screen, Record-Triggered, Scheduled, etc.)
 - 6 reusable subflow patterns
 - Strict validation with 110-point scoring
 - Auto-Layout support (locationX/Y = 0)
-- Integration with sf-deployment and sf-metadata
+- Integration with sf-deploy and sf-metadata
 
 ### sf-apex
 - 150-point scoring across 8 categories
@@ -271,7 +271,7 @@ Hooks provide **advisory feedback** after writes - they inform but don't block.
 - Validation Rules with common patterns
 - Record Types and Page Layouts
 - Org metadata querying via sf CLI v2
-- Cross-skill integration (sf-apex and sf-flow-builder can query metadata)
+- Cross-skill integration (sf-apex and sf-flow can query metadata)
 
 ### sf-data
 - 130-point scoring across 7 categories
@@ -280,9 +280,9 @@ Hooks provide **advisory feedback** after writes - they inform but don't block.
 - Bulk API 2.0 operations (import, export, upsert, delete)
 - Record tracking and cleanup/rollback capabilities
 - Anonymous Apex execution for complex data setup
-- Cross-skill integration (sf-apex and sf-flow-builder use for testing)
+- Cross-skill integration (sf-apex and sf-flow use for testing)
 
-### sf-deployment
+### sf-deploy
 - Modern `sf` CLI v2 commands (not legacy sfdx)
 - Dry-run validation (`--dry-run`) before deployment
 - Test execution with coverage reporting

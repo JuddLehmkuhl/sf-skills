@@ -1,5 +1,5 @@
 {
-  "name": "sf-flow-builder",
+  "name": "sf-flow",
   "version": "2.0.0",
   "description": "Salesforce Flow creation and validation with 110-point scoring, API 62.0 support, and best practices enforcement",
   "author": {

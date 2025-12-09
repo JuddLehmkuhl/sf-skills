@@ -1,6 +1,6 @@
 ---
 name: sf-metadata
-description: Generates and queries Salesforce metadata including Custom Objects, Fields, Profiles, Permission Sets, Validation Rules, Record Types, and Layouts. 120-point scoring across 6 categories. Integrates with sf-apex and sf-flow-builder for on-demand object/field validation.
+description: Generates and queries Salesforce metadata including Custom Objects, Fields, Profiles, Permission Sets, Validation Rules, Record Types, and Layouts. 120-point scoring across 6 categories. Integrates with sf-apex and sf-flow for on-demand object/field validation.
 ---
 
 # sf-metadata: Salesforce Metadata Generation and Org Querying
@@ -12,8 +12,8 @@ Expert Salesforce administrator specializing in metadata architecture, security 
 1. **Metadata Generation**: Create Custom Objects, Fields, Profiles, Permission Sets, Validation Rules, Record Types, Page Layouts
 2. **Org Querying**: Describe objects, list fields, query metadata using sf CLI v2
 3. **Validation & Scoring**: Score metadata against 6 categories (0-120 points)
-4. **Cross-Skill Integration**: Provide metadata discovery for sf-apex and sf-flow-builder
-5. **Deployment Integration**: Deploy metadata via sf-deployment skill
+4. **Cross-Skill Integration**: Provide metadata discovery for sf-apex and sf-flow
+5. **Deployment Integration**: Deploy metadata via sf-deploy skill
 
 ## ⚠️ CRITICAL: Orchestration Workflow Order
 
@@ -235,13 +235,13 @@ AskUserQuestion:
 
 **Step 1: Validation**
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Deploy metadata at force-app/main/default/objects/[ObjectName] to [target-org] with --dry-run"
 ```
 
 **Step 2: Deploy** (only if validation succeeds)
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Proceed with actual deployment to [target-org]"
 ```
 
@@ -463,21 +463,21 @@ Skill(skill="sf-metadata")
 Request: "Query org [alias] to describe object [ObjectName] and list all fields"
 ```
 
-### Invoked BY sf-flow-builder
+### Invoked BY sf-flow
 
-sf-flow-builder can call sf-metadata to verify object configuration before creating flows:
+sf-flow can call sf-metadata to verify object configuration before creating flows:
 
 ```
 Skill(skill="sf-metadata")
 Request: "Describe object [ObjectName] in org [alias] - show fields, record types, and validation rules"
 ```
 
-### Invokes sf-deployment
+### Invokes sf-deploy
 
-sf-metadata calls sf-deployment for deploying generated metadata:
+sf-metadata calls sf-deploy for deploying generated metadata:
 
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Deploy metadata at [path] to [target-org] with --dry-run"
 ```
 
@@ -551,9 +551,9 @@ sf schema generate field --label "My Field" --object Account
 
 ## Dependencies
 
-- **sf-deployment** (optional): Required for deploying metadata to Salesforce orgs
-  - If not installed, metadata will be created locally but cannot be deployed via `Skill(skill="sf-deployment")`
-  - Install: `/plugin install github:Jaganpro/sf-skills/sf-deployment`
+- **sf-deploy** (optional): Required for deploying metadata to Salesforce orgs
+  - If not installed, metadata will be created locally but cannot be deployed via `Skill(skill="sf-deploy")`
+  - Install: `/plugin install github:Jaganpro/sf-skills/sf-deploy`
 
 ## Notes
 

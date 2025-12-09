@@ -62,7 +62,7 @@ Request: "Describe Invoice__c in org dev - show all fields"
 ```
 Then use sf-data with accurate field names.
 
-### From sf-apex / sf-flow-builder
+### From sf-apex / sf-flow
 ```
 Skill(skill="sf-data")
 Request: "Create 251 test Accounts to trigger AccountTrigger bulk testing"

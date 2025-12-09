@@ -437,7 +437,7 @@ When generating flows programmatically or manually editing XML:
 
 ### Deployment
 - **Problem**: Using direct CLI commands
-- **Solution**: Always use sf-deployment skill
+- **Solution**: Always use sf-deploy skill
 
 ### $Record Context
 - **Problem**: Confusing Flow's `$Record` with Process Builder's `$Record__c`

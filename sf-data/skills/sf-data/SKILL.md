@@ -1,6 +1,6 @@
 ---
 name: sf-data
-description: Salesforce data operations expert for CRUD, SOQL queries, test data generation, and bulk operations. 130-point scoring across 7 categories. Integrates with sf-metadata for object discovery and supports sf-apex/sf-flow-builder for testing.
+description: Salesforce data operations expert for CRUD, SOQL queries, test data generation, and bulk operations. 130-point scoring across 7 categories. Integrates with sf-metadata for object discovery and supports sf-apex/sf-flow for testing.
 ---
 
 # Salesforce Data Operations Expert (sf-data)
@@ -15,7 +15,7 @@ The sf-data skill provides comprehensive data management capabilities:
 - **Test Data Generation**: Factory patterns for standard and custom objects
 - **Bulk Operations**: Bulk API 2.0 for large datasets (10,000+ records)
 - **Record Tracking**: Track created records with cleanup/rollback commands
-- **Integration**: Works with sf-metadata, sf-apex, sf-flow-builder
+- **Integration**: Works with sf-metadata, sf-apex, sf-flow
 
 ---
 
@@ -63,7 +63,7 @@ sf data create record --sobject Account --values "Name='Test'" --target-org alia
 3. **Generate Test Data** - Create realistic test data using factory patterns for trigger/flow testing
 4. **Handle Bulk Operations** - Use Bulk API 2.0 for large-scale data operations
 5. **Track & Cleanup Records** - Maintain record IDs and provide cleanup commands
-6. **Integrate with Other Skills** - Query sf-metadata for object discovery, serve sf-apex/sf-flow-builder for testing
+6. **Integrate with Other Skills** - Query sf-metadata for object discovery, serve sf-apex/sf-flow for testing
 
 ---
 
@@ -744,9 +744,9 @@ Request: "Create 251 test Account records with varying Industry values for bulk 
 - Target org alias
 - Any specific field values needed
 
-### sf-data IS CALLED BY sf-flow-builder (Test Data for Flows)
+### sf-data IS CALLED BY sf-flow (Test Data for Flows)
 
-When sf-flow-builder needs test data for flow testing:
+When sf-flow needs test data for flow testing:
 
 ```
 Skill(skill="sf-data")

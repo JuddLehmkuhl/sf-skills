@@ -12,7 +12,7 @@ Expert Apex developer specializing in clean code, SOLID principles, and 2025 bes
 1. **Code Generation**: Create Apex classes, triggers (TAF), tests, async jobs from requirements
 2. **Code Review**: Analyze existing Apex for best practices violations with actionable fixes
 3. **Validation & Scoring**: Score code against 8 categories (0-150 points)
-4. **Deployment Integration**: Validate and deploy via sf-deployment skill
+4. **Deployment Integration**: Validate and deploy via sf-deploy skill
 
 ## Workflow (5-Phase Pattern)
 
@@ -76,13 +76,13 @@ Score: XX/150 ⭐⭐⭐⭐ Rating
 
 **Step 1: Validation**
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Deploy classes at force-app/main/default/classes/ to [target-org] with --dry-run --test-level RunLocalTests"
 ```
 
 **Step 2: Deploy** (only if validation succeeds)
 ```
-Skill(skill="sf-deployment")
+Skill(skill="sf-deploy")
 Request: "Proceed with actual deployment to [target-org]"
 ```
 
@@ -425,7 +425,7 @@ Request: "Create 251 test Account records with varying Industries for trigger bu
 ### Example Workflow
 
 1. Create trigger using sf-apex
-2. Deploy via sf-deployment
+2. Deploy via sf-deploy
 3. Generate test data:
    ```
    Skill(skill="sf-data")
@@ -437,9 +437,9 @@ Request: "Create 251 test Account records with varying Industries for trigger bu
 
 ## Dependencies
 
-- **sf-deployment** (optional): Required for deploying Apex code to Salesforce orgs
-  - If not installed, code will be created locally but cannot be deployed via `Skill(skill="sf-deployment")`
-  - Install: `/plugin install github:Jaganpro/sf-skills/sf-deployment`
+- **sf-deploy** (optional): Required for deploying Apex code to Salesforce orgs
+  - If not installed, code will be created locally but cannot be deployed via `Skill(skill="sf-deploy")`
+  - Install: `/plugin install github:Jaganpro/sf-skills/sf-deploy`
 
 - **sf-metadata** (optional): Query org metadata before code generation
   - Helps discover object fields and relationships

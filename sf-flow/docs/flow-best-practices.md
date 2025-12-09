@@ -530,7 +530,7 @@ For flow elements (decisions, assignments, etc.):
 ### Testing & Deployment
 - [ ] Test with bulk data (200+ records)
 - [ ] Keep flows in Draft until fully tested
-- [ ] **Always use sf-deployment skill** - never direct CLI commands
+- [ ] **Always use sf-deploy skill** - never direct CLI commands
 
 ---
 

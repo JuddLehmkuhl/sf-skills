@@ -21,7 +21,7 @@
         "./sf-data/skills/sf-data",
         "./sf-deploy/skills/sf-deploy",
         "./skill-builder/skills/skill-builder",
-        "./sf-agentforce/skills/sf-agentforce"
+        "./sf-ai-agentforce_scripts/skills/sf-ai-agentforce_scripts"
       ]
     },
     {
@@ -55,9 +55,9 @@
       "source": "./skill-builder"
     },
     {
-      "name": "sf-agentforce",
+      "name": "sf-ai-agentforce_scripts",
       "description": "Agentforce agent creation using Agent Script syntax with 100-point scoring (API v64+)",
-      "source": "./sf-agentforce"
+      "source": "./sf-ai-agentforce_scripts"
     }
   ]
 }

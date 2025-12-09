@@ -13,7 +13,7 @@ Expert Agentforce developer specializing in Agent Script syntax, topic design, a
 2. **Topic Management**: Create and configure agent topics with proper transitions
 3. **Action Integration**: Connect actions to Flows, Apex, or external services
 4. **Validation & Scoring**: Score agents against best practices (0-100 points)
-5. **Deployment Integration**: Deploy via sf-deploy skill
+5. **Deployment**: Publish agents using `sf agent publish authoring-bundle`
 
 ## ⚠️ CRITICAL: API Version Requirement
 
@@ -28,6 +28,22 @@ If API version < 64, Agent Script features won't be available.
 
 ---
 
+## ⚠️ CRITICAL: File Extension
+
+**Agent Script files use `.agent` extension (NOT `.agentscript`)**
+
+Files must be placed at:
+```
+force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].agent
+```
+
+Each bundle also requires a metadata XML file:
+```
+force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].bundle-meta.xml
+```
+
+---
+
 ## ⚠️ CRITICAL: Indentation Rules
 
 **Agent Script uses 4-SPACE indentation (NOT tabs, NOT 3 spaces)**
@@ -35,12 +51,12 @@ If API version < 64, Agent Script features won't be available.
 ```agentscript
 # ✅ CORRECT - 4 spaces
 config:
-    agent_name: "My_Agent"
+    developer_name: "My_Agent"
     description: "My agent description"
 
 # ❌ WRONG - 3 spaces (common mistake!)
 config:
-   agent_name: "My_Agent"
+   developer_name: "My_Agent"
 ```
 
 ---
@@ -57,7 +73,7 @@ Use **AskUserQuestion** to gather:
 - **System persona**: What tone/behavior should the agent have?
 
 **Then**:
-1. Check existing agents: `Glob: **/aiAuthoringBundles/**/*.agentscript`
+1. Check existing agents: `Glob: **/aiAuthoringBundles/**/*.agent`
 2. Check for sfdx-project.json to confirm Salesforce project structure
 3. Create TodoWrite tasks
 
@@ -67,25 +83,36 @@ Use **AskUserQuestion** to gather:
 
 | Pattern | Use When | Template |
 |---------|----------|----------|
-| Simple Q&A | Single topic, no actions | `templates/agent/simple-qa.agentscript` |
-| Multi-Topic | Multiple conversation modes | `templates/topics/multi-topic.agentscript` |
-| Action-Based | External integrations needed | `templates/actions/flow-action.agentscript` |
-| Error Handling | Critical operations | `templates/topics/error-handling.agentscript` |
+| Simple Q&A | Single topic, no actions | `templates/agent/simple-qa.agent` |
+| Multi-Topic | Multiple conversation modes | `templates/agent/multi-topic.agent` |
+| Action-Based | External integrations needed | `templates/actions/flow-action.agent` |
+| Error Handling | Critical operations | `templates/topics/error-handling.agent` |
 
 Load via: `Read: ../../templates/[path]` (relative to SKILL.md location)
 
 ### Phase 3: Generation / Validation
 
-**Create Agent Script file** at:
+**Create TWO files** at:
 ```
-force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].agentscript
+force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].agent
+force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].bundle-meta.xml
 ```
 
-**Required blocks**:
-1. `config:` - Agent metadata (name, label, description)
-2. `system:` - Global instructions and messages
-3. `start_agent topic_selector:` - Entry point topic
-4. `topic [name]:` - At least one additional topic
+**Required bundle-meta.xml content**:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<AiAuthoringBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+  <bundleType>AGENT</bundleType>
+</AiAuthoringBundle>
+```
+
+**Required .agent blocks**:
+1. `system:` - Instructions and messages (MUST BE FIRST)
+2. `config:` - Agent metadata (developer_name, agent_label, description, default_agent_user)
+3. `variables:` - Linked and mutable variables
+4. `language:` - Locale settings
+5. `start_agent topic_selector:` - Entry point topic with label and description
+6. `topic [name]:` - Additional topics (each with label and description)
 
 **Validation Report Format** (6-Category Scoring 0-100):
 ```
@@ -99,84 +126,235 @@ Score: 85/100 ⭐⭐⭐⭐ Very Good
 
 Issues:
 ⚠️ [Syntax] Line 15: Use 4-space indentation, found 3 spaces
-⚠️ [Topic] Missing description for topic 'checkout'
+⚠️ [Topic] Missing label for topic 'checkout'
 ✓ All topic references valid
 ✓ All variable references valid
 ```
 
 ### Phase 4: Deployment
 
-**Step 1: Commit to Org**
+**Step 1: Validate (Optional but Recommended)**
 ```bash
-sf agent generate version --name [AgentName] --target-org [alias]
+sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 
-**Step 2: Activate Version** (optional)
+**Step 2: Publish Agent**
 ```bash
-sf agent activate version --name [AgentName] --version-number [N] --target-org [alias]
+sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 
-**Step 3: Preview Agent**
+This command:
+- Validates the Agent Script syntax
+- Creates Bot, BotVersion, and GenAi metadata
+- Retrieves generated metadata back to project
+- Deploys the AiAuthoringBundle to the org
+
+**Step 3: Open in Agentforce Studio (Optional)**
 ```bash
-sf agent preview --name [AgentName] --target-org [alias]
+sf org open agent --api-name [AgentName] --target-org [alias]
+```
+
+**Step 4: Activate Agent (Optional)**
+```bash
+sf agent activate --api-name [AgentName] --target-org [alias]
 ```
 
 ### Phase 5: Verification
 
 ```
 ✓ Agent Complete: [AgentName]
-  Type: Agentforce Agent | API: 64.0
+  Type: Agentforce Agent | API: 64.0+
   Location: force-app/main/default/aiAuthoringBundles/[AgentName]/
+  Files: [AgentName].agent, [AgentName].bundle-meta.xml
   Validation: PASSED (Score: XX/100)
   Topics: [N] | Actions: [M] | Variables: [P]
+  Published: Yes | Activated: [Yes/No]
 
 Next Steps:
-  1. Preview in org: sf agent preview --name [AgentName]
+  1. Open in Studio: sf org open agent --api-name [AgentName]
   2. Test in Agentforce Testing Center
-  3. Activate when ready: sf agent activate version
+  3. Activate when ready: sf agent activate
 ```
 
 ---
 
 ## Agent Script Syntax Reference
 
-### Block Structure
+### Complete Working Example
 
 ```agentscript
-# Comments start with #
+system:
+    instructions: "You are a helpful assistant for Acme Corporation. Be professional and friendly. Never share confidential information."
+    messages:
+        welcome: "Hello! How can I help you today?"
+        error: "I apologize, but I encountered an issue. Please try again."
 
 config:
-    agent_name: "Agent_API_Name"
-    agent_label: "Human Readable Name"
-    description: "What this agent does"
-
-system:
-    messages:
-        welcome: "Hello! How can I help?"
-        error: "Sorry, something went wrong."
-    instructions:
-        | You are a helpful assistant.
-        | Be concise and accurate.
+    developer_name: "My_Agent"
+    default_agent_user: "user@example.com"
+    agent_label: "My Agent"
+    description: "A helpful assistant agent"
 
 variables:
-    var_name: mutable string = ""
-        description: "What this variable stores"
+    EndUserId: linked string
+        source: @MessagingSession.MessagingEndUserId
+        description: "Messaging End User ID"
+    RoutableId: linked string
+        source: @MessagingSession.Id
+        description: "Messaging Session ID"
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Contact ID"
+    user_query: mutable string
+        description: "The user's current question"
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
 
 start_agent topic_selector:
-    description: "Entry point - routes to topics"
+    label: "Topic Selector"
+    description: "Routes users to appropriate topics"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Determine what the user needs.
+            | Route to the appropriate topic.
         actions:
             go_to_help: @utils.transition to @topic.help
-                description: "Get help"
+            go_to_farewell: @utils.transition to @topic.farewell
 
 topic help:
+    label: "Help"
     description: "Provides help to users"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Answer the user's question helpfully.
+            | If you cannot help, offer alternatives.
+        actions:
+            back_to_selector: @utils.transition to @topic.topic_selector
+
+topic farewell:
+    label: "Farewell"
+    description: "Ends the conversation gracefully"
+
+    reasoning:
+        instructions: ->
+            | Thank the user for reaching out.
+            | Wish them a great day.
 ```
+
+### Block Order (CRITICAL)
+
+The blocks MUST appear in this order:
+1. `system:` (instructions and messages)
+2. `config:` (developer_name, default_agent_user, agent_label, description)
+3. `variables:` (linked variables first, then mutable variables)
+4. `language:` (locale settings)
+5. `start_agent [name]:` (entry point topic)
+6. `topic [name]:` (additional topics)
+
+### Config Block
+
+```agentscript
+config:
+    developer_name: "Agent_API_Name"
+    default_agent_user: "user@org.salesforce.com"
+    agent_label: "Human Readable Name"
+    description: "What this agent does"
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `developer_name` | Yes | API name (PascalCase with underscores) |
+| `default_agent_user` | Yes | Username for agent execution context |
+| `agent_label` | Yes | Human-readable name |
+| `description` | Yes | What the agent does |
+
+**IMPORTANT**: Use `developer_name`, NOT `agent_name`!
+
+### System Block
+
+```agentscript
+system:
+    instructions: "Global instructions for the agent. Be helpful and professional."
+    messages:
+        welcome: "Hello! How can I help you today?"
+        error: "I'm sorry, something went wrong. Please try again."
+```
+
+**Note**: System instructions can be a single string (for short instructions) or use `|` multiline format.
+
+### Variables Block
+
+**Linked Variables** (connect to Salesforce data):
+```agentscript
+variables:
+    EndUserId: linked string
+        source: @MessagingSession.MessagingEndUserId
+        description: "Messaging End User ID"
+    RoutableId: linked string
+        source: @MessagingSession.Id
+        description: "Messaging Session ID"
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Contact ID"
+```
+
+**Mutable Variables** (agent state):
+```agentscript
+variables:
+    user_name: mutable string
+        description: "User's name"
+    order_count: mutable number
+        description: "Number of items in cart"
+    is_verified: mutable boolean
+        description: "Whether identity is verified"
+```
+
+### Language Block
+
+```agentscript
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
+```
+
+### Topic Blocks
+
+**Entry point topic** (required):
+```agentscript
+start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes users to appropriate topics"
+
+    reasoning:
+        instructions: ->
+            | Determine what the user needs.
+            | Route to the appropriate topic.
+        actions:
+            go_to_orders: @utils.transition to @topic.orders
+            go_to_support: @utils.transition to @topic.support
+```
+
+**Additional topics**:
+```agentscript
+topic orders:
+    label: "Order Management"
+    description: "Handles order inquiries and processing"
+
+    reasoning:
+        instructions: ->
+            | Help the user with their order.
+            | Provide status updates and assistance.
+        actions:
+            back_to_menu: @utils.transition to @topic.topic_selector
+```
+
+**IMPORTANT**: Each topic MUST have both `label:` and `description:`!
 
 ### Resource Access (@ prefix)
 
@@ -187,22 +365,28 @@ topic help:
 | Topics | `@topic.name` | `@topic.checkout` |
 | Outputs | `@outputs.field` | `@outputs.temperature` |
 | Utilities | `@utils.transition` | `@utils.transition to @topic.X` |
+| Utilities | `@utils.escalate` | `@utils.escalate` |
 
-### Variable Types
+### Instructions Syntax
 
+**CRITICAL**: Use `instructions: ->` (space before arrow), NOT `instructions:->`
+
+**Procedural mode** (with logic):
 ```agentscript
-variables:
-    # String (text)
-    name: mutable string = ""
-        description: "User's name"
+reasoning:
+    instructions: ->
+        | Determine user intent.
+        | Provide helpful response.
+        | If unclear, ask clarifying questions.
+```
 
-    # Number (integer or decimal)
-    age: mutable number = 0
-        description: "User's age"
-
-    # Boolean (True/False - capitalized!)
-    confirmed: mutable boolean = False
-        description: "User confirmed action"
+**Multiline instructions** (prompt-only):
+```agentscript
+system:
+    instructions:
+        | You are a helpful assistant.
+        | Be professional and courteous.
+        | Never share confidential information.
 ```
 
 ### Action Definitions
@@ -273,18 +457,32 @@ process_order: @actions.create_order
 ```agentscript
 # Simple transition
 go_checkout: @utils.transition to @topic.checkout
-    description: "Proceed to checkout"
 
 # Conditional transition
 go_checkout: @utils.transition to @topic.checkout
-    description: "Proceed to checkout"
     available when @variables.cart_has_items == True
+```
+
+### Escalation to Human
+
+```agentscript
+topic escalation:
+    label: "Escalation"
+    description: "Handles requests to transfer to a live human agent"
+
+    reasoning:
+        instructions: ->
+            | If a user explicitly asks to transfer, escalate.
+            | Acknowledge and apologize for any inconvenience.
+        actions:
+            escalate_to_human: @utils.escalate
+                description: "Escalate to a human agent"
 ```
 
 ### Conditional Logic
 
 ```agentscript
-instructions:->
+instructions: ->
     if @variables.amount > 10000:
         set @variables.needs_approval = True
         | This amount requires manager approval.
@@ -309,7 +507,7 @@ instructions:->
 Use `{!...}` for variable interpolation in instructions:
 
 ```agentscript
-instructions:->
+instructions: ->
     | Hello {!@variables.user_name}!
     | Your account balance is {!@variables.balance}.
 ```
@@ -321,11 +519,12 @@ instructions:->
 ### Structure & Syntax (20 points)
 - Valid Agent Script syntax (-10 if parsing fails)
 - Correct 4-space indentation (-3 per violation)
-- Required blocks present (config, system, start_agent) (-5 each missing)
-- Valid file location in aiAuthoringBundles (-3 if wrong)
+- Required blocks present (system, config, start_agent, language) (-5 each missing)
+- Uses `developer_name` not `agent_name` (-5 if wrong)
+- File extension is `.agent` (-5 if wrong)
 
 ### Topic Design (20 points)
-- All topics have descriptions (-3 each missing)
+- All topics have `label:` and `description:` (-3 each missing)
 - Logical topic transitions (-3 per orphaned topic)
 - Entry point topic exists (start_agent) (-5 if missing)
 - Topic names follow snake_case (-2 each violation)
@@ -338,14 +537,14 @@ instructions:->
 
 ### Variable Management (15 points)
 - All variables have descriptions (-2 each missing)
+- Required linked variables present (EndUserId, RoutableId, ContactId) (-3 each missing)
 - Appropriate types used (-2 each mismatch)
-- Variables initialized with defaults (-2 each missing)
 - Variable names follow snake_case (-1 each violation)
 
 ### Instructions Quality (15 points)
+- Uses `instructions: ->` syntax (space before arrow) (-5 if wrong)
 - Clear, specific reasoning instructions (-3 if vague)
 - Edge cases handled (-3 if missing)
-- Appropriate use of conditionals (-2 if logic missing)
 - Template expressions valid (-3 each invalid)
 
 ### Security & Guardrails (10 points)
@@ -391,23 +590,40 @@ Request: "Create an agent that uses apex://CaseService.createCase to handle supp
 
 ### Pattern 1: Simple FAQ Agent
 ```agentscript
-config:
-    agent_name: "FAQ_Agent"
-    agent_label: "FAQ Agent"
-    description: "Answers frequently asked questions"
-
 system:
+    instructions: "You are a helpful FAQ assistant. Answer questions concisely. Never share confidential information."
     messages:
         welcome: "Hello! I can answer your questions."
         error: "Sorry, I encountered an issue."
-    instructions:
-        | You are a helpful FAQ assistant.
-        | Answer questions concisely.
+
+config:
+    developer_name: "FAQ_Agent"
+    default_agent_user: "agent.user@company.com"
+    agent_label: "FAQ Agent"
+    description: "Answers frequently asked questions"
+
+variables:
+    EndUserId: linked string
+        source: @MessagingSession.MessagingEndUserId
+        description: "Messaging End User ID"
+    RoutableId: linked string
+        source: @MessagingSession.Id
+        description: "Messaging Session ID"
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Contact ID"
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
 
 start_agent topic_selector:
+    label: "Topic Selector"
     description: "Routes to FAQ handling"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Listen to the user's question.
             | Provide a helpful, accurate response.
 ```
@@ -415,26 +631,37 @@ start_agent topic_selector:
 ### Pattern 2: Multi-Topic Router
 ```agentscript
 start_agent topic_selector:
+    label: "Topic Selector"
     description: "Routes users to appropriate topics"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Determine what the user needs help with.
             | Route to the appropriate topic.
         actions:
             orders: @utils.transition to @topic.order_management
-                description: "Help with orders"
             support: @utils.transition to @topic.support
-                description: "Technical support"
             billing: @utils.transition to @topic.billing
-                description: "Billing questions"
+
+topic order_management:
+    label: "Order Management"
+    description: "Helps with orders"
+
+    reasoning:
+        instructions: ->
+            | Help with order-related questions.
+        actions:
+            back: @utils.transition to @topic.topic_selector
 ```
 
 ### Pattern 3: Action with Validation
 ```agentscript
 topic order_processing:
+    label: "Order Processing"
     description: "Processes customer orders"
+
     reasoning:
-        instructions:->
+        instructions: ->
             if @variables.cart_total <= 0:
                 | Your cart is empty. Add items before checkout.
             if @variables.cart_total > 10000:
@@ -455,35 +682,40 @@ topic order_processing:
 |--------------|-------|-----|
 | Tab indentation | Syntax error | Use 4 spaces |
 | `@variable.name` | Wrong syntax | Use `@variables.name` (plural) |
+| `agent_name:` in config | Wrong field | Use `developer_name:` |
+| `instructions:->` | Missing space | Use `instructions: ->` |
+| Missing `label:` | Deployment fails | Add label to all topics |
+| Missing linked variables | Missing context | Add EndUserId, RoutableId, ContactId |
+| `.agentscript` extension | Wrong format | Use `.agent` extension |
 | Nested `run` | Not supported | Flatten to sequential `run` |
-| Missing topic description | Poor routing | Add description to all topics |
-| Hardcoded IDs | Not maintainable | Use variables or action lookups |
-| No system guardrails | Security risk | Add instructions in system block |
-| 3-space indent | Syntax error | Must be 4 spaces minimum |
+| Missing bundle-meta.xml | Deployment fails | Create XML alongside .agent |
+| No language block | Deployment fails | Add language block |
 
 ---
 
 ## CLI Commands Reference
 
 ```bash
-# Generate agent version from script
-sf agent generate version --name [AgentName] --target-org [alias]
+# Validate agent script (optional but recommended)
+sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
 
-# List agent versions
-sf agent list versions --name [AgentName] --target-org [alias]
+# Publish agent to org (creates Bot, BotVersion, GenAi metadata)
+sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 
-# Activate a version
-sf agent activate version --name [AgentName] --version-number [N] --target-org [alias]
+# Open agent in Agentforce Studio
+sf org open agent --api-name [AgentName] --target-org [alias]
 
-# Preview agent
-sf agent preview --name [AgentName] --target-org [alias]
+# Activate agent
+sf agent activate --api-name [AgentName] --target-org [alias]
 
-# Retrieve agent script
-sf project retrieve start --metadata AiAuthoringBundle:[AgentName] --target-org [alias]
+# Preview agent (requires connected app setup)
+sf agent preview --api-name [AgentName] --target-org [alias] --client-app [app]
 
-# Deploy agent
-sf project deploy start --source-dir force-app/main/default/aiAuthoringBundles/[AgentName] --target-org [alias]
+# Update plugin to latest (if commands missing)
+sf plugins install @salesforce/plugin-agent@latest
 ```
+
+**IMPORTANT**: Do NOT use `sf project deploy start` for Agent Script files. The standard Metadata API doesn't support direct `.agent` file deployment. Use `sf agent publish authoring-bundle` instead.
 
 ---
 
@@ -496,7 +728,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 
 **Scoring**: 100 points / 6 categories. Minimum 60 (60%) for deployment.
 
-**Hooks not firing?** Check: `CLAUDE_PLUGIN_ROOT` set, hooks.json valid, Python 3 in PATH, file matches pattern `*.agentscript`.
+**Hooks not firing?** Check: `CLAUDE_PLUGIN_ROOT` set, hooks.json valid, Python 3 in PATH, file matches pattern `*.agent`.
 
 ---
 
@@ -504,21 +736,41 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 
 | Insight | Issue | Fix |
 |---------|-------|-----|
+| File Extension | `.agentscript` not recognized | Use `.agent` |
+| Config Field | `agent_name` causes deploy failure | Use `developer_name` |
+| Instructions Syntax | `instructions:->` fails | Use `instructions: ->` (space!) |
+| Topic Fields | Missing `label` fails deploy | Add both `label` and `description` |
+| Linked Variables | Missing context variables | Add EndUserId, RoutableId, ContactId |
+| Language Block | Missing causes deploy failure | Add `language:` block |
+| Bundle XML | Missing causes deploy failure | Create `.bundle-meta.xml` file |
 | 4-Space Indentation | 3 spaces causes parse errors | Always use 4 spaces |
 | `@variables` is plural | `@variable.x` fails | Use `@variables.x` |
 | Boolean capitalization | `true/false` invalid | Use `True/False` |
-| One callback level | Nested `run` fails | Flatten callbacks |
-| Template syntax | `{@var}` invalid | Use `{!@variables.var}` |
+| Deploy Command | `sf project deploy` fails | Use `sf agent publish authoring-bundle` |
+
+---
+
+## Required Files Checklist
+
+Before deployment, ensure you have:
+
+- [ ] `force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].agent`
+- [ ] `force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].bundle-meta.xml`
+- [ ] `sfdx-project.json` in project root
+- [ ] Valid `default_agent_user` in config block
+- [ ] All linked variables (EndUserId, RoutableId, ContactId)
+- [ ] Language block present
+- [ ] All topics have `label:` and `description:`
 
 ---
 
 ## Reference & Dependencies
 
-**Docs**: `../../docs/` - best-practices, agent-script-syntax, topic-patterns, action-integration
+**Docs**: `../../docs/` - best-practices, agent-script-syntax
 
-**Dependencies**: sf-deploy (optional) for deployment. Install: `/plugin install github:Jaganpro/sf-skills/sf-deploy`
+**Dependencies**: sf-deploy (optional) for additional deployment options. Install: `/plugin install github:Jaganpro/sf-skills/sf-deploy`
 
-**Notes**: API 64.0+ required | Agent Script is Beta (Nov 2025) | Block if score < 60
+**Notes**: API 64.0+ required | Agent Script is GA (2025) | Block if score < 60
 
 ---
 

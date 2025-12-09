@@ -7,14 +7,17 @@ A minimal working example of an Agentforce agent using Agent Script.
 This agent demonstrates the simplest possible Agentforce implementation:
 - Pure LLM reasoning (no external actions)
 - Single FAQ topic with clear instructions
-- Proper topic navigation
+- Proper topic navigation with labels and descriptions
 - Session state tracking via variables
+- Required linked variables for messaging context
+- Escalation to human agent capability
 
 ## Files
 
 ```
 simple-faq-agent/
-├── Simple_FAQ_Agent.agentscript    # The agent definition
+├── Simple_FAQ_Agent.agent          # The agent definition
+├── Simple_FAQ_Agent.bundle-meta.xml # Required metadata XML
 └── README.md                        # This file
 ```
 
@@ -22,11 +25,13 @@ simple-faq-agent/
 
 | Feature | Implementation |
 |---------|----------------|
-| Entry point | `start_agent topic_selector` |
-| Main topic | `topic faq_handler` |
-| Exit topic | `topic farewell` |
-| Variables | `user_question`, `conversation_topic`, `question_count` |
-| Actions | Topic transitions only (no external integrations) |
+| Entry point | `start_agent topic_selector` with label |
+| Main topic | `topic faq_handler` with label |
+| Exit topic | `topic farewell` with label |
+| Escalation | `topic escalation` with @utils.escalate |
+| Linked Variables | `EndUserId`, `RoutableId`, `ContactId` |
+| Mutable Variables | `user_question`, `conversation_topic`, `question_count` |
+| Language | `en_US` default locale |
 
 ## Agent Structure
 
@@ -34,9 +39,9 @@ simple-faq-agent/
 topic_selector (entry)
     ↓
 faq_handler (main)
-    ↓         ↓
-topic_selector  farewell (exit)
-(loop back)
+    ↓         ↓         ↓
+topic_selector  farewell  escalation
+(loop back)     (exit)    (human)
 ```
 
 ## Deployment
@@ -45,25 +50,43 @@ topic_selector  farewell (exit)
 
 ```bash
 mkdir -p force-app/main/default/aiAuthoringBundles/Simple_FAQ_Agent
-cp Simple_FAQ_Agent.agentscript force-app/main/default/aiAuthoringBundles/Simple_FAQ_Agent/
+cp Simple_FAQ_Agent.agent force-app/main/default/aiAuthoringBundles/Simple_FAQ_Agent/
+cp Simple_FAQ_Agent.bundle-meta.xml force-app/main/default/aiAuthoringBundles/Simple_FAQ_Agent/
 ```
 
-### 2. Generate agent version
+### 2. Update the default_agent_user
 
-```bash
-sf agent generate version --name Simple_FAQ_Agent --target-org your-org-alias
+Edit `Simple_FAQ_Agent.agent` and change `default_agent_user` to a valid user in your org:
+
+```agentscript
+config:
+    developer_name: "Simple_FAQ_Agent"
+    default_agent_user: "your.user@yourorg.salesforce.com"  # Change this!
+    agent_label: "Simple FAQ Agent"
+    description: "A minimal FAQ agent that answers common questions using AI"
 ```
 
-### 3. Preview the agent
+### 3. Publish the agent
 
 ```bash
-sf agent preview --name Simple_FAQ_Agent --target-org your-org-alias
+sf agent publish authoring-bundle --api-name Simple_FAQ_Agent --target-org your-org-alias
 ```
 
-### 4. Activate when ready
+This command will:
+- Validate the Agent Script syntax
+- Create Bot, BotVersion, and GenAi metadata
+- Deploy the AiAuthoringBundle to your org
+
+### 4. Open in Agentforce Studio
 
 ```bash
-sf agent activate version --name Simple_FAQ_Agent --version-number 1 --target-org your-org-alias
+sf org open agent --api-name Simple_FAQ_Agent --target-org your-org-alias
+```
+
+### 5. Activate when ready
+
+```bash
+sf agent activate --api-name Simple_FAQ_Agent --target-org your-org-alias
 ```
 
 ## Customization Ideas
@@ -72,22 +95,28 @@ sf agent activate version --name Simple_FAQ_Agent --version-number 1 --target-or
 
 ```agentscript
 variables:
-    faq_category: mutable string = ""
+    faq_category: mutable string
         description: "Category of FAQ (shipping, returns, billing)"
 
 start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes to appropriate FAQ category"
+
     reasoning:
+        instructions: ->
+            | Determine what category the user's question falls into.
         actions:
             shipping_faq: @utils.transition to @topic.shipping_faq
-                description: "Shipping questions"
             returns_faq: @utils.transition to @topic.returns_faq
-                description: "Return policy questions"
 ```
 
 ### Add an external action
 
 ```agentscript
 topic order_lookup:
+    label: "Order Lookup"
+    description: "Looks up order status for customers"
+
     actions:
         get_order_status:
             description: "Look up order status"
@@ -100,6 +129,8 @@ topic order_lookup:
             target: "flow://Get_Order_Status"
 
     reasoning:
+        instructions: ->
+            | Help the user check their order status.
         actions:
             check_order: @actions.get_order_status
                 with order_id=...
@@ -111,24 +142,34 @@ topic order_lookup:
 Run the validator to check the agent:
 
 ```bash
-python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/validate_agentforce.py Simple_FAQ_Agent.agentscript
+python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/validate_agentforce.py Simple_FAQ_Agent.agent
 ```
 
 Expected output:
 ```
-Score: 95/100 ⭐⭐⭐⭐⭐ Excellent
+Score: 100/100 ⭐⭐⭐⭐⭐ Excellent
 ├─ Structure & Syntax: 20/20 (100%)
 ├─ Topic Design: 20/20 (100%)
 ├─ Action Integration: 20/20 (100%)
 ├─ Variable Management: 15/15 (100%)
 ├─ Instructions Quality: 15/15 (100%)
-└─ Security & Guardrails: 5/10 (50%)
+└─ Security & Guardrails: 10/10 (100%)
 
-Issues:
-⚠️ [Security & Guardrails] Consider adding more specific guardrails
+✅ No issues found!
 ```
 
 ## Requirements
 
 - API Version: 64.0+ (Summer '25 or later)
+- Salesforce CLI: @salesforce/plugin-agent v1.25.0 or later
 - Licenses: Agentforce (Default), Einstein Prompt Templates
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "Agent not found" | Ensure sfdx-project.json exists in project root |
+| "NEW AGENT USER not found" | Update `default_agent_user` to a valid org user |
+| "Internal Error" | Try a different user or check org permissions |
+| Syntax errors | Verify 4-space indentation and `instructions: ->` syntax |
+| Missing commands | Run `sf plugins install @salesforce/plugin-agent@latest` |

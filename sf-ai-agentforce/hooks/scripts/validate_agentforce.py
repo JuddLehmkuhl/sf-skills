@@ -3,6 +3,14 @@
 Agent Script Validator for sf-agentforce skill.
 Validates Agent Script syntax and best practices.
 Scoring: 100 points across 6 categories.
+
+Updated to match actual Salesforce Agent Script syntax (Dec 2025):
+- Uses developer_name (not agent_name)
+- Uses instructions: -> (space before arrow)
+- Requires label: for all topics
+- Requires linked variables (EndUserId, RoutableId, ContactId)
+- Requires language: block
+- File extension should be .agent (not .agentscript)
 """
 
 import re
@@ -24,6 +32,9 @@ class AgentScriptValidator:
 
     # Valid action targets
     VALID_TARGETS = ["flow://", "apex://"]
+
+    # Required linked variables for messaging context
+    REQUIRED_LINKED_VARS = ["EndUserId", "RoutableId", "ContactId"]
 
     def __init__(self):
         self.issues: List[Dict[str, Any]] = []
@@ -55,10 +66,14 @@ class AgentScriptValidator:
         lines = content.split("\n")
 
         # Run all validations
+        self._validate_file_extension(file_path)
         self._validate_indentation(lines)
         self._validate_blocks(content, lines)
+        self._validate_config(content)
+        self._validate_language(content)
         self._validate_topics(content, lines)
         self._validate_variables(content, lines)
+        self._validate_linked_variables(content)
         self._validate_actions(content, lines)
         self._validate_instructions(content, lines)
         self._validate_security(content, lines)
@@ -95,6 +110,16 @@ class AgentScriptValidator:
         if deduction > 0 and category in self.scores:
             self.scores[category]["score"] = max(
                 0, self.scores[category]["score"] - deduction
+            )
+
+    def _validate_file_extension(self, file_path: str):
+        """Validate file extension is .agent (preferred) not .agentscript."""
+        if file_path and file_path.endswith(".agentscript"):
+            self._add_issue(
+                "Structure & Syntax",
+                "File extension should be .agent (not .agentscript)",
+                "warning",
+                deduction=2,
             )
 
     def _validate_indentation(self, lines: List[str]):
@@ -167,42 +192,114 @@ class AgentScriptValidator:
                 deduction=5,
             )
 
-        # Check for agent_name in config
-        if not re.search(r"agent_name:", content):
+    def _validate_config(self, content: str):
+        """Validate config block has correct fields."""
+        # Check for developer_name (correct) vs agent_name (incorrect)
+        if re.search(r"agent_name:", content) and not re.search(r"developer_name:", content):
             self._add_issue(
                 "Structure & Syntax",
-                "Missing 'agent_name' in config block",
+                "Use 'developer_name:' instead of 'agent_name:' in config block",
+                "error",
+                deduction=5,
+            )
+
+        if not re.search(r"developer_name:", content):
+            self._add_issue(
+                "Structure & Syntax",
+                "Missing 'developer_name' in config block",
                 "error",
                 deduction=3,
+            )
+
+        # Check for default_agent_user
+        if not re.search(r"default_agent_user:", content):
+            self._add_issue(
+                "Structure & Syntax",
+                "Missing 'default_agent_user' in config block (required for deployment)",
+                "warning",
+                deduction=2,
+            )
+
+        # Check for agent_label
+        if not re.search(r"agent_label:", content):
+            self._add_issue(
+                "Structure & Syntax",
+                "Missing 'agent_label' in config block",
+                "warning",
+                deduction=1,
+            )
+
+    def _validate_language(self, content: str):
+        """Validate language block is present."""
+        if not re.search(r"^language:", content, re.MULTILINE):
+            self._add_issue(
+                "Structure & Syntax",
+                "Missing 'language:' block (required for deployment)",
+                "warning",
+                deduction=2,
             )
 
     def _validate_topics(self, content: str, lines: List[str]):
         """Validate topic definitions and transitions."""
         # Find all topic definitions
         topic_pattern = r"^(start_agent\s+)?topic\s+(\w+):"
-        topic_matches = re.findall(topic_pattern, content, re.MULTILINE)
         defined_topics = set()
 
-        for match in topic_matches:
-            topic_name = match[1] if match[1] else match[0].split()[1].rstrip(":")
-            defined_topics.add(topic_name)
-
-        # Also capture start_agent topics
+        # Capture start_agent topics
         start_agent_pattern = r"^start_agent\s+(\w+):"
         for match in re.finditer(start_agent_pattern, content, re.MULTILINE):
             defined_topics.add(match.group(1))
 
-        # Check for topic descriptions
+        # Capture regular topics
+        regular_topic_pattern = r"^topic\s+(\w+):"
+        for match in re.finditer(regular_topic_pattern, content, re.MULTILINE):
+            defined_topics.add(match.group(1))
+
+        # Check for topic labels (CRITICAL - required for deployment)
+        # Find topic blocks and check for label
         topic_block_pattern = r"^(start_agent\s+)?topic\s+(\w+):\s*\n((?:[ ]{4}.*\n)*)"
         for match in re.finditer(topic_block_pattern, content, re.MULTILINE):
             topic_block = match.group(3)
+            topic_name = match.group(2)
+
+            # Check for label (required)
+            if "label:" not in topic_block:
+                self._add_issue(
+                    "Topic Design",
+                    f"Topic '{topic_name}' is missing a label (required for deployment)",
+                    "error",
+                    deduction=3,
+                )
+
+            # Check for description
             if "description:" not in topic_block:
-                topic_name = match.group(2)
                 self._add_issue(
                     "Topic Design",
                     f"Topic '{topic_name}' is missing a description",
                     "warning",
+                    deduction=2,
+                )
+
+        # Also check start_agent block patterns
+        start_block_pattern = r"^start_agent\s+(\w+):\s*\n((?:[ ]{4}.*\n)*)"
+        for match in re.finditer(start_block_pattern, content, re.MULTILINE):
+            topic_block = match.group(2)
+            topic_name = match.group(1)
+
+            if "label:" not in topic_block:
+                self._add_issue(
+                    "Topic Design",
+                    f"Entry topic '{topic_name}' is missing a label (required for deployment)",
+                    "error",
                     deduction=3,
+                )
+
+            if "description:" not in topic_block:
+                self._add_issue(
+                    "Topic Design",
+                    f"Entry topic '{topic_name}' is missing a description",
+                    "warning",
+                    deduction=2,
                 )
 
         # Check for topic name conventions (snake_case)
@@ -228,7 +325,7 @@ class AgentScriptValidator:
 
     def _validate_variables(self, content: str, lines: List[str]):
         """Validate variable definitions and usage."""
-        # Find variable definitions
+        # Find mutable variable definitions
         var_pattern = r"^\s{4}(\w+):\s*mutable\s+(\w+)"
         defined_vars = set()
 
@@ -246,17 +343,14 @@ class AgentScriptValidator:
                     deduction=2,
                 )
 
-            # Check naming convention (snake_case)
-            if not re.match(r"^[a-z][a-z0-9_]*$", var_name):
-                self._add_issue(
-                    "Variable Management",
-                    f"Variable '{var_name}' should use snake_case",
-                    "warning",
-                    deduction=1,
-                )
+        # Find linked variable definitions
+        linked_pattern = r"^\s{4}(\w+):\s*linked\s+(\w+)"
+        for match in re.finditer(linked_pattern, content, re.MULTILINE):
+            var_name = match.group(1)
+            defined_vars.add(var_name)
 
         # Check for variable descriptions
-        var_block_pattern = r"^\s{4}(\w+):\s*mutable\s+\w+.*\n((?:\s{8}.*\n)*)"
+        var_block_pattern = r"^\s{4}(\w+):\s*(?:mutable|linked)\s+\w+.*\n((?:\s{8}.*\n)*)"
         for match in re.finditer(var_block_pattern, content, re.MULTILINE):
             var_block = match.group(2)
             var_name = match.group(1)
@@ -265,7 +359,7 @@ class AgentScriptValidator:
                     "Variable Management",
                     f"Variable '{var_name}' is missing a description",
                     "warning",
-                    deduction=2,
+                    deduction=1,
                 )
 
         # Find all variable references and check they exist
@@ -288,6 +382,18 @@ class AgentScriptValidator:
                 "error",
                 deduction=5,
             )
+
+    def _validate_linked_variables(self, content: str):
+        """Validate required linked variables are present."""
+        for var_name in self.REQUIRED_LINKED_VARS:
+            pattern = rf"^\s{{4}}{var_name}:\s*linked"
+            if not re.search(pattern, content, re.MULTILINE):
+                self._add_issue(
+                    "Variable Management",
+                    f"Missing required linked variable '{var_name}' for messaging context",
+                    "warning",
+                    deduction=2,
+                )
 
     def _validate_actions(self, content: str, lines: List[str]):
         """Validate action definitions and invocations."""
@@ -339,11 +445,21 @@ class AgentScriptValidator:
     def _validate_instructions(self, content: str, lines: List[str]):
         """Validate reasoning instructions quality."""
         # Check for instructions blocks
-        if "instructions:->" not in content and "instructions:" not in content:
+        if "instructions:" not in content:
             self._add_issue(
                 "Instructions Quality",
                 "No reasoning instructions found",
                 "warning",
+                deduction=5,
+            )
+
+        # Check for correct syntax: "instructions: ->" (space before arrow)
+        # Incorrect: "instructions:->" (no space)
+        if re.search(r"instructions:->\s*\n", content):
+            self._add_issue(
+                "Instructions Quality",
+                "Use 'instructions: ->' (with space before arrow), not 'instructions:->'",
+                "error",
                 deduction=5,
             )
 
@@ -367,12 +483,6 @@ class AgentScriptValidator:
                 "error",
                 deduction=3,
             )
-
-        # Check for conditional logic presence (if/else)
-        has_conditionals = "if @variables" in content or "if not @variables" in content
-        if not has_conditionals:
-            # Not necessarily an issue, but could be noted
-            pass
 
     def _validate_security(self, content: str, lines: List[str]):
         """Validate security guardrails."""
@@ -422,7 +532,7 @@ class AgentScriptValidator:
         # Find all @ references
         all_refs = re.findall(r"@(\w+)\.", content)
 
-        valid_prefixes = ["variables", "actions", "topic", "outputs", "utils"]
+        valid_prefixes = ["variables", "actions", "topic", "outputs", "utils", "MessagingSession", "MessagingEndUser"]
 
         for ref in all_refs:
             if ref not in valid_prefixes:

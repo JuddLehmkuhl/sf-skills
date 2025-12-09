@@ -1,15 +1,20 @@
 # Apex-Based Action Template
 # Define an action that calls a Salesforce Apex method
+# This is a PARTIAL template - define actions inside a topic block
+#
+# Usage: Replace {{placeholders}} with your values
+# Place this inside a topic's actions: block
 
-{{ActionName}}:
+# Action Definition (place inside topic's actions: block)
+{{action_name}}:
     description: "{{ActionDescription}}"
     inputs:
-        {{Input1Name}}: {{Input1Type}}
+        {{input_1_name}}: {{input_1_type}}
             description: "{{Input1Description}}"
-        {{Input2Name}}: {{Input2Type}}
+        {{input_2_name}}: {{input_2_type}}
             description: "{{Input2Description}}"
     outputs:
-        {{Output1Name}}: {{Output1Type}}
+        {{output_1_name}}: {{output_1_type}}
             description: "{{Output1Description}}"
         success: boolean
             description: "Whether the operation succeeded"
@@ -18,14 +23,17 @@
     target: "apex://{{ApexClassName}}.{{ApexMethodName}}"
 
 # Usage in reasoning block:
+#
 # reasoning:
+#     instructions: ->
+#         | Help the user with their request.
 #     actions:
-#         invoke_{{ActionName}}: @actions.{{ActionName}}
-#             with {{Input1Name}}=...  # LLM fills from conversation
-#             with {{Input2Name}}=@variables.some_var  # From variable
-#             set @variables.result = @outputs.{{Output1Name}}
+#         invoke_{{action_name}}: @actions.{{action_name}}
+#             with {{input_1_name}}=...  # LLM fills from conversation
+#             with {{input_2_name}}=@variables.some_var  # From variable
+#             set @variables.result = @outputs.{{output_1_name}}
 #             set @variables.success = @outputs.success
-#             run @actions.handle_result  # Callback action
+#             run @actions.handle_result  # Callback action (optional)
 #                 with result=@variables.result
 
 # Common Apex Target Patterns:

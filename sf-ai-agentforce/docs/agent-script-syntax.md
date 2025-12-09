@@ -2,45 +2,98 @@
 
 Complete syntax reference for the Agent Script language used in Agentforce.
 
+**Updated**: December 2025 - Corrected based on actual Salesforce implementation.
+
 ---
 
 ## File Structure
 
-Agent Script files use the `.agentscript` extension and contain YAML-like syntax with specific Agent Script keywords.
+Agent Script files use the `.agent` extension and contain YAML-like syntax with specific Agent Script keywords.
 
-### Single File Structure
+**Required Files** (per agent):
+```
+force-app/main/default/aiAuthoringBundles/[AgentName]/
+├── [AgentName].agent           # Agent definition
+└── [AgentName].bundle-meta.xml # Metadata XML
+```
+
+**bundle-meta.xml content**:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<AiAuthoringBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+  <bundleType>AGENT</bundleType>
+</AiAuthoringBundle>
+```
+
+### Block Order (CRITICAL)
+
+Blocks MUST appear in this order:
+1. `system:` - Instructions and messages
+2. `config:` - Agent metadata
+3. `variables:` - Linked and mutable variables
+4. `language:` - Locale settings
+5. `start_agent [name]:` - Entry point topic
+6. `topic [name]:` - Additional topics
+
+### Complete Working Example
 
 ```agentscript
-# Comments start with #
+system:
+    instructions: "You are a helpful assistant. Be professional and friendly."
+    messages:
+        welcome: "Hello! How can I help you today?"
+        error: "I apologize, but I encountered an issue."
 
 config:
-    agent_name: "Agent_API_Name"
-    agent_label: "Human Readable Name"
-    description: "What this agent does"
-
-system:
-    messages:
-        welcome: "Welcome message"
-        error: "Error message"
-    instructions:
-        | Global instructions
-        | for the agent.
+    developer_name: "My_Agent"
+    default_agent_user: "user@org.salesforce.com"
+    agent_label: "My Agent"
+    description: "A helpful assistant agent"
 
 variables:
-    var_name: mutable type = default
-        description: "Description"
+    EndUserId: linked string
+        source: @MessagingSession.MessagingEndUserId
+        description: "Messaging End User ID"
+    RoutableId: linked string
+        source: @MessagingSession.Id
+        description: "Messaging Session ID"
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Contact ID"
+    user_query: mutable string
+        description: "User's current question"
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
 
 start_agent topic_selector:
-    description: "Entry point"
-    reasoning:
-        instructions:->
-            | Instructions here.
+    label: "Topic Selector"
+    description: "Routes users to appropriate topics"
 
-topic other_topic:
-    description: "Another topic"
     reasoning:
-        instructions:->
-            | More instructions.
+        instructions: ->
+            | Determine user intent and route.
+        actions:
+            go_help: @utils.transition to @topic.help
+            go_farewell: @utils.transition to @topic.farewell
+
+topic help:
+    label: "Help"
+    description: "Provides help to users"
+
+    reasoning:
+        instructions: ->
+            | Answer the user's question helpfully.
+
+topic farewell:
+    label: "Farewell"
+    description: "Ends conversation gracefully"
+
+    reasoning:
+        instructions: ->
+            | Thank the user and say goodbye.
 ```
 
 ---
@@ -52,91 +105,135 @@ topic other_topic:
 ```agentscript
 # ✅ CORRECT - 4 spaces per level
 config:
-    agent_name: "My_Agent"
+    developer_name: "My_Agent"
     description: "Description"
 
 # ❌ WRONG - 3 spaces
 config:
-   agent_name: "My_Agent"
+   developer_name: "My_Agent"
 
 # ❌ WRONG - tabs
 config:
-	agent_name: "My_Agent"
+	developer_name: "My_Agent"
 ```
 
 ---
 
 ## Blocks
 
+### System Block
+
+Global agent settings and instructions. **Must be first block**.
+
+```agentscript
+system:
+    instructions: "You are a helpful assistant. Be professional."
+    messages:
+        welcome: "Hello! How can I help you today?"
+        error: "I'm sorry, something went wrong. Please try again."
+```
+
+For longer instructions, use multiline format:
+```agentscript
+system:
+    instructions:
+        | You are a helpful customer service agent.
+        | Be professional and courteous.
+        | Never share confidential information.
+    messages:
+        welcome: "Hello!"
+        error: "Sorry, an error occurred."
+```
+
 ### Config Block
 
-Defines agent metadata.
+Defines agent metadata. **Required fields**: developer_name, default_agent_user, agent_label, description.
 
 ```agentscript
 config:
-    agent_name: "Customer_Support_Agent"
+    developer_name: "Customer_Support_Agent"
+    default_agent_user: "agent.user@company.salesforce.com"
     agent_label: "Customer Support"
     description: "Helps customers with orders and inquiries"
 ```
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `agent_name` | Yes | API name (PascalCase with underscores) |
+| `developer_name` | Yes | API name (PascalCase with underscores) |
+| `default_agent_user` | Yes | Username for agent execution context |
 | `agent_label` | Yes | Human-readable name |
 | `description` | Yes | What the agent does |
 
-### System Block
-
-Global agent settings and instructions.
-
-```agentscript
-system:
-    messages:
-        welcome: "Hello! How can I help you today?"
-        error: "I'm sorry, something went wrong. Please try again."
-    instructions:
-        | You are a helpful customer service agent.
-        | Be professional and courteous.
-        | Never share confidential information.
-```
+**IMPORTANT**: Use `developer_name`, NOT `agent_name`!
 
 ### Variables Block
 
-Declares state variables.
+Declares state variables. **Linked variables first, then mutable**.
 
+**Linked Variables** (connect to Salesforce data - REQUIRED):
 ```agentscript
 variables:
-    user_name: mutable string = ""
+    EndUserId: linked string
+        source: @MessagingSession.MessagingEndUserId
+        description: "Messaging End User ID"
+    RoutableId: linked string
+        source: @MessagingSession.Id
+        description: "Messaging Session ID"
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Contact ID"
+```
+
+**Mutable Variables** (agent state):
+```agentscript
+variables:
+    user_name: mutable string
         description: "The customer's name"
-
-    order_count: mutable number = 0
+    order_count: mutable number
         description: "Number of items in cart"
-
-    is_verified: mutable boolean = False
+    is_verified: mutable boolean
         description: "Whether identity is verified"
+```
+
+### Language Block
+
+Locale settings. **Required for deployment**.
+
+```agentscript
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
 ```
 
 ### Topic Blocks
 
-Define conversation topics.
+Define conversation topics. **Each topic requires `label:` and `description:`**.
 
+**Entry point topic** (required):
 ```agentscript
-# Entry point topic
 start_agent topic_selector:
+    label: "Topic Selector"
     description: "Routes users to appropriate topics"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Determine user intent and route.
         actions:
             go_orders: @utils.transition to @topic.orders
-                description: "Help with orders"
+```
 
-# Regular topic
+**Regular topic**:
+```agentscript
 topic orders:
+    label: "Order Management"
     description: "Handles order inquiries"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Help with order questions.
+        actions:
+            back: @utils.transition to @topic.topic_selector
 ```
 
 ---
@@ -150,14 +247,6 @@ topic orders:
 | `boolean` | True/False | `False` | `True`, `False` |
 | `list[type]` | Array of values | `[]` | `list[string]` |
 | `object` | Complex object | `{}` | Custom structure |
-
-```agentscript
-variables:
-    name: mutable string = ""
-    age: mutable number = 0
-    active: mutable boolean = False
-    tags: mutable list[string] = []
-```
 
 **Note**: Boolean values must be capitalized: `True`, `False`
 
@@ -174,6 +263,7 @@ Use the `@` prefix to reference resources.
 | Topics | `@topic.name` | Reference topics |
 | Outputs | `@outputs.field` | Action output values |
 | Utilities | `@utils.transition` | Built-in utilities |
+| Utilities | `@utils.escalate` | Escalate to human |
 
 ```agentscript
 # Variable reference
@@ -188,18 +278,38 @@ go: @utils.transition to @topic.checkout
 
 # Output capture
 set @variables.status = @outputs.order_status
+
+# Escalation
+escalate: @utils.escalate
+    description: "Transfer to human agent"
 ```
 
 ---
 
 ## Instructions
 
+### Syntax (CRITICAL)
+
+Use `instructions: ->` (with space before arrow), NOT `instructions:->`.
+
+```agentscript
+# ✅ CORRECT
+reasoning:
+    instructions: ->
+        | Determine user intent.
+
+# ❌ WRONG - missing space before arrow
+reasoning:
+    instructions:->
+        | Determine user intent.
+```
+
 ### Prompt Mode (|)
 
 Use `|` for natural language instructions:
 
 ```agentscript
-instructions:
+instructions: ->
     | This is line one.
     | This is line two.
     | Each line starts with a pipe.
@@ -210,7 +320,7 @@ instructions:
 Use `->` for logic-based instructions:
 
 ```agentscript
-instructions:->
+instructions: ->
     if @variables.amount > 1000:
         | This is a large order.
     else:
@@ -222,7 +332,7 @@ instructions:->
 Use `{!...}` for variable interpolation:
 
 ```agentscript
-instructions:->
+instructions: ->
     | Hello {!@variables.user_name}!
     | Your order total is ${!@variables.total}.
 ```
@@ -234,7 +344,7 @@ instructions:->
 ### If/Else
 
 ```agentscript
-instructions:->
+instructions: ->
     if @variables.amount > 1000:
         | Large order - requires approval.
     else:
@@ -279,6 +389,9 @@ if @variables.email is not None:
 
 ```agentscript
 topic my_topic:
+    label: "My Topic"
+    description: "Topic description"
+
     actions:
         get_order:
             description: "Retrieves order details"
@@ -291,6 +404,10 @@ topic my_topic:
                 total: number
                     description: "Order total"
             target: "flow://Get_Order_Details"
+
+    reasoning:
+        instructions: ->
+            | Help the user with their order.
 ```
 
 ### Target Formats
@@ -357,66 +474,59 @@ checkout: @actions.process_payment
 reasoning:
     actions:
         go_orders: @utils.transition to @topic.orders
-            description: "Help with orders"
 ```
 
 ### Conditional Transition
 
 ```agentscript
 go_checkout: @utils.transition to @topic.checkout
-    description: "Proceed to checkout"
     available when @variables.cart_count > 0
 ```
 
-### Automatic Transition (after action)
+### Escalation to Human
 
 ```agentscript
-process: @actions.complete_order
-    with order_id=...
-    transition to @topic.confirmation
+topic escalation:
+    label: "Escalation"
+    description: "Transfers to human agent"
+
+    reasoning:
+        instructions: ->
+            | Transfer the conversation to a human.
+        actions:
+            escalate: @utils.escalate
+                description: "Escalate to a human agent"
 ```
 
 ---
 
-## Comments
+## Deployment
 
-```agentscript
-# This is a comment
-config:
-    agent_name: "My_Agent"  # Inline comment (may not work everywhere)
+### Publish Command
 
-# Multi-line comments require multiple # symbols
-# Line 1
-# Line 2
-# Line 3
+```bash
+sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 
----
+This command:
+- Validates Agent Script syntax
+- Creates Bot, BotVersion, GenAi metadata
+- Deploys the AiAuthoringBundle
 
-## Reserved Keywords
+**Do NOT use** `sf project deploy start` for Agent Script files.
 
-| Keyword | Purpose |
-|---------|---------|
-| `config` | Agent configuration block |
-| `system` | System settings block |
-| `variables` | Variable declarations |
-| `start_agent` | Entry point topic |
-| `topic` | Topic definition |
-| `description` | Description field |
-| `reasoning` | Reasoning block |
-| `instructions` | Instructions field |
-| `actions` | Actions block |
-| `inputs` | Action inputs |
-| `outputs` | Action outputs |
-| `target` | Action target |
-| `mutable` | Variable mutability |
-| `if` | Conditional |
-| `else` | Else branch |
-| `set` | Assign value |
-| `with` | Action parameter |
-| `run` | Execute callback |
-| `available when` | Conditional availability |
-| `transition to` | Topic navigation |
+### Other Commands
+
+```bash
+# Validate without publishing
+sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
+
+# Open in Agentforce Studio
+sf org open agent --api-name [AgentName] --target-org [alias]
+
+# Activate agent
+sf agent activate --api-name [AgentName] --target-org [alias]
+```
 
 ---
 
@@ -425,20 +535,40 @@ config:
 ### Simple Q&A Agent
 
 ```agentscript
+system:
+    instructions: "You are a helpful FAQ assistant. Answer concisely."
+    messages:
+        welcome: "Hello! How can I help?"
+        error: "Sorry, an error occurred."
+
 config:
-    agent_name: "FAQ_Agent"
+    developer_name: "FAQ_Agent"
+    default_agent_user: "agent@company.com"
     agent_label: "FAQ Assistant"
     description: "Answers frequently asked questions"
 
-system:
-    instructions:
-        | You are a helpful FAQ assistant.
-        | Answer questions concisely.
+variables:
+    EndUserId: linked string
+        source: @MessagingSession.MessagingEndUserId
+        description: "End User ID"
+    RoutableId: linked string
+        source: @MessagingSession.Id
+        description: "Session ID"
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Contact ID"
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
 
 start_agent topic_selector:
+    label: "Topic Selector"
     description: "Handles FAQ questions"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Answer the user's question.
             | If unsure, offer to connect them with support.
 ```
@@ -447,24 +577,23 @@ start_agent topic_selector:
 
 ```agentscript
 start_agent topic_selector:
+    label: "Topic Selector"
     description: "Routes to specialized topics"
+
     reasoning:
-        instructions:->
+        instructions: ->
             | Determine what the user needs.
             | Route to the appropriate topic.
         actions:
             orders: @utils.transition to @topic.orders
-                description: "Order help"
             billing: @utils.transition to @topic.billing
-                description: "Billing questions"
             support: @utils.transition to @topic.support
-                description: "Technical support"
 ```
 
 ### Validation Pattern
 
 ```agentscript
-instructions:->
+instructions: ->
     if @variables.email is None:
         set @variables.valid = False
         | Please provide your email address.
@@ -483,9 +612,28 @@ instructions:->
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| Parse error | Invalid syntax | Check indentation (4 spaces) |
+| Parse error | Invalid syntax | Check 4-space indentation |
 | Unknown resource | Invalid `@` reference | Use `@variables`, `@actions`, etc. |
 | Undefined variable | Variable not declared | Add to `variables:` block |
 | Undefined topic | Topic not found | Add topic or fix reference |
 | Invalid target | Wrong action target format | Use `flow://` or `apex://` |
 | Nested run | `run` inside `run` | Flatten to sequential `run` |
+| Missing label | Topic without label | Add `label:` to all topics |
+| Wrong config field | Using `agent_name` | Use `developer_name` |
+| Missing space | `instructions:->` | Use `instructions: ->` |
+
+---
+
+## Anti-Patterns
+
+| Anti-Pattern | Issue | Fix |
+|--------------|-------|-----|
+| Tab indentation | Syntax error | Use 4 spaces |
+| `@variable.name` | Wrong syntax | Use `@variables.name` (plural) |
+| `agent_name:` | Wrong field | Use `developer_name:` |
+| `instructions:->` | Missing space | Use `instructions: ->` |
+| Missing `label:` | Deploy fails | Add label to all topics |
+| `.agentscript` | Wrong extension | Use `.agent` |
+| No bundle XML | Deploy fails | Create `.bundle-meta.xml` |
+| No language block | Deploy fails | Add `language:` block |
+| Missing linked vars | Missing context | Add EndUserId, RoutableId, ContactId |

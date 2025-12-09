@@ -2,6 +2,7 @@
 """
 Post-write validation hook for sf-agentforce skill.
 Validates Agent Script files after they are written.
+Supports both .agent (preferred) and .agentscript (legacy) extensions.
 """
 
 import json
@@ -25,8 +26,8 @@ def main():
 
         file_path = tool_input.get("file_path", "")
 
-        # Only validate .agentscript files
-        if not file_path.endswith(".agentscript"):
+        # Validate both .agent (preferred) and .agentscript (legacy) files
+        if not (file_path.endswith(".agent") or file_path.endswith(".agentscript")):
             print(json.dumps({"continue": True}))
             return
 

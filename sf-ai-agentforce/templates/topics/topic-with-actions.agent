@@ -1,30 +1,34 @@
 # Topic with Actions Template
 # A topic that integrates with external systems via Flow or Apex actions
+# This is a PARTIAL template - use within a complete agent file
+#
+# Usage: Replace {{placeholders}} with your values
+# Note: Actions defined inside topic are local to that topic
 
-topic {{TopicName}}:
+topic {{topic_name}}:
+    label: "{{TopicLabel}}"
     description: "{{TopicDescription}}"
 
     # Define actions available to this topic
     actions:
-        {{ActionName}}:
+        {{action_name}}:
             description: "{{ActionDescription}}"
             inputs:
-                {{InputName}}: {{InputType}}
+                {{input_name}}: {{input_type}}
                     description: "{{InputDescription}}"
             outputs:
-                {{OutputName}}: {{OutputType}}
+                {{output_name}}: {{output_type}}
                     description: "{{OutputDescription}}"
             target: "{{ActionTarget}}"  # flow://FlowName or apex://ClassName.methodName
 
     reasoning:
-        instructions:->
+        instructions: ->
             | {{TopicInstructions}}
             | Use the available actions to help the user.
             | Capture and communicate results clearly.
         actions:
-            invoke_action: @actions.{{ActionName}}
-                with {{InputName}}=...
-                set @variables.{{ResultVariable}} = @outputs.{{OutputName}}
+            invoke_action: @actions.{{action_name}}
+                with {{input_name}}=...
+                set @variables.{{result_variable}} = @outputs.{{output_name}}
 
             back_to_menu: @utils.transition to @topic.topic_selector
-                description: "Return to main menu"

@@ -117,21 +117,40 @@ cd sf-skills
 
 Some skills work together for a complete workflow:
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  sf-flow │────▶│  sf-metadata    │     │  sf-deploy  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       ▲                       ▲
-        │               ┌───────┴───────┐               │
-        │               │               │               │
-        └───────────────┼───────────────┼───────────────┘
-                        │               │
-┌─────────────────┐     │     ┌─────────────────┐
-│     sf-apex     │─────┘     │     sf-data     │
-└─────────────────┘           └─────────────────┘
-        │                             ▲
-        └─────────────────────────────┘
-              (test data generation)
+```mermaid
+flowchart TB
+    subgraph consumers [" "]
+        direction LR
+        flow["🔄 sf-flow"]
+        apex["⚡ sf-apex"]
+    end
+
+    subgraph core [" "]
+        direction LR
+        metadata["📋 sf-metadata"]
+        data["💾 sf-data"]
+    end
+
+    deploy["🚀 sf-deploy"]
+
+    flow -->|"queries objects/fields"| metadata
+    apex -->|"queries objects/fields"| metadata
+    data -->|"queries object structure"| metadata
+
+    apex -.->|"test data generation"| data
+    flow -.->|"test data generation"| data
+
+    flow -->|"deploys"| deploy
+    apex -->|"deploys"| deploy
+    metadata -->|"deploys"| deploy
+
+    style flow fill:#6366f1,stroke:#4f46e5,color:#fff
+    style apex fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    style metadata fill:#06b6d4,stroke:#0891b2,color:#fff
+    style data fill:#f59e0b,stroke:#d97706,color:#fff
+    style deploy fill:#10b981,stroke:#059669,color:#fff
+    style consumers fill:transparent,stroke:#64748b,stroke-dasharray:5
+    style core fill:transparent,stroke:#64748b,stroke-dasharray:5
 ```
 
 - **sf-apex** and **sf-flow** can query **sf-metadata** to discover object/field information before generating code

@@ -176,9 +176,9 @@ flowchart TB
 
 ### Subgraph Styling
 
-Use 50-level backgrounds with dark dashed borders:
+Use 50-level backgrounds with dark dashed borders. Use UPPERCASE for subgraph titles:
 ```mermaid
-subgraph ai["🤖 AI & Agents"]
+subgraph ai["🤖 AI & AGENTS"]
     A[Agent]
 end
 

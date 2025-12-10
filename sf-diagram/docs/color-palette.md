@@ -130,11 +130,11 @@ Use 50-level backgrounds with dark dashed borders:
 
 ```mermaid
 flowchart TB
-    subgraph ai["🤖 AI & Agents"]
+    subgraph ai["🤖 AI & AGENTS"]
         A[Agent]
     end
 
-    subgraph dev["💻 Development"]
+    subgraph dev["💻 DEVELOPMENT"]
         B[Apex]
         C[Flow]
     end
@@ -170,26 +170,26 @@ Copy this template for consistent diagrams with the finalized color scheme:
 
 ```mermaid
 flowchart TB
-    subgraph ai["🤖 AI & Agents"]
+    subgraph ai["🤖 AI & AGENTS"]
         agentforce["🤖 sf-ai-agentforce"]
     end
 
-    subgraph integration["🔌 Integration & Security"]
+    subgraph integration["🔌 INTEGRATION & SECURITY"]
         connectedapps["🔐 sf-connected-apps"]
         sfintegration["🔗 sf-integration"]
     end
 
-    subgraph development["💻 Development"]
+    subgraph development["💻 DEVELOPMENT"]
         apex["⚡ sf-apex"]
         flow["🔄 sf-flow"]
     end
 
-    subgraph foundation["📦 Foundation"]
+    subgraph foundation["📦 FOUNDATION"]
         metadata["📋 sf-metadata"]
         data["💾 sf-data"]
     end
 
-    subgraph devops["🚀 DevOps"]
+    subgraph devops["🚀 DEVOPS"]
         deploy["🚀 sf-deploy"]
     end
 
@@ -238,7 +238,7 @@ flowchart TB
 | Context | Casing | Example |
 |---------|--------|---------|
 | **Node Labels** | lowercase | `sf-apex`, `sf-flow` |
-| **Subgraph Titles** | Title Case | `AI & Agents`, `Integration & Security` |
+| **Subgraph Titles** | UPPERCASE | `AI & AGENTS`, `INTEGRATION & SECURITY` |
 | **Edge Labels** | lowercase | `schema`, `deploys`, `flow actions` |
 | **ASCII Diagrams** | UPPERCASE | `SALESFORCE PLATFORM`, `EXTERNAL SYSTEMS` |
 
@@ -257,17 +257,18 @@ flowchart TB
 - Consistent with CLI tool naming (npm, pip, etc.)
 - Easier to read in compact diagram nodes
 
-#### Subgraph Titles: Title Case
+#### Subgraph Titles: UPPERCASE
 ```
-subgraph ai["🤖 AI & Agents"]           ✅ Title Case
+subgraph ai["🤖 AI & AGENTS"]           ✅ UPPERCASE
 subgraph ai["🤖 ai & agents"]           ❌ lowercase
-subgraph ai["🤖 AI & AGENTS"]           ❌ ALL CAPS
+subgraph ai["🤖 Ai & Agents"]           ❌ Title Case
 ```
 
-**Why Title Case?**
-- Subgraphs represent categories/groups (conceptual)
-- Title Case adds visual hierarchy
-- Distinguishes group headers from individual nodes
+**Why UPPERCASE?**
+- Creates strong visual hierarchy with lowercase node labels
+- Subgraphs represent major categories/groups
+- Consistent with ASCII diagram headers
+- Maximum contrast between group titles and contents
 
 #### Edge Labels: lowercase
 ```

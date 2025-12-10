@@ -79,31 +79,31 @@ First, add the marketplace to Claude Code:
 
 ```mermaid
 flowchart TB
-    subgraph ai["🤖 AI & Agents"]
+    subgraph ai["🤖 AI & AGENTS"]
         agentforce["🤖 sf-ai-agentforce"]
     end
 
-    subgraph integration["🔌 Integration & Security"]
+    subgraph integration["🔌 INTEGRATION & SECURITY"]
         connectedapps["🔐 sf-connected-apps"]
         sfintegration["🔗 sf-integration"]
         diagram["📊 sf-diagram"]
     end
 
-    subgraph development["💻 Development"]
+    subgraph development["💻 DEVELOPMENT"]
         apex["⚡ sf-apex"]
         flow["🔄 sf-flow"]
     end
 
-    subgraph foundation["📦 Foundation"]
+    subgraph foundation["📦 FOUNDATION"]
         metadata["📋 sf-metadata"]
         data["💾 sf-data"]
     end
 
-    subgraph devops["🚀 DevOps"]
+    subgraph devops["🚀 DEVOPS"]
         deploy["🚀 sf-deploy"]
     end
 
-    subgraph tooling["🔧 Tooling"]
+    subgraph tooling["🔧 TOOLING"]
         skillbuilder["🛠️ skill-builder"]
     end
 

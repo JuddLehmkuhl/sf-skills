@@ -12,55 +12,55 @@ Flowchart template for visualizing high-level Salesforce system architecture usi
 
 ```mermaid
 flowchart TB
-    subgraph users["👥 Users"]
+    subgraph users["👥 USERS"]
         direction LR
         U1["📱 Sales Reps<br/><small>Mobile App</small>"]
         U2["💻 Managers<br/><small>Desktop</small>"]
         U3["🌐 Partners<br/><small>Portal</small>"]
     end
 
-    subgraph salesforce["☁️ Salesforce Platform"]
+    subgraph salesforce["☁️ SALESFORCE PLATFORM"]
         direction TB
 
-        subgraph core["Core CRM"]
+        subgraph core["CORE CRM"]
             SF1["💼 Sales Cloud<br/><small>Leads, Opps</small>"]
             SF2["🎧 Service Cloud<br/><small>Cases, Knowledge</small>"]
             SF3["🌐 Experience Cloud<br/><small>Portals</small>"]
         end
 
-        subgraph automation["⚡ Automation"]
+        subgraph automation["⚡ AUTOMATION"]
             FL["🔄 Flows<br/><small>Process Builder</small>"]
             AP["⚡ Apex<br/><small>Triggers, Services</small>"]
             PE["📢 Platform Events<br/><small>CDC, Streaming</small>"]
         end
 
-        subgraph ai["🤖 AI & Analytics"]
+        subgraph ai["🤖 AI & ANALYTICS"]
             EIN["🧠 Einstein<br/><small>Predictions</small>"]
             TB["📊 Tableau<br/><small>Dashboards</small>"]
             CRM["📈 CRM Analytics<br/><small>Reports</small>"]
         end
     end
 
-    subgraph integration["🔄 Integration Layer"]
+    subgraph integration["🔄 INTEGRATION LAYER"]
         direction LR
         MW["🔗 MuleSoft<br/><small>Anypoint Platform</small>"]
         API["🔐 API Gateway<br/><small>Named Credentials</small>"]
     end
 
-    subgraph external["🏢 External Systems"]
+    subgraph external["🏢 EXTERNAL SYSTEMS"]
         direction TB
 
-        subgraph erp["ERP Systems"]
+        subgraph erp["ERP SYSTEMS"]
             SAP["🏭 SAP S/4HANA<br/><small>Finance, Inventory</small>"]
             NET["📦 NetSuite<br/><small>Orders</small>"]
         end
 
-        subgraph marketing["Marketing"]
+        subgraph marketing["MARKETING"]
             MC["📧 Marketing Cloud<br/><small>Campaigns</small>"]
             PAR["🎯 Account Engagement<br/><small>Pardot</small>"]
         end
 
-        subgraph data["Data & Storage"]
+        subgraph data["DATA & STORAGE"]
             DW["❄️ Snowflake<br/><small>Data Warehouse</small>"]
             S3["☁️ AWS S3<br/><small>Files</small>"]
         end
@@ -144,23 +144,23 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph channels["📱 Channels"]
+    subgraph channels["📱 CHANNELS"]
         WEB["🌐 Web Chat<br/><small>Embedded</small>"]
         SMS["💬 SMS<br/><small>Twilio</small>"]
         WHATS["📱 WhatsApp<br/><small>Business</small>"]
         SLACK["💼 Slack<br/><small>Enterprise</small>"]
     end
 
-    subgraph agentforce["🤖 Agentforce"]
+    subgraph agentforce["🤖 AGENTFORCE"]
         direction TB
 
-        subgraph agents["AI Agents"]
+        subgraph agents["AI AGENTS"]
             SA["🎧 Service Agent<br/><small>Customer Support</small>"]
             SDA["📞 SDR Agent<br/><small>Lead Qualification</small>"]
             COACH["🎯 Sales Coach<br/><small>Guidance</small>"]
         end
 
-        subgraph topics["Topics & Actions"]
+        subgraph topics["TOPICS & ACTIONS"]
             T1["📦 Order Status<br/><small>Track, Update</small>"]
             T2["🔄 Return Request<br/><small>RMA, Refund</small>"]
             T3["✅ Lead Qualify<br/><small>Score, Route</small>"]
@@ -168,20 +168,20 @@ flowchart TB
             A2["🔄 Flow Actions<br/><small>Automation</small>"]
         end
 
-        subgraph foundation["Foundation"]
+        subgraph foundation["FOUNDATION"]
             DM["☁️ Data Cloud<br/><small>Unified Profile</small>"]
             TRUST["🔐 Trust Layer<br/><small>Guardrails</small>"]
             PROMPT["📝 Prompt Builder<br/><small>Templates</small>"]
         end
     end
 
-    subgraph backend["⚙️ Backend"]
+    subgraph backend["⚙️ BACKEND"]
         APEX["⚡ Apex Services<br/><small>Business Logic</small>"]
         FLOW["🔄 Flow Orchestration<br/><small>Processes</small>"]
         INT["🔗 Integrations<br/><small>Named Creds</small>"]
     end
 
-    subgraph datasources["💾 Data Sources"]
+    subgraph datasources["💾 DATA SOURCES"]
         CRM[("💼 CRM Data<br/><small>Accounts, Cases</small>")]
         EXT[("🏭 External Data<br/><small>ERP, APIs</small>")]
         KB[("📚 Knowledge Base<br/><small>Articles</small>")]

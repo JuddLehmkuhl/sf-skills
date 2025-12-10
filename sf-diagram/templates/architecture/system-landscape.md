@@ -95,49 +95,49 @@ flowchart TB
     MW -->|"ETL"| DW
     API -->|"Files"| S3
 
-    %% Node Styling - Users (purple pastel)
-    style U1 fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style U2 fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style U3 fill:#ede9fe,stroke:#6d28d9,color:#1f2937
+    %% Node Styling - Users (violet-200)
+    style U1 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style U2 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style U3 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
 
-    %% Node Styling - Salesforce Core (cyan pastel)
-    style SF1 fill:#cffafe,stroke:#0e7490,color:#1f2937
-    style SF2 fill:#cffafe,stroke:#0e7490,color:#1f2937
-    style SF3 fill:#cffafe,stroke:#0e7490,color:#1f2937
+    %% Node Styling - Salesforce Core (cyan-200)
+    style SF1 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style SF2 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style SF3 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
 
-    %% Node Styling - Automation (indigo pastel)
-    style FL fill:#e0e7ff,stroke:#4338ca,color:#1f2937
-    style AP fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style PE fill:#ccfbf1,stroke:#0f766e,color:#1f2937
+    %% Node Styling - Automation (indigo-200/violet-200/teal-200)
+    style FL fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style AP fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style PE fill:#99f6e4,stroke:#0f766e,color:#1f2937
 
-    %% Node Styling - AI (pink pastel)
-    style EIN fill:#fce7f3,stroke:#be185d,color:#1f2937
-    style TB fill:#fce7f3,stroke:#be185d,color:#1f2937
-    style CRM fill:#fce7f3,stroke:#be185d,color:#1f2937
+    %% Node Styling - AI (pink-200)
+    style EIN fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style TB fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style CRM fill:#fbcfe8,stroke:#be185d,color:#1f2937
 
-    %% Node Styling - Integration (orange pastel)
-    style MW fill:#ffedd5,stroke:#c2410c,color:#1f2937
-    style API fill:#ffedd5,stroke:#c2410c,color:#1f2937
+    %% Node Styling - Integration (orange-200)
+    style MW fill:#fed7aa,stroke:#c2410c,color:#1f2937
+    style API fill:#fed7aa,stroke:#c2410c,color:#1f2937
 
-    %% Node Styling - External (green pastel)
-    style SAP fill:#d1fae5,stroke:#047857,color:#1f2937
-    style NET fill:#d1fae5,stroke:#047857,color:#1f2937
-    style MC fill:#d1fae5,stroke:#047857,color:#1f2937
-    style PAR fill:#d1fae5,stroke:#047857,color:#1f2937
-    style DW fill:#fef3c7,stroke:#b45309,color:#1f2937
-    style S3 fill:#fef3c7,stroke:#b45309,color:#1f2937
+    %% Node Styling - External (emerald-200/amber-200)
+    style SAP fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style NET fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style MC fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PAR fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style DW fill:#fde68a,stroke:#b45309,color:#1f2937
+    style S3 fill:#fde68a,stroke:#b45309,color:#1f2937
 
-    %% Subgraph Styling - transparent with dark dashed borders
-    style users fill:transparent,stroke:#6d28d9,stroke-dasharray:5
-    style salesforce fill:transparent,stroke:#0e7490,stroke-dasharray:5
-    style core fill:transparent,stroke:#0e7490,stroke-dasharray:5
-    style automation fill:transparent,stroke:#4338ca,stroke-dasharray:5
-    style ai fill:transparent,stroke:#be185d,stroke-dasharray:5
-    style integration fill:transparent,stroke:#c2410c,stroke-dasharray:5
-    style external fill:transparent,stroke:#047857,stroke-dasharray:5
-    style erp fill:transparent,stroke:#047857,stroke-dasharray:5
-    style marketing fill:transparent,stroke:#047857,stroke-dasharray:5
-    style data fill:transparent,stroke:#b45309,stroke-dasharray:5
+    %% Subgraph Styling - 50-level fills with dark dashed borders
+    style users fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style salesforce fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style core fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style automation fill:#eef2ff,stroke:#4338ca,stroke-dasharray:5
+    style ai fill:#fdf2f8,stroke:#be185d,stroke-dasharray:5
+    style integration fill:#fff7ed,stroke:#c2410c,stroke-dasharray:5
+    style external fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style erp fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style marketing fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style data fill:#fffbeb,stroke:#b45309,stroke-dasharray:5
 ```
 
 ## Mermaid Template - Agentforce Architecture
@@ -219,49 +219,49 @@ flowchart TB
     DM --> EXT
     TRUST --> KB
 
-    %% Node Styling - Channels (slate pastel)
-    style WEB fill:#f1f5f9,stroke:#334155,color:#1f2937
-    style SMS fill:#f1f5f9,stroke:#334155,color:#1f2937
-    style WHATS fill:#f1f5f9,stroke:#334155,color:#1f2937
-    style SLACK fill:#f1f5f9,stroke:#334155,color:#1f2937
+    %% Node Styling - Channels (slate-200)
+    style WEB fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style SMS fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style WHATS fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style SLACK fill:#e2e8f0,stroke:#334155,color:#1f2937
 
-    %% Node Styling - Agents (pink pastel)
-    style SA fill:#fce7f3,stroke:#be185d,color:#1f2937
-    style SDA fill:#fce7f3,stroke:#be185d,color:#1f2937
-    style COACH fill:#fce7f3,stroke:#be185d,color:#1f2937
+    %% Node Styling - Agents (pink-200)
+    style SA fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style SDA fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style COACH fill:#fbcfe8,stroke:#be185d,color:#1f2937
 
-    %% Node Styling - Topics (purple pastel)
-    style T1 fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style T2 fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style T3 fill:#ede9fe,stroke:#6d28d9,color:#1f2937
+    %% Node Styling - Topics (violet-200)
+    style T1 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style T2 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style T3 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
 
-    %% Node Styling - Actions (indigo pastel)
-    style A1 fill:#e0e7ff,stroke:#4338ca,color:#1f2937
-    style A2 fill:#e0e7ff,stroke:#4338ca,color:#1f2937
+    %% Node Styling - Actions (indigo-200)
+    style A1 fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style A2 fill:#c7d2fe,stroke:#4338ca,color:#1f2937
 
-    %% Node Styling - Foundation (teal pastel)
-    style DM fill:#ccfbf1,stroke:#0f766e,color:#1f2937
-    style TRUST fill:#ccfbf1,stroke:#0f766e,color:#1f2937
-    style PROMPT fill:#ccfbf1,stroke:#0f766e,color:#1f2937
+    %% Node Styling - Foundation (teal-200)
+    style DM fill:#99f6e4,stroke:#0f766e,color:#1f2937
+    style TRUST fill:#99f6e4,stroke:#0f766e,color:#1f2937
+    style PROMPT fill:#99f6e4,stroke:#0f766e,color:#1f2937
 
-    %% Node Styling - Backend (cyan pastel)
-    style APEX fill:#cffafe,stroke:#0e7490,color:#1f2937
-    style FLOW fill:#cffafe,stroke:#0e7490,color:#1f2937
-    style INT fill:#ffedd5,stroke:#c2410c,color:#1f2937
+    %% Node Styling - Backend (cyan-200/orange-200)
+    style APEX fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style FLOW fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style INT fill:#fed7aa,stroke:#c2410c,color:#1f2937
 
-    %% Node Styling - Data (amber pastel)
-    style CRM fill:#fef3c7,stroke:#b45309,color:#1f2937
-    style EXT fill:#fef3c7,stroke:#b45309,color:#1f2937
-    style KB fill:#fef3c7,stroke:#b45309,color:#1f2937
+    %% Node Styling - Data (amber-200)
+    style CRM fill:#fde68a,stroke:#b45309,color:#1f2937
+    style EXT fill:#fde68a,stroke:#b45309,color:#1f2937
+    style KB fill:#fde68a,stroke:#b45309,color:#1f2937
 
-    %% Subgraph Styling - transparent with dark dashed borders
-    style channels fill:transparent,stroke:#334155,stroke-dasharray:5
-    style agentforce fill:transparent,stroke:#be185d,stroke-dasharray:5
-    style agents fill:transparent,stroke:#be185d,stroke-dasharray:5
-    style topics fill:transparent,stroke:#6d28d9,stroke-dasharray:5
-    style foundation fill:transparent,stroke:#0f766e,stroke-dasharray:5
-    style backend fill:transparent,stroke:#0e7490,stroke-dasharray:5
-    style datasources fill:transparent,stroke:#b45309,stroke-dasharray:5
+    %% Subgraph Styling - 50-level fills with dark dashed borders
+    style channels fill:#f8fafc,stroke:#334155,stroke-dasharray:5
+    style agentforce fill:#fdf2f8,stroke:#be185d,stroke-dasharray:5
+    style agents fill:#fdf2f8,stroke:#be185d,stroke-dasharray:5
+    style topics fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style foundation fill:#f0fdfa,stroke:#0f766e,stroke-dasharray:5
+    style backend fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style datasources fill:#fffbeb,stroke:#b45309,stroke-dasharray:5
 ```
 
 ## ASCII Fallback Template
@@ -320,17 +320,17 @@ flowchart TB
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Component Types (Pastel Colors)
+## Component Types (Tailwind 200-level)
 
-| Category | Examples | Icon | Pastel Fill | Dark Stroke |
-|----------|----------|------|-------------|-------------|
-| Users | Sales, Service, Partners | 👥 | `#ede9fe` | `#6d28d9` |
-| Salesforce Clouds | Sales, Service, Marketing | ☁️ | `#cffafe` | `#0e7490` |
-| Automation | Flow, Apex, Events | ⚡ | `#e0e7ff` | `#4338ca` |
-| AI/Analytics | Einstein, Tableau, CRM Analytics | 🤖 | `#fce7f3` | `#be185d` |
-| Integration | MuleSoft, API Gateway | 🔗 | `#ffedd5` | `#c2410c` |
-| External Systems | ERP, Marketing, Data | 🏢 | `#d1fae5` | `#047857` |
-| Storage | Database, Data Lake, Files | 💾 | `#fef3c7` | `#b45309` |
+| Category | Examples | Icon | Fill (200) | Stroke (700+) |
+|----------|----------|------|------------|---------------|
+| Users | Sales, Service, Partners | 👥 | `#ddd6fe` | `#6d28d9` |
+| Salesforce Clouds | Sales, Service, Marketing | ☁️ | `#a5f3fc` | `#0e7490` |
+| Automation | Flow, Apex, Events | ⚡ | `#c7d2fe` | `#4338ca` |
+| AI/Analytics | Einstein, Tableau, CRM Analytics | 🤖 | `#fbcfe8` | `#be185d` |
+| Integration | MuleSoft, API Gateway | 🔗 | `#fed7aa` | `#c2410c` |
+| External Systems | ERP, Marketing, Data | 🏢 | `#a7f3d0` | `#047857` |
+| Storage | Database, Data Lake, Files | 💾 | `#fde68a` | `#b45309` |
 
 ## Connection Types
 

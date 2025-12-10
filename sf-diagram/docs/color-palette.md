@@ -1,58 +1,74 @@
 # sf-diagram Color Palette
 
-Soft, pastel color palette with darker borders for clear definition. Inspired by modern UI design patterns.
+Soft pastel color palette (Tailwind 200-level) with dark borders for clear definition.
 
-## Primary Palette (Pastel + Dark Borders)
+## Primary Palette (Tailwind 200 + Dark Borders)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  COMPONENT                │  PASTEL FILL │  DARK STROKE │  TEXT COLOR      │
-├───────────────────────────┼──────────────┼──────────────┼──────────────────┤
-│  AI & Agents              │  #fce7f3     │  #be185d     │  #1f2937         │
-│  Integration (Orange)     │  #ffedd5     │  #c2410c     │  #1f2937         │
-│  Integration (Teal)       │  #ccfbf1     │  #0f766e     │  #1f2937         │
-│  Diagrams (Sky)           │  #e0f2fe     │  #0369a1     │  #1f2937         │
-│  Apex/Development         │  #ede9fe     │  #6d28d9     │  #1f2937         │
-│  Flow/Automation          │  #e0e7ff     │  #4338ca     │  #1f2937         │
-│  Metadata (Cyan)          │  #cffafe     │  #0e7490     │  #1f2937         │
-│  Data (Amber)             │  #fef3c7     │  #b45309     │  #1f2937         │
-│  Deploy (Green)           │  #d1fae5     │  #047857     │  #1f2937         │
-│  Tooling (Slate)          │  #f1f5f9     │  #334155     │  #1f2937         │
-└───────────────────────────┴──────────────┴──────────────┴──────────────────┘
+│  COMPONENT                │  FILL (200)  │  STROKE (700+) │  TEXT COLOR    │
+├───────────────────────────┼──────────────┼────────────────┼────────────────┤
+│  AI & Agents              │  #fbcfe8     │  #be185d       │  #1f2937       │
+│  Integration (Orange)     │  #fed7aa     │  #c2410c       │  #1f2937       │
+│  Integration (Teal)       │  #99f6e4     │  #0f766e       │  #1f2937       │
+│  Diagrams (Sky)           │  #bae6fd     │  #0369a1       │  #1f2937       │
+│  Apex/Development         │  #ddd6fe     │  #6d28d9       │  #1f2937       │
+│  Flow/Automation          │  #c7d2fe     │  #4338ca       │  #1f2937       │
+│  Metadata (Cyan)          │  #a5f3fc     │  #0e7490       │  #1f2937       │
+│  Data (Amber)             │  #fde68a     │  #b45309       │  #1f2937       │
+│  Deploy (Green)           │  #a7f3d0     │  #047857       │  #1f2937       │
+│  Tooling (Slate)          │  #e2e8f0     │  #334155       │  #1f2937       │
+└───────────────────────────┴──────────────┴────────────────┴────────────────┘
+```
+
+## Subgraph Background Colors (Tailwind 50-level)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  SUBGRAPH                 │  FILL (50)   │  STROKE (700+) │  STYLE         │
+├───────────────────────────┼──────────────┼────────────────┼────────────────┤
+│  AI & Agents              │  #fdf2f8     │  #be185d       │  dashed        │
+│  Integration & Security   │  #fff7ed     │  #c2410c       │  dashed        │
+│  Development              │  #f5f3ff     │  #6d28d9       │  dashed        │
+│  Foundation               │  #ecfeff     │  #0e7490       │  dashed        │
+│  DevOps                   │  #ecfdf5     │  #047857       │  dashed        │
+│  Tooling                  │  #f8fafc     │  #334155       │  dashed        │
+└───────────────────────────┴──────────────┴────────────────┴────────────────┘
 ```
 
 **Design Philosophy**:
-- **Pastel fills** (Tailwind 100-level shades) give a soft, translucent appearance
-- **Dark strokes** (Tailwind 700-800 level) provide clear definition
-- **Dark text** (`#1f2937`) ensures readability on light backgrounds
+- **Node fills**: Tailwind 200-level for visible but soft pastels
+- **Subgraph fills**: Tailwind 50-level for subtle background grouping
+- **Dark strokes**: Tailwind 700-800 level for clear definition
+- **Dark text**: `#1f2937` ensures readability
 
 ## Salesforce-Specific Colors
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  SALESFORCE COMPONENT     │  PASTEL FILL │  DARK STROKE │  TEXT COLOR      │
-├───────────────────────────┼──────────────┼──────────────┼──────────────────┤
-│  Salesforce Brand         │  #e0f2fe     │  #0369a1     │  #1f2937         │
-│  Connected Apps/OAuth     │  #ffedd5     │  #c2410c     │  #1f2937         │
-│  External Systems         │  #d1fae5     │  #047857     │  #1f2937         │
-│  Users/Actors             │  #ede9fe     │  #6d28d9     │  #1f2937         │
-│  Platform Events          │  #ccfbf1     │  #0f766e     │  #1f2937         │
-│  Named Credentials        │  #ffedd5     │  #c2410c     │  #1f2937         │
-└───────────────────────────┴──────────────┴──────────────┴──────────────────┘
+│  SALESFORCE COMPONENT     │  FILL (200)  │  STROKE (700+) │  TEXT COLOR    │
+├───────────────────────────┼──────────────┼────────────────┼────────────────┤
+│  Salesforce Platform      │  #bae6fd     │  #0369a1       │  #1f2937       │
+│  Connected Apps/OAuth     │  #fed7aa     │  #c2410c       │  #1f2937       │
+│  External Systems         │  #a7f3d0     │  #047857       │  #1f2937       │
+│  Users/Actors             │  #ddd6fe     │  #6d28d9       │  #1f2937       │
+│  Platform Events          │  #99f6e4     │  #0f766e       │  #1f2937       │
+│  Named Credentials        │  #fed7aa     │  #c2410c       │  #1f2937       │
+└───────────────────────────┴──────────────┴────────────────┴────────────────┘
 ```
 
 ## Status Colors
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  STATUS                   │  PASTEL FILL │  DARK STROKE │  ICON           │
-├───────────────────────────┼──────────────┼──────────────┼─────────────────┤
-│  Success                  │  #d1fae5     │  #047857     │  ✅             │
-│  Error/Failure            │  #fee2e2     │  #b91c1c     │  ❌             │
-│  Warning                  │  #fef3c7     │  #b45309     │  ⚠️             │
-│  Info/Neutral             │  #f1f5f9     │  #334155     │  ℹ️             │
-│  In Progress              │  #dbeafe     │  #1d4ed8     │  ⏳             │
-└───────────────────────────┴──────────────┴──────────────┴─────────────────┘
+│  STATUS                   │  FILL (200)  │  STROKE (700+) │  ICON          │
+├───────────────────────────┼──────────────┼────────────────┼────────────────┤
+│  Success                  │  #a7f3d0     │  #047857       │  ✅            │
+│  Error/Failure            │  #fecaca     │  #b91c1c       │  ❌            │
+│  Warning                  │  #fde68a     │  #b45309       │  ⚠️            │
+│  Info/Neutral             │  #e2e8f0     │  #334155       │  ℹ️            │
+│  In Progress              │  #bfdbfe     │  #1d4ed8       │  ⏳            │
+└───────────────────────────┴──────────────┴────────────────┴────────────────┘
 ```
 
 ---
@@ -91,7 +107,7 @@ flowchart LR
 
 ### Preferred: Individual Node Styling
 
-Use `style` declarations with pastel fills and dark strokes:
+Use `style` declarations with 200-level fills and dark strokes:
 
 ```mermaid
 flowchart TB
@@ -102,15 +118,15 @@ flowchart TB
     A --> B
     A --> C
 
-    %% Pastel fill + dark stroke + dark text
-    style A fill:#fce7f3,stroke:#be185d,color:#1f2937
-    style B fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style C fill:#ccfbf1,stroke:#0f766e,color:#1f2937
+    %% 200-level fill + dark stroke + dark text
+    style A fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style B fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style C fill:#99f6e4,stroke:#0f766e,color:#1f2937
 ```
 
 ### Subgraph Styling
 
-Use transparent backgrounds with dark dashed borders:
+Use 50-level backgrounds with dark dashed borders:
 
 ```mermaid
 flowchart TB
@@ -123,9 +139,9 @@ flowchart TB
         C[Flow]
     end
 
-    %% Subgraph styling - transparent with dark dashed border
-    style ai fill:transparent,stroke:#be185d,stroke-dasharray:5
-    style dev fill:transparent,stroke:#6d28d9,stroke-dasharray:5
+    %% 50-level fill + dark dashed border
+    style ai fill:#fdf2f8,stroke:#be185d,stroke-dasharray:5
+    style dev fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
 ```
 
 ---
@@ -150,7 +166,7 @@ Keep labels short for consistent rendering.
 
 ## Complete Style Template
 
-Copy this template for consistent diagrams with the pastel color scheme:
+Copy this template for consistent diagrams with the finalized color scheme:
 
 ```mermaid
 flowchart TB
@@ -185,30 +201,22 @@ flowchart TB
     flow -->|"schema"| metadata
     apex -->|"deploys"| deploy
 
-    %% Node Styling - AI (pink pastel)
-    style agentforce fill:#fce7f3,stroke:#be185d,color:#1f2937
+    %% Node Styling - 200-level fills
+    style agentforce fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style connectedapps fill:#fed7aa,stroke:#c2410c,color:#1f2937
+    style sfintegration fill:#99f6e4,stroke:#0f766e,color:#1f2937
+    style apex fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style flow fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style metadata fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style data fill:#fde68a,stroke:#b45309,color:#1f2937
+    style deploy fill:#a7f3d0,stroke:#047857,color:#1f2937
 
-    %% Node Styling - Integration (orange/teal pastel)
-    style connectedapps fill:#ffedd5,stroke:#c2410c,color:#1f2937
-    style sfintegration fill:#ccfbf1,stroke:#0f766e,color:#1f2937
-
-    %% Node Styling - Development (purple/indigo pastel)
-    style apex fill:#ede9fe,stroke:#6d28d9,color:#1f2937
-    style flow fill:#e0e7ff,stroke:#4338ca,color:#1f2937
-
-    %% Node Styling - Foundation (cyan/amber pastel)
-    style metadata fill:#cffafe,stroke:#0e7490,color:#1f2937
-    style data fill:#fef3c7,stroke:#b45309,color:#1f2937
-
-    %% Node Styling - DevOps (green pastel)
-    style deploy fill:#d1fae5,stroke:#047857,color:#1f2937
-
-    %% Subgraph Styling - transparent with dark dashed borders
-    style ai fill:transparent,stroke:#be185d,stroke-dasharray:5
-    style integration fill:transparent,stroke:#c2410c,stroke-dasharray:5
-    style development fill:transparent,stroke:#6d28d9,stroke-dasharray:5
-    style foundation fill:transparent,stroke:#0e7490,stroke-dasharray:5
-    style devops fill:transparent,stroke:#047857,stroke-dasharray:5
+    %% Subgraph Styling - 50-level fills with dashed borders
+    style ai fill:#fdf2f8,stroke:#be185d,stroke-dasharray:5
+    style integration fill:#fff7ed,stroke:#c2410c,stroke-dasharray:5
+    style development fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style foundation fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style devops fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
 ```
 
 ### Label Guidelines
@@ -220,6 +228,81 @@ flowchart TB
 | Short edge labels: `"schema"` | Long labels: `"queries schema for validation"` |
 
 **Why?** Multi-line labels with `<br/>` and `<small>` tags render inconsistently across GitHub, VS Code, and other Mermaid viewers, often causing text cutoff.
+
+---
+
+## Text Casing Conventions
+
+### Recommendation Summary
+
+| Context | Casing | Example |
+|---------|--------|---------|
+| **Node Labels** | lowercase | `sf-apex`, `sf-flow` |
+| **Subgraph Titles** | Title Case | `AI & Agents`, `Integration & Security` |
+| **Edge Labels** | lowercase | `schema`, `deploys`, `flow actions` |
+| **ASCII Diagrams** | UPPERCASE | `SALESFORCE PLATFORM`, `EXTERNAL SYSTEMS` |
+
+### Detailed Guidelines
+
+#### Node Labels: lowercase (Recommended)
+```
+["🤖 sf-ai-agentforce"]    ✅ Preferred
+["🤖 SF-AI-AGENTFORCE"]    ❌ Avoid
+["🤖 Sf-Ai-Agentforce"]    ❌ Avoid
+```
+
+**Why lowercase?**
+- Matches the actual skill/package naming convention
+- Cleaner, more modern aesthetic
+- Consistent with CLI tool naming (npm, pip, etc.)
+- Easier to read in compact diagram nodes
+
+#### Subgraph Titles: Title Case
+```
+subgraph ai["🤖 AI & Agents"]           ✅ Title Case
+subgraph ai["🤖 ai & agents"]           ❌ lowercase
+subgraph ai["🤖 AI & AGENTS"]           ❌ ALL CAPS
+```
+
+**Why Title Case?**
+- Subgraphs represent categories/groups (conceptual)
+- Title Case adds visual hierarchy
+- Distinguishes group headers from individual nodes
+
+#### Edge Labels: lowercase
+```
+-->|"schema"|              ✅ lowercase
+-->|"Schema"|              ❌ Title Case
+-->|"SCHEMA"|              ❌ ALL CAPS
+```
+
+**Why lowercase?**
+- Edge labels describe relationships/actions
+- Should be subtle, not prominent
+- Consistent with node label style
+
+#### ASCII Diagrams: UPPERCASE for Headers
+```
+┌─────────────────────────────────────┐
+│         SYSTEM LANDSCAPE            │   ✅ UPPERCASE header
+└─────────────────────────────────────┘
+
+│  ☁️ SALESFORCE PLATFORM             │   ✅ UPPERCASE section
+```
+
+**Why UPPERCASE for ASCII?**
+- ASCII has limited styling options (no bold, color)
+- UPPERCASE creates visual hierarchy
+- Traditional technical documentation style
+
+### Special Cases
+
+| Element | Convention | Example |
+|---------|------------|---------|
+| Salesforce products | Official casing | `Sales Cloud`, `Service Cloud` |
+| Acronyms in nodes | lowercase | `sf-ai-agentforce` (not `SF-AI`) |
+| Acronyms in subgraphs | UPPERCASE | `AI & Agents`, `API Gateway` |
+| Technical terms | lowercase | `apex`, `flow`, `metadata` |
 
 ---
 
@@ -267,9 +350,9 @@ This palette maintains distinguishability for common color blindness:
 ## Light/Dark Mode Support
 
 The pastel style works best on **light backgrounds**. For dark mode contexts:
-- Pastel fills remain visible
+- 200-level fills remain visible
 - Dark strokes provide clear definition
-- Consider using the darker color variant if needed
+- 50-level subgraph fills adapt reasonably
 
 ---
 

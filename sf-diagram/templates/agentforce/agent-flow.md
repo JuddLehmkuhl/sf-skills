@@ -11,19 +11,14 @@ Flowchart template for visualizing Agentforce agent architecture and conversatio
 ## Mermaid Template - Agent Structure
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#00A1E0',
-  'primaryTextColor': '#ffffff',
-  'primaryBorderColor': '#032D60',
-  'lineColor': '#706E6B'
-}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart TB
-    subgraph agent[🤖 Service Agent]
+    subgraph agent["🤖 SERVICE AGENT"]
         direction TB
 
         DESC[/"Agent Description:<br/>AI-powered customer service<br/>assistant for order management"/]
 
-        subgraph topics[📋 Topics]
+        subgraph topics["📋 TOPICS"]
             direction LR
             T1[Order Status]
             T2[Return Request]
@@ -31,7 +26,7 @@ flowchart TB
             T4[Escalation]
         end
 
-        subgraph instructions[📝 Instructions]
+        subgraph instructions["📝 INSTRUCTIONS"]
             I1[Greet professionally]
             I2[Verify customer identity]
             I3[Use knowledge base first]
@@ -39,23 +34,23 @@ flowchart TB
         end
     end
 
-    subgraph topic_order[📦 Topic: Order Status]
+    subgraph topic_order["📦 TOPIC: ORDER STATUS"]
         direction TB
         TO_DESC[/"Help customers check<br/>order and shipping status"/]
         TO_SCOPE[Scope: Order tracking,<br/>delivery estimates]
 
-        subgraph to_actions[Actions]
+        subgraph to_actions["ACTIONS"]
             TO_A1[Get Order Details<br/>⚡ Apex]
             TO_A2[Check Shipping<br/>🔄 Flow]
         end
     end
 
-    subgraph topic_return[🔄 Topic: Return Request]
+    subgraph topic_return["🔄 TOPIC: RETURN REQUEST"]
         direction TB
         TR_DESC[/"Process return and<br/>refund requests"/]
         TR_SCOPE[Scope: Returns, refunds,<br/>exchanges]
 
-        subgraph tr_actions[Actions]
+        subgraph tr_actions["ACTIONS"]
             TR_A1[Create Case<br/>🔄 Flow]
             TR_A2[Generate Label<br/>⚡ Apex]
             TR_A3[Process Refund<br/>⚡ Apex]
@@ -73,22 +68,50 @@ flowchart TB
     TR_A2 --> SHIP_API
     TR_A3 --> PAY_API[Payment API]
 
-    %% Styling
-    classDef topic fill:#9050E9,color:#fff,stroke:#032D60
-    classDef action fill:#04844B,color:#fff,stroke:#032D60
-    classDef external fill:#FF6D00,color:#fff,stroke:#032D60
+    %% Node Styling - Topics (violet-200)
+    style T1 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style T2 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style T3 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style T4 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
 
-    class T1,T2,T3,T4 topic
-    class TO_A1,TO_A2,TR_A1,TR_A2,TR_A3 action
-    class ORDER_SVC,SHIP_API,PAY_API,CASE_OBJ external
+    %% Node Styling - Actions (emerald-200)
+    style TO_A1 fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style TO_A2 fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style TR_A1 fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style TR_A2 fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style TR_A3 fill:#a7f3d0,stroke:#047857,color:#1f2937
+
+    %% Node Styling - External (orange-200)
+    style ORDER_SVC fill:#fed7aa,stroke:#c2410c,color:#1f2937
+    style SHIP_API fill:#fed7aa,stroke:#c2410c,color:#1f2937
+    style PAY_API fill:#fed7aa,stroke:#c2410c,color:#1f2937
+    style CASE_OBJ fill:#fde68a,stroke:#b45309,color:#1f2937
+
+    %% Node Styling - Descriptions (slate-200)
+    style DESC fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style TO_DESC fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style TO_SCOPE fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style TR_DESC fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style TR_SCOPE fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style I1 fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style I2 fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style I3 fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style I4 fill:#e2e8f0,stroke:#334155,color:#1f2937
+
+    %% Subgraph Styling - 50-level fills with dashed borders
+    style agent fill:#fdf2f8,stroke:#be185d,stroke-dasharray:5
+    style topics fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style instructions fill:#f8fafc,stroke:#334155,stroke-dasharray:5
+    style topic_order fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style to_actions fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style topic_return fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style tr_actions fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
 ```
 
 ## Mermaid Template - Conversation Flow
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#00A1E0'
-}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart TD
     START([🟢 Conversation Start])
 
@@ -100,7 +123,7 @@ flowchart TD
     CLASSIFY -->|General Question| KB_SEARCH
     CLASSIFY -->|Unknown| CLARIFY
 
-    subgraph ORDER_TOPIC[📦 Order Status Topic]
+    subgraph ORDER_TOPIC["📦 ORDER STATUS TOPIC"]
         ORD_1[Ask for Order Number]
         ORD_2[Retrieve Order Details<br/>⚡ GetOrderDetails Action]
         ORD_3{Order Found?}
@@ -112,7 +135,7 @@ flowchart TD
         ORD_3 -->|No| ORD_1
     end
 
-    subgraph RETURN_TOPIC[🔄 Return Request Topic]
+    subgraph RETURN_TOPIC["🔄 RETURN REQUEST TOPIC"]
         RET_1[Verify Order Eligible]
         RET_2{Eligible for Return?}
         RET_3[Create Return Case<br/>🔄 CreateReturnCase Action]
@@ -144,17 +167,37 @@ flowchart TD
 
     ESCALATE --> END_TRANSFER([🟡 End - Transferred])
 
-    %% Styling
-    classDef start fill:#2E844A,color:#fff
-    classDef end_good fill:#2E844A,color:#fff
-    classDef end_transfer fill:#FE9339,color:#fff
-    classDef decision fill:#9050E9,color:#fff
-    classDef action fill:#00A1E0,color:#fff
+    %% Node Styling - Start/End (emerald-200)
+    style START fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style END_SUCCESS fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style END_TRANSFER fill:#fde68a,stroke:#b45309,color:#1f2937
 
-    class START start
-    class END_SUCCESS end_good
-    class END_TRANSFER end_transfer
-    class CLASSIFY,ORD_3,RET_2,KB_RESULT,SATISFIED decision
+    %% Node Styling - Decisions (violet-200)
+    style CLASSIFY fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style ORD_3 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style RET_2 fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style KB_RESULT fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style SATISFIED fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+
+    %% Node Styling - Actions (cyan-200)
+    style GREET fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style ORD_1 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style ORD_2 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style ORD_4 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style ORD_5 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style RET_1 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style RET_3 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style RET_4 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style RET_5 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style RET_6 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style KB_SEARCH fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style PROVIDE_ANSWER fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style CLARIFY fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style ESCALATE fill:#fed7aa,stroke:#c2410c,color:#1f2937
+
+    %% Subgraph Styling - 50-level fills with dashed borders
+    style ORDER_TOPIC fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style RETURN_TOPIC fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
 ```
 
 ## ASCII Fallback Template

@@ -207,12 +207,19 @@ erDiagram
 ### Basic Syntax
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart LR
     A[Start] --> B{Decision}
     B -->|Yes| C[Action 1]
     B -->|No| D[Action 2]
     C --> E[End]
     D --> E
+
+    style A fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style B fill:#fde68a,stroke:#b45309,color:#1f2937
+    style C fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style D fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style E fill:#a7f3d0,stroke:#047857,color:#1f2937
 ```
 
 ### Direction
@@ -266,18 +273,25 @@ flowchart LR
 ### Subgraphs
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart TB
-    subgraph Salesforce
+    subgraph sf["☁️ SALESFORCE"]
         A[Trigger]
         B[Flow]
     end
 
-    subgraph External
+    subgraph ext["🏭 EXTERNAL"]
         C[API]
     end
 
     A --> B
     B --> C
+
+    style sf fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style ext fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style A fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style B fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style C fill:#a7f3d0,stroke:#047857,color:#1f2937
 ```
 
 ---
@@ -286,6 +300,17 @@ flowchart TB
 
 ### Init Directive
 
+For spacing configuration (recommended):
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
+flowchart LR
+    A --> B
+
+    style A fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style B fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+```
+
+For theme variables (legacy - prefer individual `style` declarations):
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
   'primaryColor': '#00A1E0',
@@ -370,12 +395,23 @@ sequenceDiagram
 
 ### 3. Styling Individual Nodes
 
+Using `style` declarations (sf-skills standard):
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
+flowchart LR
+    A[Success] --> B[Error]
+
+    style A fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style B fill:#fecaca,stroke:#b91c1c,color:#1f2937
+```
+
+Using `classDef` (alternative approach):
 ```mermaid
 flowchart LR
     A:::success --> B:::error
 
-    classDef success fill:#2E844A,color:#fff
-    classDef error fill:#EA001E,color:#fff
+    classDef success fill:#a7f3d0,stroke:#047857,color:#1f2937
+    classDef error fill:#fecaca,stroke:#b91c1c,color:#1f2937
 ```
 
 ### 4. Click Events (Interactive)

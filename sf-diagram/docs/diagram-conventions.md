@@ -173,15 +173,22 @@ OBJECT {
 Group related components:
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart LR
-    subgraph sf[☁️ Salesforce]
+    subgraph sf["☁️ SALESFORCE"]
         A[Flow]
         B[Apex]
     end
 
-    subgraph ext[🏭 External]
+    subgraph ext["🏭 EXTERNAL"]
         C[API]
     end
+
+    style sf fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style ext fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style A fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style B fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style C fill:#a7f3d0,stroke:#047857,color:#1f2937
 ```
 
 ---

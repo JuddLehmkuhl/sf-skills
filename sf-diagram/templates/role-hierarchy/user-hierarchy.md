@@ -11,14 +11,9 @@ Flowchart template for visualizing Salesforce role hierarchies and permission st
 ## Mermaid Template - Sales Role Hierarchy
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#00A1E0',
-  'primaryTextColor': '#ffffff',
-  'primaryBorderColor': '#032D60',
-  'lineColor': '#706E6B'
-}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart TB
-    subgraph legend[📋 Legend]
+    subgraph legend["📋 LEGEND"]
         direction LR
         L1[Role]
         L2([Profile])
@@ -27,18 +22,18 @@ flowchart TB
 
     CEO[CEO]
 
-    subgraph sales[Sales Organization]
+    subgraph sales["SALES ORGANIZATION"]
         direction TB
         VP_SALES[VP of Sales]
 
-        subgraph regions[Regional Directors]
+        subgraph regions["REGIONAL DIRECTORS"]
             direction LR
             DIR_WEST[Director - West]
             DIR_EAST[Director - East]
             DIR_CENTRAL[Director - Central]
         end
 
-        subgraph managers[Sales Managers]
+        subgraph managers["SALES MANAGERS"]
             direction LR
             MGR_W1[Manager - SF]
             MGR_W2[Manager - LA]
@@ -48,7 +43,7 @@ flowchart TB
             MGR_C2[Manager - Dallas]
         end
 
-        subgraph reps[Sales Representatives]
+        subgraph reps["SALES REPRESENTATIVES"]
             direction LR
             REP_W[West Reps<br/>12 users]
             REP_E[East Reps<br/>15 users]
@@ -56,13 +51,13 @@ flowchart TB
         end
     end
 
-    subgraph service[Service Organization]
+    subgraph service["SERVICE ORGANIZATION"]
         direction TB
         VP_SVC[VP of Service]
 
         SVC_MGR[Service Manager]
 
-        subgraph agents[Service Agents]
+        subgraph agents["SERVICE AGENTS"]
             direction LR
             AGENT_T1[Tier 1 Support<br/>20 users]
             AGENT_T2[Tier 2 Support<br/>8 users]
@@ -95,26 +90,45 @@ flowchart TB
     SVC_MGR --> AGENT_T1
     SVC_MGR --> AGENT_T2
 
-    %% Styling
-    classDef exec fill:#032D60,color:#fff,stroke:#032D60
-    classDef director fill:#0176D3,color:#fff,stroke:#032D60
-    classDef manager fill:#00A1E0,color:#fff,stroke:#032D60
-    classDef rep fill:#1B96FF,color:#fff,stroke:#032D60
+    %% Node Styling - Pastel palette (Tailwind 200-level)
+    style CEO fill:#fbcfe8,stroke:#be185d,color:#1f2937
+    style VP_SALES fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style VP_SVC fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style DIR_WEST fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style DIR_EAST fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style DIR_CENTRAL fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style MGR_W1 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style MGR_W2 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style MGR_E1 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style MGR_E2 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style MGR_C1 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style MGR_C2 fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style SVC_MGR fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style REP_W fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style REP_E fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style REP_C fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style AGENT_T1 fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style AGENT_T2 fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style L1 fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style L2 fill:#e2e8f0,stroke:#334155,color:#1f2937
+    style L3 fill:#e2e8f0,stroke:#334155,color:#1f2937
 
-    class CEO exec
-    class VP_SALES,VP_SVC,DIR_WEST,DIR_EAST,DIR_CENTRAL director
-    class MGR_W1,MGR_W2,MGR_E1,MGR_E2,MGR_C1,MGR_C2,SVC_MGR manager
-    class REP_W,REP_E,REP_C,AGENT_T1,AGENT_T2 rep
+    %% Subgraph Styling - 50-level fills with dashed borders
+    style legend fill:#f8fafc,stroke:#334155,stroke-dasharray:5
+    style sales fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style regions fill:#eef2ff,stroke:#4338ca,stroke-dasharray:5
+    style managers fill:#ecfeff,stroke:#0e7490,stroke-dasharray:5
+    style reps fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style service fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style agents fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
 ```
 
 ## Mermaid Template - Profile & Permission Set Structure
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#00A1E0'
-}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart TB
-    subgraph profiles[📋 Profiles - Base Access]
+    subgraph profiles["📋 PROFILES - BASE ACCESS"]
         direction LR
         P_ADMIN([System Admin])
         P_SALES([Sales User])
@@ -123,29 +137,29 @@ flowchart TB
         P_PARTNER([Partner Community])
     end
 
-    subgraph psets[🔐 Permission Sets - Additive]
+    subgraph psets["🔐 PERMISSION SETS - ADDITIVE"]
         direction TB
 
-        subgraph functional[Functional Permissions]
+        subgraph functional["FUNCTIONAL PERMISSIONS"]
             PS_API{{API Access}}
             PS_REPORTS{{Advanced Reports}}
             PS_FLOW{{Flow Admin}}
         end
 
-        subgraph feature[Feature Permissions]
+        subgraph feature["FEATURE PERMISSIONS"]
             PS_CPQ{{CPQ User}}
             PS_EINSTEIN{{Einstein Analytics}}
             PS_INBOX{{Sales Engagement}}
         end
 
-        subgraph object[Object Permissions]
+        subgraph object["OBJECT PERMISSIONS"]
             PS_INVOICE{{Invoice Manager}}
             PS_CONTRACT{{Contract Editor}}
             PS_PRODUCT{{Product Admin}}
         end
     end
 
-    subgraph groups[👥 Permission Set Groups]
+    subgraph groups["👥 PERMISSION SET GROUPS"]
         direction LR
         PSG_SALES_FULL{{Sales Full Access}}
         PSG_SVC_FULL{{Service Full Access}}
@@ -164,14 +178,35 @@ flowchart TB
     PS_API --> PSG_SVC_FULL
     PS_REPORTS --> PSG_SVC_FULL
 
-    %% Styling
-    classDef profile fill:#9050E9,color:#fff
-    classDef pset fill:#04844B,color:#fff
-    classDef group fill:#FF6D00,color:#fff
+    %% Node Styling - Profiles (violet-200)
+    style P_ADMIN fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style P_SALES fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style P_SVC fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style P_MKTG fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style P_PARTNER fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
 
-    class P_ADMIN,P_SALES,P_SVC,P_MKTG,P_PARTNER profile
-    class PS_API,PS_REPORTS,PS_FLOW,PS_CPQ,PS_EINSTEIN,PS_INBOX,PS_INVOICE,PS_CONTRACT,PS_PRODUCT pset
-    class PSG_SALES_FULL,PSG_SVC_FULL group
+    %% Node Styling - Permission Sets (emerald-200)
+    style PS_API fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_REPORTS fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_FLOW fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_CPQ fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_EINSTEIN fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_INBOX fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_INVOICE fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_CONTRACT fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style PS_PRODUCT fill:#a7f3d0,stroke:#047857,color:#1f2937
+
+    %% Node Styling - Groups (orange-200)
+    style PSG_SALES_FULL fill:#fed7aa,stroke:#c2410c,color:#1f2937
+    style PSG_SVC_FULL fill:#fed7aa,stroke:#c2410c,color:#1f2937
+
+    %% Subgraph Styling - 50-level fills with dashed borders
+    style profiles fill:#f5f3ff,stroke:#6d28d9,stroke-dasharray:5
+    style psets fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style functional fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style feature fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style object fill:#ecfdf5,stroke:#047857,stroke-dasharray:5
+    style groups fill:#fff7ed,stroke:#c2410c,stroke-dasharray:5
 ```
 
 ## ASCII Fallback Template
@@ -246,6 +281,7 @@ flowchart TB
 ### Sharing Rules
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
 flowchart LR
     OWD[OWD: Private]
     SHARE[Sharing Rule]
@@ -253,13 +289,21 @@ flowchart LR
 
     OWD --> SHARE --> APEX
 
-    subgraph access[Access Expansion]
+    subgraph access["ACCESS EXPANSION"]
         ROLE[Role-based]
         CRITERIA[Criteria-based]
         MANUAL[Manual]
     end
 
     SHARE --> access
+
+    style OWD fill:#fde68a,stroke:#b45309,color:#1f2937
+    style SHARE fill:#a5f3fc,stroke:#0e7490,color:#1f2937
+    style APEX fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style ROLE fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style CRITERIA fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style MANUAL fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style access fill:#eef2ff,stroke:#4338ca,stroke-dasharray:5
 ```
 
 ## Best Practices

@@ -341,7 +341,7 @@ topic faq:
 **Causes:**
 1. Invalid `default_agent_user` - user doesn't exist in org
 2. User lacks Agentforce permissions
-3. Flow referenced by `flow://` not deployed to org
+3. **Flow action (`flow://`) used in AiAuthoringBundle** ← Most common cause!
 4. Transient server issue
 
 **Solutions:**
@@ -349,12 +349,35 @@ topic faq:
 # Verify user exists
 sf data query --query "SELECT Id, Username FROM User WHERE Username = 'user@example.com'" --target-org [alias]
 
-# Deploy flows first
-sf project deploy start --metadata Flow --target-org [alias]
-
-# Then publish agent
-sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
+# If using flow:// target, you MUST use GenAiPlannerBundle instead
+# (but agent won't be visible in Agentforce Studio)
+sf project deploy start --metadata GenAiPlannerBundle --target-org [alias]
 ```
+
+### ⚠️ Flow Actions in AiAuthoringBundle - NOT SUPPORTED
+
+**Tested and confirmed (December 2025):** Flow actions (`flow://`) do NOT work with AiAuthoringBundle, even when:
+- ✅ The Flow is deployed to the org
+- ✅ The Flow is wrapped as a GenAiFunction (Agentforce Action)
+- ✅ The GenAiFunction has proper input/output schemas
+
+**All of these approaches fail:**
+
+| Approach | Result |
+|----------|--------|
+| `target: "flow://MyFlow"` | ❌ Internal Error |
+| `target: "flow://MyGenAiFunction"` (wrapped) | ❌ Internal Error |
+| `target: "genAiFunction://MyGenAiFunction"` | ❌ Invalid action type |
+| Action without target | ❌ Target is required |
+
+**Workaround for visible agents needing Flow actions:**
+1. Create the Flow in the org
+2. Create a GenAiFunction (Agentforce Action) wrapping the Flow
+3. Deploy the GenAiFunction via `sf project deploy start`
+4. Create/edit the agent in **Agentforce Studio UI** (not Agent Script)
+5. Add the action from the **Asset Library** in the UI
+
+This is a platform limitation - the AiAuthoringBundle → GenAiPlannerBundle conversion does not support flow action binding.
 
 ### Error: "SyntaxError: Invalid system instructions"
 

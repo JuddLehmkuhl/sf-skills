@@ -500,8 +500,16 @@ serviceCatalog, slack, standardInvocableAction
 
 ⚠️ **CRITICAL**: Flow actions (`flow://`) are **ONLY supported in GenAiPlannerBundle** deployment!
 - AiAuthoringBundle CLI (`sf agent publish authoring-bundle`) fails with "Internal Error" for flow targets
+- **Even wrapping a Flow as GenAiFunction does NOT help** - the error persists
 - Apex targets (`apex://`) work in AiAuthoringBundle if the class/method exists
-- For visible agents that need flow actions, you must use GenAiPlannerBundle (but agent won't appear in UI)
+
+**Workaround for visible agents needing Flow actions:**
+1. Create a GenAiFunction (Agentforce Action) wrapping your Flow
+2. Deploy the GenAiFunction via `sf project deploy start`
+3. Create/edit the agent in **Agentforce Studio UI** (not Agent Script)
+4. Add the action from the **Asset Library** in the UI
+
+This is a platform limitation until Salesforce adds flow action support to the Canvas/Builder view.
 
 ### Invoking Actions
 

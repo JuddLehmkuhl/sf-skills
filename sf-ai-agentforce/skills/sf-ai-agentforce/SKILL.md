@@ -46,17 +46,17 @@ force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].bundle-meta.xm
 
 ## ⚠️ CRITICAL: Indentation Rules
 
-**Agent Script uses 4-SPACE indentation (NOT tabs, NOT 3 spaces)**
+**Agent Script uses 3-SPACE indentation (NOT tabs, NOT 4 spaces)**
 
 ```agentscript
-# ✅ CORRECT - 4 spaces
+# ✅ CORRECT - 3 spaces
 config:
-    developer_name: "My_Agent"
-    description: "My agent description"
+   agent_name: "My_Agent"
+   description: "My agent description"
 
-# ❌ WRONG - 3 spaces (common mistake!)
+# ❌ WRONG - 4 spaces (common mistake!)
 config:
-   developer_name: "My_Agent"
+    agent_name: "My_Agent"
 ```
 
 ---
@@ -68,16 +68,16 @@ config:
 ```agentscript
 # ✅ CORRECT - Single quoted string
 system:
-    instructions: "You are a helpful assistant. Be professional and friendly. Never share confidential information."
-    messages:
-        welcome: "Hello!"
-        error: "Sorry, an error occurred."
+   instructions: "You are a helpful assistant. Be professional and friendly. Never share confidential information."
+   messages:
+      welcome: "Hello!"
+      error: "Sorry, an error occurred."
 
 # ❌ WRONG - Pipe syntax fails with SyntaxError
 system:
-    instructions:
-        | You are a helpful assistant.
-        | Be professional.
+   instructions:
+      | You are a helpful assistant.
+      | Be professional.
 ```
 
 **Note**: The `|` pipe syntax ONLY works inside `reasoning: instructions: ->` blocks within topics.
@@ -91,12 +91,12 @@ system:
 ```agentscript
 # ✅ CORRECT - description on separate line
 actions:
-    escalate_to_human: @utils.escalate
-        description: "Transfer to human when customer requests or issue cannot be resolved"
+   escalate_to_human: @utils.escalate
+      description: "Transfer to human when customer requests or issue cannot be resolved"
 
 # ❌ WRONG - inline description fails
 actions:
-    escalate: @utils.escalate "description here"
+   escalate: @utils.escalate "description here"
 ```
 
 ---
@@ -118,13 +118,13 @@ actions:
 ```agentscript
 # ❌ WRONG - 'description' conflicts with keyword
 inputs:
-    description: string
-        description: "The description field"
+   description: string
+      description: "The description field"
 
 # ✅ CORRECT - Use alternative name
 inputs:
-    case_description: string
-        description: "The description field"
+   case_description: string
+      description: "The description field"
 ```
 
 ---
@@ -137,15 +137,15 @@ inputs:
 
 ```agentscript
 actions:
-    get_account:
-        description: "Retrieves account information"
-        inputs:
-            account_id: string
-                description: "Salesforce Account ID"
-        outputs:
-            account_name: string
-                description: "Account name"
-        target: "flow://Get_Account_Info"  # ✅ Works directly!
+   get_account:
+      description: "Retrieves account information"
+      inputs:
+         account_id: string
+            description: "Salesforce Account ID"
+      outputs:
+         account_name: string
+            description: "Account name"
+      target: "flow://Get_Account_Info"  # ✅ Works directly!
 ```
 
 **Requirements for Flow Integration:**
@@ -248,10 +248,16 @@ Use **AskUserQuestion** to gather:
 
 | Pattern | Use When | Template |
 |---------|----------|----------|
+| Hello World | Learning / Minimal agent | `templates/getting-started/hello-world.agent` |
 | Simple Q&A | Single topic, no actions | `templates/agent/simple-qa.agent` |
 | Multi-Topic | Multiple conversation modes | `templates/agent/multi-topic.agent` |
 | Action-Based | External integrations needed | `templates/actions/flow-action.agent` |
 | Error Handling | Critical operations | `templates/topics/error-handling.agent` |
+| Lifecycle Events | Before/after reasoning logic | `templates/patterns/lifecycle-events.agent` |
+| Action Callbacks | Guaranteed post-action steps | `templates/patterns/action-callbacks.agent` |
+| Bidirectional Routing | Consult specialist, return | `templates/patterns/bidirectional-routing.agent` |
+
+**Pattern Decision Guide**: See `docs/pattern-catalog.md` for detailed decision tree.
 
 Load via: `Read: ../../templates/[path]` (relative to SKILL.md location)
 
@@ -273,7 +279,7 @@ force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].bundle-meta.xm
 
 **Required .agent blocks**:
 1. `system:` - Instructions and messages (MUST BE FIRST)
-2. `config:` - Agent metadata (developer_name, agent_label, description, default_agent_user)
+2. `config:` - Agent metadata (agent_name, agent_label, description, default_agent_user)
 3. `variables:` - Linked and mutable variables
 4. `language:` - Locale settings
 5. `start_agent topic_selector:` - Entry point topic with label and description
@@ -290,7 +296,7 @@ Score: 85/100 ⭐⭐⭐⭐ Very Good
 └─ Security & Guardrails:   8/10 (80%)
 
 Issues:
-⚠️ [Syntax] Line 15: Use 4-space indentation, found 3 spaces
+⚠️ [Syntax] Line 15: Use 3-space indentation, found 4 spaces
 ⚠️ [Topic] Missing label for topic 'checkout'
 ✓ All topic references valid
 ✓ All variable references valid
@@ -358,73 +364,73 @@ Next Steps:
 
 ```agentscript
 system:
-    instructions: "You are a helpful assistant for Acme Corporation. Be professional and friendly. Never share confidential information."
-    messages:
-        welcome: "Hello! How can I help you today?"
-        error: "I apologize, but I encountered an issue. Please try again."
+   instructions: "You are a helpful assistant for Acme Corporation. Be professional and friendly. Never share confidential information."
+   messages:
+      welcome: "Hello! How can I help you today?"
+      error: "I apologize, but I encountered an issue. Please try again."
 
 config:
-    developer_name: "My_Agent"
-    default_agent_user: "user@example.com"
-    agent_label: "My Agent"
-    description: "A helpful assistant agent"
+   agent_name: "My_Agent"
+   default_agent_user: "user@example.com"
+   agent_label: "My Agent"
+   description: "A helpful assistant agent"
 
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "Messaging End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Messaging Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
-    user_query: mutable string
-        description: "The user's current question"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "Messaging End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Messaging Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
+   user_query: mutable string
+      description: "The user's current question"
 
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes users to appropriate topics"
+   label: "Topic Selector"
+   description: "Routes users to appropriate topics"
 
-    reasoning:
-        instructions: ->
-            | Determine what the user needs.
-            | Route to the appropriate topic.
-        actions:
-            go_to_help: @utils.transition to @topic.help
-            go_to_farewell: @utils.transition to @topic.farewell
+   reasoning:
+      instructions: ->
+         | Determine what the user needs.
+         | Route to the appropriate topic.
+      actions:
+         go_to_help: @utils.transition to @topic.help
+         go_to_farewell: @utils.transition to @topic.farewell
 
 topic help:
-    label: "Help"
-    description: "Provides help to users"
+   label: "Help"
+   description: "Provides help to users"
 
-    reasoning:
-        instructions: ->
-            | Answer the user's question helpfully.
-            | If you cannot help, offer alternatives.
-        actions:
-            back_to_selector: @utils.transition to @topic.topic_selector
+   reasoning:
+      instructions: ->
+         | Answer the user's question helpfully.
+         | If you cannot help, offer alternatives.
+      actions:
+         back_to_selector: @utils.transition to @topic.topic_selector
 
 topic farewell:
-    label: "Farewell"
-    description: "Ends the conversation gracefully"
+   label: "Farewell"
+   description: "Ends the conversation gracefully"
 
-    reasoning:
-        instructions: ->
-            | Thank the user for reaching out.
-            | Wish them a great day.
+   reasoning:
+      instructions: ->
+         | Thank the user for reaching out.
+         | Wish them a great day.
 ```
 
 ### Block Order (CRITICAL)
 
 The blocks MUST appear in this order:
 1. `system:` (instructions and messages)
-2. `config:` (developer_name, default_agent_user, agent_label, description)
+2. `config:` (agent_name, default_agent_user, agent_label, description)
 3. `variables:` (linked variables first, then mutable variables)
 4. `language:` (locale settings)
 5. `start_agent [name]:` (entry point topic)
@@ -434,20 +440,20 @@ The blocks MUST appear in this order:
 
 ```agentscript
 config:
-    developer_name: "Agent_API_Name"
-    default_agent_user: "user@org.salesforce.com"
-    agent_label: "Human Readable Name"
-    description: "What this agent does"
+   agent_name: "Agent_API_Name"
+   default_agent_user: "user@org.salesforce.com"
+   agent_label: "Human Readable Name"
+   description: "What this agent does"
 ```
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `developer_name` | Yes | API name (PascalCase with underscores) |
+| `agent_name` | Yes | API name (letters, numbers, underscores only, max 80 chars) |
 | `default_agent_user` | Yes | Username for agent execution context |
 | `agent_label` | Yes | Human-readable name |
 | `description` | Yes | What the agent does |
 
-**IMPORTANT**: Use `developer_name`, NOT `agent_name`!
+**IMPORTANT**: Use `agent_name` (not `developer_name`)!
 
 **⚠️ default_agent_user Requirements**:
 - Must be a valid username in the target org
@@ -459,10 +465,10 @@ config:
 
 ```agentscript
 system:
-    instructions: "Global instructions for the agent. Be helpful and professional."
-    messages:
-        welcome: "Hello! How can I help you today?"
-        error: "I'm sorry, something went wrong. Please try again."
+   instructions: "Global instructions for the agent. Be helpful and professional."
+   messages:
+      welcome: "Hello! How can I help you today?"
+      error: "I'm sorry, something went wrong. Please try again."
 ```
 
 **⚠️ IMPORTANT**: System instructions MUST be a single quoted string. The `|` pipe multiline syntax does NOT work in the `system:` block (it only works in `reasoning: instructions: ->`).
@@ -470,13 +476,13 @@ system:
 ```agentscript
 # ✅ CORRECT - Single quoted string
 system:
-    instructions: "You are a helpful assistant. Be professional. Never share secrets."
+   instructions: "You are a helpful assistant. Be professional. Never share secrets."
 
 # ❌ WRONG - Pipe syntax fails in system block
 system:
-    instructions:
-        | You are a helpful assistant.
-        | Be professional.
+   instructions:
+      | You are a helpful assistant.
+      | Be professional.
 ```
 
 ### Variables Block
@@ -484,35 +490,35 @@ system:
 **Linked Variables** (connect to Salesforce data):
 ```agentscript
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "Messaging End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Messaging Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "Messaging End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Messaging Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
 ```
 
 **Mutable Variables** (agent state):
 ```agentscript
 variables:
-    user_name: mutable string
-        description: "User's name"
-    order_count: mutable number
-        description: "Number of items in cart"
-    is_verified: mutable boolean
-        description: "Whether identity is verified"
+   user_name: mutable string
+      description: "User's name"
+   order_count: mutable number
+      description: "Number of items in cart"
+   is_verified: mutable boolean
+      description: "Whether identity is verified"
 ```
 
 ### Language Block
 
 ```agentscript
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 ```
 
 ### Topic Blocks
@@ -520,30 +526,30 @@ language:
 **Entry point topic** (required):
 ```agentscript
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes users to appropriate topics"
+   label: "Topic Selector"
+   description: "Routes users to appropriate topics"
 
-    reasoning:
-        instructions: ->
-            | Determine what the user needs.
-            | Route to the appropriate topic.
-        actions:
-            go_to_orders: @utils.transition to @topic.orders
-            go_to_support: @utils.transition to @topic.support
+   reasoning:
+      instructions: ->
+         | Determine what the user needs.
+         | Route to the appropriate topic.
+      actions:
+         go_to_orders: @utils.transition to @topic.orders
+         go_to_support: @utils.transition to @topic.support
 ```
 
 **Additional topics**:
 ```agentscript
 topic orders:
-    label: "Order Management"
-    description: "Handles order inquiries and processing"
+   label: "Order Management"
+   description: "Handles order inquiries and processing"
 
-    reasoning:
-        instructions: ->
-            | Help the user with their order.
-            | Provide status updates and assistance.
-        actions:
-            back_to_menu: @utils.transition to @topic.topic_selector
+   reasoning:
+      instructions: ->
+         | Help the user with their order.
+         | Provide status updates and assistance.
+      actions:
+         back_to_menu: @utils.transition to @topic.topic_selector
 ```
 
 **IMPORTANT**: Each topic MUST have both `label:` and `description:`!
@@ -566,17 +572,17 @@ topic orders:
 **Procedural mode** (with logic):
 ```agentscript
 reasoning:
-    instructions: ->
-        | Determine user intent.
-        | Provide helpful response.
-        | If unclear, ask clarifying questions.
+   instructions: ->
+      | Determine user intent.
+      | Provide helpful response.
+      | If unclear, ask clarifying questions.
 ```
 
 **System instructions** (must be single string):
 ```agentscript
 # ✅ CORRECT - System instructions as single string
 system:
-    instructions: "You are a helpful assistant. Be professional and courteous. Never share confidential information."
+   instructions: "You are a helpful assistant. Be professional and courteous. Never share confidential information."
 ```
 
 **⚠️ NOTE**: The `|` pipe multiline syntax ONLY works inside `reasoning: instructions: ->` blocks, NOT in the top-level `system:` block.
@@ -587,64 +593,112 @@ system:
 
 ```agentscript
 topic account_lookup:
-    label: "Account Lookup"
-    description: "Looks up account information"
+   label: "Account Lookup"
+   description: "Looks up account information"
 
-    # ✅ CORRECT - Actions inside topic
-    actions:
-        get_account:
-            description: "Retrieves account information"
-            inputs:
-                account_id: string
-                    description: "Salesforce Account ID"
-            outputs:
-                account_name: string
-                    description: "Account name"
-                industry: string
-                    description: "Account industry"
-            target: "flow://Get_Account_Info"
+   # ✅ CORRECT - Actions inside topic
+   actions:
+      get_account:
+         description: "Retrieves account information"
+         inputs:
+            account_id: string
+               description: "Salesforce Account ID"
+         outputs:
+            account_name: string
+               description: "Account name"
+            industry: string
+               description: "Account industry"
+         target: "flow://Get_Account_Info"
 
-    reasoning:
-        instructions: ->
-            | Help the user look up account information.
-        actions:
-            lookup: @actions.get_account
-                with account_id=...
-                set @variables.account_name = @outputs.account_name
+   reasoning:
+      instructions: ->
+         | Help the user look up account information.
+      actions:
+         lookup: @actions.get_account
+            with account_id=...
+            set @variables.account_name = @outputs.account_name
 ```
 
 ### Action Invocation
 
 ```agentscript
 reasoning:
-    actions:
-        # LLM fills inputs (...)
-        lookup: @actions.get_account
-            with account_id=...
-            set @variables.account_name = @outputs.account_name
+   actions:
+      # LLM fills inputs (...)
+      lookup: @actions.get_account
+         with account_id=...
+         set @variables.account_name = @outputs.account_name
 
-        # Fixed value
-        default_lookup: @actions.get_account
-            with account_id="001XX000003NGFQ"
+      # Fixed value
+      default_lookup: @actions.get_account
+         with account_id="001XX000003NGFQ"
 
-        # Variable binding
-        bound_lookup: @actions.get_account
-            with account_id=@variables.current_account_id
+      # Variable binding
+      bound_lookup: @actions.get_account
+         with account_id=@variables.current_account_id
 ```
 
 ### Action Callbacks (Chaining)
 
+Use the `run` keyword to execute follow-up actions after a primary action completes:
+
 ```agentscript
 process_order: @actions.create_order
-    with items=...
-    set @variables.order_id = @outputs.order_id
-    run @actions.send_confirmation
-        with order_id=@variables.order_id
-    run @actions.update_inventory
-        with order_id=@variables.order_id
+   with items=...
+   set @variables.order_id = @outputs.order_id
+   run @actions.send_confirmation
+      with order_id=@variables.order_id
+   run @actions.update_inventory
+      with order_id=@variables.order_id
 ```
 
 **Note**: Only one level of nesting - cannot nest `run` inside `run`.
+
+### Lifecycle Blocks (before_reasoning / after_reasoning)
+
+**NEW**: Use lifecycle blocks for initialization and cleanup logic that runs automatically.
+
+```agentscript
+topic conversation:
+   description: "Main conversation topic"
+
+   # Runs BEFORE each reasoning step - use for initialization, logging, validation
+   before_reasoning:
+      set @variables.turn_count = @variables.turn_count + 1
+      if @variables.turn_count == 1:
+         run @actions.get_timestamp
+            set @variables.session_start = @outputs.current_timestamp
+      run @actions.log_event
+         with event_type="reasoning_started"
+
+   # Main reasoning block
+   reasoning:
+      instructions: ->
+         | Respond to the user.
+         | Session started: {!@variables.session_start}
+         | Current turn: {!@variables.turn_count}
+
+   # Runs AFTER each reasoning step - use for cleanup, analytics, final logging
+   after_reasoning:
+      run @actions.log_event
+         with event_type="reasoning_completed"
+```
+
+**When to use:**
+- `before_reasoning`: Session initialization, turn counting, pre-validation, state setup
+- `after_reasoning`: Cleanup, analytics, audit logging, state updates
+
+### Variable Setting with @utils.setVariables
+
+Set multiple variables directly using the utility action:
+
+```agentscript
+reasoning:
+   actions:
+      update_state: @utils.setVariables
+         with user_name=...
+         with is_verified=True
+```
 
 ### Topic Transitions
 
@@ -663,17 +717,17 @@ go_checkout: @utils.transition to @topic.checkout
 
 ```agentscript
 topic escalation:
-    label: "Escalation"
-    description: "Handles requests to transfer to a live human agent"
+   label: "Escalation"
+   description: "Handles requests to transfer to a live human agent"
 
-    reasoning:
-        instructions: ->
-            | If a user explicitly asks to transfer, escalate.
-            | Acknowledge and apologize for any inconvenience.
-        actions:
-            # ✅ CORRECT - description on separate indented line
-            escalate_to_human: @utils.escalate
-                description: "Transfer to human when customer requests or issue cannot be resolved"
+   reasoning:
+      instructions: ->
+         | If a user explicitly asks to transfer, escalate.
+         | Acknowledge and apologize for any inconvenience.
+      actions:
+         # ✅ CORRECT - description on separate indented line
+         escalate_to_human: @utils.escalate
+            description: "Transfer to human when customer requests or issue cannot be resolved"
 
 # ❌ WRONG - inline description fails
 #     escalate: @utils.escalate "description here"
@@ -683,15 +737,15 @@ topic escalation:
 
 ```agentscript
 instructions: ->
-    if @variables.amount > 10000:
-        set @variables.needs_approval = True
-        | This amount requires manager approval.
-    else:
-        set @variables.needs_approval = False
-        | Processing your request.
+   if @variables.amount > 10000:
+      set @variables.needs_approval = True
+      | This amount requires manager approval.
+   else:
+      set @variables.needs_approval = False
+      | Processing your request.
 
-    if @variables.user_name is None:
-        | I don't have your name yet. What should I call you?
+   if @variables.user_name is None:
+      | I don't have your name yet. What should I call you?
 ```
 
 **Boolean Capitalization**: Use `True` and `False` (capital T and F), not `true`/`false`.
@@ -710,8 +764,8 @@ Use `{!...}` for variable interpolation in instructions:
 
 ```agentscript
 instructions: ->
-    | Hello {!@variables.user_name}!
-    | Your account balance is {!@variables.balance}.
+   | Hello {!@variables.user_name}!
+   | Your account balance is {!@variables.balance}.
 ```
 
 ---
@@ -720,9 +774,9 @@ instructions: ->
 
 ### Structure & Syntax (20 points)
 - Valid Agent Script syntax (-10 if parsing fails)
-- Correct 4-space indentation (-3 per violation)
+- Correct 3-space indentation (-3 per violation)
 - Required blocks present (system, config, start_agent, language) (-5 each missing)
-- Uses `developer_name` not `agent_name` (-5 if wrong)
+- Uses `agent_name` not `developer_name` (-5 if wrong)
 - File extension is `.agent` (-5 if wrong)
 
 ### Topic Design (20 points)
@@ -893,31 +947,31 @@ Or use template: `templates/flows/http-callout-flow.flow-meta.xml`
 **Step 3: Reference Flow in Agent Script**
 ```agentscript
 topic payment_lookup:
-    label: "Payment Lookup"
-    description: "Looks up payment information from Stripe"
+   label: "Payment Lookup"
+   description: "Looks up payment information from Stripe"
 
-    actions:
-        check_payment:
-            description: "Retrieves payment status from Stripe API"
-            inputs:
-                payment_id: string
-                    description: "The Stripe payment ID"
-            outputs:
-                payment_status: string
-                    description: "Current payment status"
-                amount: string
-                    description: "Payment amount"
-            target: "flow://Get_Stripe_Payment"
+   actions:
+      check_payment:
+         description: "Retrieves payment status from Stripe API"
+         inputs:
+            payment_id: string
+               description: "The Stripe payment ID"
+         outputs:
+            payment_status: string
+               description: "Current payment status"
+            amount: string
+               description: "Payment amount"
+         target: "flow://Get_Stripe_Payment"
 
-    reasoning:
-        instructions: ->
-            | Ask for the payment ID.
-            | Look up the payment status.
-            | Report the status and amount to the user.
-        actions:
-            lookup: @actions.check_payment
-                with payment_id=...
-                set @variables.payment_status = @outputs.payment_status
+   reasoning:
+      instructions: ->
+         | Ask for the payment ID.
+         | Look up the payment status.
+         | Report the status and amount to the user.
+      actions:
+         lookup: @actions.check_payment
+            with payment_id=...
+            set @variables.payment_status = @outputs.payment_status
 ```
 
 ### C. Flow Actions (Already Working)
@@ -995,80 +1049,80 @@ sf project deploy start --metadata NamedCredential:ERP_API,Flow:Get_Order_Status
 **Step 4: Create Agent with API Action**
 ```agentscript
 system:
-    instructions: "You are an order status assistant. Help customers check their order status. Be helpful and professional."
-    messages:
-        welcome: "Hello! I can help you check your order status."
-        error: "Sorry, I couldn't retrieve that information."
+   instructions: "You are an order status assistant. Help customers check their order status. Be helpful and professional."
+   messages:
+      welcome: "Hello! I can help you check your order status."
+      error: "Sorry, I couldn't retrieve that information."
 
 config:
-    developer_name: "Order_Status_Agent"
-    default_agent_user: "agent@company.com"
-    agent_label: "Order Status Agent"
-    description: "Helps customers check order status from ERP system"
+   agent_name: "Order_Status_Agent"
+   default_agent_user: "agent@company.com"
+   agent_label: "Order Status Agent"
+   description: "Helps customers check order status from ERP system"
 
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "Messaging End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Messaging Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
-    order_status: mutable string
-        description: "Current order status"
-    expected_delivery: mutable string
-        description: "Expected delivery date"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "Messaging End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Messaging Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
+   order_status: mutable string
+      description: "Current order status"
+   expected_delivery: mutable string
+      description: "Expected delivery date"
 
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes to order status lookup"
+   label: "Topic Selector"
+   description: "Routes to order status lookup"
 
-    reasoning:
-        instructions: ->
-            | Greet the user.
-            | Ask for their order ID.
-            | Route to order lookup.
-        actions:
-            check_order: @utils.transition to @topic.order_lookup
+   reasoning:
+      instructions: ->
+         | Greet the user.
+         | Ask for their order ID.
+         | Route to order lookup.
+      actions:
+         check_order: @utils.transition to @topic.order_lookup
 
 topic order_lookup:
-    label: "Order Status"
-    description: "Looks up order status from ERP system"
+   label: "Order Status"
+   description: "Looks up order status from ERP system"
 
-    actions:
-        get_order:
-            description: "Retrieves order status by order ID"
-            inputs:
-                order_id: string
-                    description: "The order ID to look up"
-            outputs:
-                status: string
-                    description: "Current order status"
-                delivery_date: string
-                    description: "Expected delivery date"
-            target: "flow://Get_Order_Status"
+   actions:
+      get_order:
+         description: "Retrieves order status by order ID"
+         inputs:
+            order_id: string
+               description: "The order ID to look up"
+         outputs:
+            status: string
+               description: "Current order status"
+            delivery_date: string
+               description: "Expected delivery date"
+         target: "flow://Get_Order_Status"
 
-    reasoning:
-        instructions: ->
-            | Ask for the order ID if not provided.
-            | Look up the order status.
-            | Report the status and expected delivery.
-            |
-            | if @variables.order_status is None:
-            |     | I couldn't find that order. Please verify the order ID.
-        actions:
-            lookup: @actions.get_order
-                with order_id=...
-                set @variables.order_status = @outputs.status
-                set @variables.expected_delivery = @outputs.delivery_date
-            back: @utils.transition to @topic.topic_selector
+   reasoning:
+      instructions: ->
+         | Ask for the order ID if not provided.
+         | Look up the order status.
+         | Report the status and expected delivery.
+         |
+         | if @variables.order_status is None:
+         |     | I couldn't find that order. Please verify the order ID.
+      actions:
+         lookup: @actions.get_order
+            with order_id=...
+            set @variables.order_status = @outputs.status
+            set @variables.expected_delivery = @outputs.delivery_date
+         back: @utils.transition to @topic.topic_selector
 ```
 
 **Step 5: Publish Agent**
@@ -1092,127 +1146,127 @@ sf agent publish authoring-bundle --api-name Order_Status_Agent --target-org [al
 ### Pattern 1: Simple FAQ Agent
 ```agentscript
 system:
-    instructions: "You are a helpful FAQ assistant. Answer questions concisely. Never share confidential information."
-    messages:
-        welcome: "Hello! I can answer your questions."
-        error: "Sorry, I encountered an issue."
+   instructions: "You are a helpful FAQ assistant. Answer questions concisely. Never share confidential information."
+   messages:
+      welcome: "Hello! I can answer your questions."
+      error: "Sorry, I encountered an issue."
 
 config:
-    developer_name: "FAQ_Agent"
-    default_agent_user: "agent.user@company.com"
-    agent_label: "FAQ Agent"
-    description: "Answers frequently asked questions"
+   agent_name: "FAQ_Agent"
+   default_agent_user: "agent.user@company.com"
+   agent_label: "FAQ Agent"
+   description: "Answers frequently asked questions"
 
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "Messaging End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Messaging Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "Messaging End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Messaging Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
 
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes to FAQ handling"
+   label: "Topic Selector"
+   description: "Routes to FAQ handling"
 
-    reasoning:
-        instructions: ->
-            | Listen to the user's question.
-            | Provide a helpful, accurate response.
+   reasoning:
+      instructions: ->
+         | Listen to the user's question.
+         | Provide a helpful, accurate response.
 ```
 
 ### Pattern 2: Multi-Topic Router
 ```agentscript
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes users to appropriate topics"
+   label: "Topic Selector"
+   description: "Routes users to appropriate topics"
 
-    reasoning:
-        instructions: ->
-            | Determine what the user needs help with.
-            | Route to the appropriate topic.
-        actions:
-            orders: @utils.transition to @topic.order_management
-            support: @utils.transition to @topic.support
-            billing: @utils.transition to @topic.billing
+   reasoning:
+      instructions: ->
+         | Determine what the user needs help with.
+         | Route to the appropriate topic.
+      actions:
+         orders: @utils.transition to @topic.order_management
+         support: @utils.transition to @topic.support
+         billing: @utils.transition to @topic.billing
 
 topic order_management:
-    label: "Order Management"
-    description: "Helps with orders"
+   label: "Order Management"
+   description: "Helps with orders"
 
-    reasoning:
-        instructions: ->
-            | Help with order-related questions.
-        actions:
-            back: @utils.transition to @topic.topic_selector
+   reasoning:
+      instructions: ->
+         | Help with order-related questions.
+      actions:
+         back: @utils.transition to @topic.topic_selector
 ```
 
 ### Pattern 3: Flow Action with Variable Binding
 ```agentscript
 topic account_lookup:
-    label: "Account Lookup"
-    description: "Looks up account information using Flow"
+   label: "Account Lookup"
+   description: "Looks up account information using Flow"
 
-    actions:
-        get_account:
-            description: "Retrieves account information by ID"
-            inputs:
-                inp_AccountId: string
-                    description: "The Salesforce Account ID"
-            outputs:
-                out_AccountName: string
-                    description: "Account name"
-                out_Industry: string
-                    description: "Account industry"
-                out_IsFound: boolean
-                    description: "Whether account was found"
-            target: "flow://Get_Account_Info"
+   actions:
+      get_account:
+         description: "Retrieves account information by ID"
+         inputs:
+            inp_AccountId: string
+               description: "The Salesforce Account ID"
+         outputs:
+            out_AccountName: string
+               description: "Account name"
+            out_Industry: string
+               description: "Account industry"
+            out_IsFound: boolean
+               description: "Whether account was found"
+         target: "flow://Get_Account_Info"
 
-    reasoning:
-        instructions: ->
-            | Ask for the Account ID if not provided.
-            | Use the get_account action to look up the account.
-            |
-            | if @variables.account_found == True:
-            |     | Here is the account: {!@variables.account_name}
-            | else:
-            |     | Account not found. Please check the ID.
-        actions:
-            lookup: @actions.get_account
-                with inp_AccountId=...
-                set @variables.account_name = @outputs.out_AccountName
-                set @variables.account_found = @outputs.out_IsFound
-            back: @utils.transition to @topic.topic_selector
+   reasoning:
+      instructions: ->
+         | Ask for the Account ID if not provided.
+         | Use the get_account action to look up the account.
+         |
+         | if @variables.account_found == True:
+         |     | Here is the account: {!@variables.account_name}
+         | else:
+         |     | Account not found. Please check the ID.
+      actions:
+         lookup: @actions.get_account
+            with inp_AccountId=...
+            set @variables.account_name = @outputs.out_AccountName
+            set @variables.account_found = @outputs.out_IsFound
+         back: @utils.transition to @topic.topic_selector
 ```
 
 ### Pattern 4: Conditional Transitions
 ```agentscript
 topic order_processing:
-    label: "Order Processing"
-    description: "Processes customer orders"
+   label: "Order Processing"
+   description: "Processes customer orders"
 
-    reasoning:
-        instructions: ->
-            if @variables.cart_total <= 0:
-                | Your cart is empty. Add items before checkout.
-            if @variables.cart_total > 10000:
-                set @variables.needs_approval = True
-                | Large orders require approval.
-        actions:
-            process: @actions.create_order
-                with items=@variables.cart_items
-                available when @variables.cart_total > 0
-                available when @variables.needs_approval == False
-            get_approval: @utils.transition to @topic.approval
-                available when @variables.needs_approval == True
+   reasoning:
+      instructions: ->
+         if @variables.cart_total <= 0:
+            | Your cart is empty. Add items before checkout.
+         if @variables.cart_total > 10000:
+            set @variables.needs_approval = True
+            | Large orders require approval.
+      actions:
+         process: @actions.create_order
+            with items=@variables.cart_items
+            available when @variables.cart_total > 0
+            available when @variables.needs_approval == False
+         get_approval: @utils.transition to @topic.approval
+            available when @variables.needs_approval == True
 ```
 
 ---
@@ -1221,9 +1275,10 @@ topic order_processing:
 
 | Anti-Pattern | Issue | Fix |
 |--------------|-------|-----|
-| Tab indentation | Syntax error | Use 4 spaces |
+| Tab indentation | Syntax error | Use 3 spaces |
+| 4-space indentation | Wrong indent | Use 3 spaces (not 4!) |
 | `@variable.name` | Wrong syntax | Use `@variables.name` (plural) |
-| `agent_name:` in config | Wrong field | Use `developer_name:` |
+| `developer_name:` in config | Wrong field | Use `agent_name:` |
 | `instructions:->` | Missing space | Use `instructions: ->` |
 | Missing `label:` | Deployment fails | Add label to all topics |
 | Missing linked variables | Missing context | Add EndUserId, RoutableId, ContactId |
@@ -1240,6 +1295,7 @@ topic order_processing:
 | `true`/`false` booleans | Wrong case | Use `True`/`False` |
 | Actions at top level | Wrong location | Define actions inside topics |
 | Direct Apex call | Only flow:// works | Create Flow wrapper for Apex InvocableMethod |
+| Missing before_reasoning | Initialization skipped | Add before_reasoning for setup logic |
 
 ---
 
@@ -1287,13 +1343,13 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | Insight | Issue | Fix |
 |---------|-------|-----|
 | File Extension | `.agentscript` not recognized | Use `.agent` |
-| Config Field | `agent_name` causes deploy failure | Use `developer_name` |
+| Config Field | `developer_name` causes deploy failure | Use `agent_name` |
 | Instructions Syntax | `instructions:->` fails | Use `instructions: ->` (space!) |
 | Topic Fields | Missing `label` fails deploy | Add both `label` and `description` |
 | Linked Variables | Missing context variables | Add EndUserId, RoutableId, ContactId |
 | Language Block | Missing causes deploy failure | Add `language:` block |
 | Bundle XML | Missing causes deploy failure | Create `.bundle-meta.xml` file |
-| 4-Space Indentation | 3 spaces causes parse errors | Always use 4 spaces |
+| **3-Space Indentation** | **4 spaces causes parse errors** | **Always use 3 spaces** |
 | `@variables` is plural | `@variable.x` fails | Use `@variables.x` |
 | Boolean capitalization | `true/false` invalid | Use `True/False` |
 | Deploy Command | `sf project deploy` fails | Use `sf agent publish authoring-bundle` |
@@ -1306,6 +1362,8 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Only flow:// Works** | Only `flow://` targets supported | All actions must use Flow targets |
 | **Action Location** | Top-level actions fail | Define actions inside topics |
 | **Flow Targets** | `flow://` works directly | Ensure Flow deployed before agent publish |
+| **`run` Keyword** | Action chaining syntax | Use `run @actions.x` for callbacks |
+| **Lifecycle Blocks** | before/after_reasoning available | Use for initialization and cleanup |
 
 ---
 

@@ -4,8 +4,9 @@ Agent Script Validator for sf-agentforce skill.
 Validates Agent Script syntax and best practices.
 Scoring: 100 points across 6 categories.
 
-Updated to match actual Salesforce Agent Script syntax (Dec 2025):
-- Uses developer_name (not agent_name)
+Updated to match official Salesforce Agent Script syntax (Dec 2025):
+- Uses agent_name (not developer_name)
+- Uses 3-space indentation (not 4-space!)
 - Uses instructions: -> (space before arrow)
 - Requires label: for all topics
 - Requires linked variables (EndUserId, RoutableId, ContactId)
@@ -123,7 +124,7 @@ class AgentScriptValidator:
             )
 
     def _validate_indentation(self, lines: List[str]):
-        """Validate that indentation uses 4 spaces (not tabs, not 3 spaces)."""
+        """Validate that indentation uses 3 spaces (not tabs, not 4 spaces)."""
         for i, line in enumerate(lines, 1):
             # Skip empty lines and comments
             stripped = line.lstrip()
@@ -143,13 +144,13 @@ class AgentScriptValidator:
             # Check indentation level
             leading_spaces = len(line) - len(line.lstrip())
             if leading_spaces > 0:
-                # Indentation should be multiples of 4
-                if leading_spaces % 4 != 0:
-                    # Check if it's the common 3-space mistake
-                    if leading_spaces % 3 == 0 and leading_spaces % 4 != 0:
+                # Indentation should be multiples of 3
+                if leading_spaces % 3 != 0:
+                    # Check if it's the common 4-space mistake
+                    if leading_spaces % 4 == 0 and leading_spaces % 3 != 0:
                         self._add_issue(
                             "Structure & Syntax",
-                            f"Use 4-space indentation, found {leading_spaces} spaces (likely 3-space)",
+                            f"Use 3-space indentation, found {leading_spaces} spaces (likely 4-space)",
                             "error",
                             line=i,
                             deduction=3,
@@ -157,7 +158,7 @@ class AgentScriptValidator:
                     else:
                         self._add_issue(
                             "Structure & Syntax",
-                            f"Indentation should be multiples of 4, found {leading_spaces} spaces",
+                            f"Indentation should be multiples of 3, found {leading_spaces} spaces",
                             "warning",
                             line=i,
                             deduction=1,
@@ -194,19 +195,19 @@ class AgentScriptValidator:
 
     def _validate_config(self, content: str):
         """Validate config block has correct fields."""
-        # Check for developer_name (correct) vs agent_name (incorrect)
-        if re.search(r"agent_name:", content) and not re.search(r"developer_name:", content):
+        # Check for agent_name (correct) vs developer_name (incorrect)
+        if re.search(r"developer_name:", content) and not re.search(r"agent_name:", content):
             self._add_issue(
                 "Structure & Syntax",
-                "Use 'developer_name:' instead of 'agent_name:' in config block",
+                "Use 'agent_name:' instead of 'developer_name:' in config block",
                 "error",
                 deduction=5,
             )
 
-        if not re.search(r"developer_name:", content):
+        if not re.search(r"agent_name:", content):
             self._add_issue(
                 "Structure & Syntax",
-                "Missing 'developer_name' in config block",
+                "Missing 'agent_name' in config block",
                 "error",
                 deduction=3,
             )
@@ -257,7 +258,7 @@ class AgentScriptValidator:
 
         # Check for topic labels (CRITICAL - required for deployment)
         # Find topic blocks and check for label
-        topic_block_pattern = r"^(start_agent\s+)?topic\s+(\w+):\s*\n((?:[ ]{4}.*\n)*)"
+        topic_block_pattern = r"^(start_agent\s+)?topic\s+(\w+):\s*\n((?:[ ]{3}.*\n)*)"
         for match in re.finditer(topic_block_pattern, content, re.MULTILINE):
             topic_block = match.group(3)
             topic_name = match.group(2)
@@ -281,7 +282,7 @@ class AgentScriptValidator:
                 )
 
         # Also check start_agent block patterns
-        start_block_pattern = r"^start_agent\s+(\w+):\s*\n((?:[ ]{4}.*\n)*)"
+        start_block_pattern = r"^start_agent\s+(\w+):\s*\n((?:[ ]{3}.*\n)*)"
         for match in re.finditer(start_block_pattern, content, re.MULTILINE):
             topic_block = match.group(2)
             topic_name = match.group(1)
@@ -326,7 +327,7 @@ class AgentScriptValidator:
     def _validate_variables(self, content: str, lines: List[str]):
         """Validate variable definitions and usage."""
         # Find mutable variable definitions
-        var_pattern = r"^\s{4}(\w+):\s*mutable\s+(\w+)"
+        var_pattern = r"^\s{3}(\w+):\s*mutable\s+(\w+)"
         defined_vars = set()
 
         for match in re.finditer(var_pattern, content, re.MULTILINE):
@@ -344,13 +345,13 @@ class AgentScriptValidator:
                 )
 
         # Find linked variable definitions
-        linked_pattern = r"^\s{4}(\w+):\s*linked\s+(\w+)"
+        linked_pattern = r"^\s{3}(\w+):\s*linked\s+(\w+)"
         for match in re.finditer(linked_pattern, content, re.MULTILINE):
             var_name = match.group(1)
             defined_vars.add(var_name)
 
         # Check for variable descriptions
-        var_block_pattern = r"^\s{4}(\w+):\s*(?:mutable|linked)\s+\w+.*\n((?:\s{8}.*\n)*)"
+        var_block_pattern = r"^\s{3}(\w+):\s*(?:mutable|linked)\s+\w+.*\n((?:\s{6}.*\n)*)"
         for match in re.finditer(var_block_pattern, content, re.MULTILINE):
             var_block = match.group(2)
             var_name = match.group(1)
@@ -386,7 +387,7 @@ class AgentScriptValidator:
     def _validate_linked_variables(self, content: str):
         """Validate required linked variables are present."""
         for var_name in self.REQUIRED_LINKED_VARS:
-            pattern = rf"^\s{{4}}{var_name}:\s*linked"
+            pattern = rf"^\s{{3}}{var_name}:\s*linked"
             if not re.search(pattern, content, re.MULTILINE):
                 self._add_issue(
                     "Variable Management",
@@ -398,7 +399,7 @@ class AgentScriptValidator:
     def _validate_actions(self, content: str, lines: List[str]):
         """Validate action definitions and invocations."""
         # Find action definitions
-        action_def_pattern = r"^\s{4}(\w+):\s*\n\s{8}description:"
+        action_def_pattern = r"^\s{3}(\w+):\s*\n\s{6}description:"
         defined_actions = set()
 
         for match in re.finditer(action_def_pattern, content, re.MULTILINE):
@@ -488,7 +489,7 @@ class AgentScriptValidator:
         """Validate security guardrails."""
         # Check for system instructions
         system_block = re.search(
-            r"^system:\s*\n((?:\s{4}.*\n)*)", content, re.MULTILINE
+            r"^system:\s*\n((?:\s{3}.*\n)*)", content, re.MULTILINE
         )
         if system_block:
             system_content = system_block.group(1)

@@ -90,82 +90,82 @@ Blocks MUST appear in this order:
 
 ```agentscript
 system:
-    instructions: "You are a helpful assistant. Be professional and friendly."
-    messages:
-        welcome: "Hello! How can I help you today?"
-        error: "I apologize, but I encountered an issue."
+   instructions: "You are a helpful assistant. Be professional and friendly."
+   messages:
+      welcome: "Hello! How can I help you today?"
+      error: "I apologize, but I encountered an issue."
 
 config:
-    developer_name: "My_Agent"
-    default_agent_user: "user@org.salesforce.com"
-    agent_label: "My Agent"
-    description: "A helpful assistant agent"
+   agent_name: "My_Agent"
+   default_agent_user: "user@org.salesforce.com"
+   agent_label: "My Agent"
+   description: "A helpful assistant agent"
 
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "Messaging End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Messaging Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
-    user_query: mutable string
-        description: "User's current question"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "Messaging End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Messaging Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
+   user_query: mutable string
+      description: "User's current question"
 
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes users to appropriate topics"
+   label: "Topic Selector"
+   description: "Routes users to appropriate topics"
 
-    reasoning:
-        instructions: ->
-            | Determine user intent and route.
-        actions:
-            go_help: @utils.transition to @topic.help
-            go_farewell: @utils.transition to @topic.farewell
+   reasoning:
+      instructions: ->
+         | Determine user intent and route.
+      actions:
+         go_help: @utils.transition to @topic.help
+         go_farewell: @utils.transition to @topic.farewell
 
 topic help:
-    label: "Help"
-    description: "Provides help to users"
+   label: "Help"
+   description: "Provides help to users"
 
-    reasoning:
-        instructions: ->
-            | Answer the user's question helpfully.
+   reasoning:
+      instructions: ->
+         | Answer the user's question helpfully.
 
 topic farewell:
-    label: "Farewell"
-    description: "Ends conversation gracefully"
+   label: "Farewell"
+   description: "Ends conversation gracefully"
 
-    reasoning:
-        instructions: ->
-            | Thank the user and say goodbye.
+   reasoning:
+      instructions: ->
+         | Thank the user and say goodbye.
 ```
 
 ---
 
 ## Indentation Rules
 
-**CRITICAL**: Agent Script requires **4-space indentation**.
+**CRITICAL**: Agent Script requires **3-space indentation**.
 
 ```agentscript
-# ✅ CORRECT - 4 spaces per level
+# ✅ CORRECT - 3 spaces per level
 config:
-    developer_name: "My_Agent"
-    description: "Description"
+   agent_name: "My_Agent"
+   description: "Description"
 
-# ❌ WRONG - 3 spaces
+# ❌ WRONG - 4 spaces
 config:
-   developer_name: "My_Agent"
+    agent_name: "My_Agent"
 
 # ❌ WRONG - tabs
 config:
-	developer_name: "My_Agent"
+	agent_name: "My_Agent"
 ```
 
 ---
@@ -178,44 +178,43 @@ Global agent settings and instructions. **Must be first block**.
 
 ```agentscript
 system:
-    instructions: "You are a helpful assistant. Be professional."
-    messages:
-        welcome: "Hello! How can I help you today?"
-        error: "I'm sorry, something went wrong. Please try again."
+   instructions: "You are a helpful assistant. Be professional."
+   messages:
+      welcome: "Hello! How can I help you today?"
+      error: "I'm sorry, something went wrong. Please try again."
 ```
 
-For longer instructions, use multiline format:
+⚠️ **NOTE**: System instructions must be a single quoted string. The `|` pipe multiline syntax does NOT work in the `system:` block (only in `reasoning: instructions: ->`).
+
 ```agentscript
+# ✅ CORRECT - Single quoted string
 system:
-    instructions:
-        | You are a helpful customer service agent.
-        | Be professional and courteous.
-        | Never share confidential information.
-    messages:
-        welcome: "Hello!"
-        error: "Sorry, an error occurred."
+   instructions: "You are a helpful customer service agent. Be professional and courteous. Never share confidential information."
+   messages:
+      welcome: "Hello!"
+      error: "Sorry, an error occurred."
 ```
 
 ### Config Block
 
-Defines agent metadata. **Required fields**: developer_name, default_agent_user, agent_label, description.
+Defines agent metadata. **Required fields**: agent_name, default_agent_user, agent_label, description.
 
 ```agentscript
 config:
-    developer_name: "Customer_Support_Agent"
-    default_agent_user: "agent.user@company.salesforce.com"
-    agent_label: "Customer Support"
-    description: "Helps customers with orders and inquiries"
+   agent_name: "Customer_Support_Agent"
+   default_agent_user: "agent.user@company.salesforce.com"
+   agent_label: "Customer Support"
+   description: "Helps customers with orders and inquiries"
 ```
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `developer_name` | Yes | API name (PascalCase with underscores) |
+| `agent_name` | Yes | API name (letters, numbers, underscores only) |
 | `default_agent_user` | Yes | Username for agent execution context |
 | `agent_label` | Yes | Human-readable name |
 | `description` | Yes | What the agent does |
 
-**IMPORTANT**: Use `developer_name`, NOT `agent_name`!
+**IMPORTANT**: Use `agent_name` (not `developer_name`)!
 
 ### Variables Block
 
@@ -224,15 +223,15 @@ Declares state variables. **Linked variables first, then mutable**.
 **Linked Variables** (connect to Salesforce data - REQUIRED):
 ```agentscript
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "Messaging End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Messaging Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "Messaging End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Messaging Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
 ```
 
 **Mutable Variables** (agent state):
@@ -242,23 +241,23 @@ variables:
 **GenAiPlannerBundle** (no default required):
 ```agentscript
 variables:
-    user_name: mutable string
-        description: "The customer's name"
-    order_count: mutable number
-        description: "Number of items in cart"
-    is_verified: mutable boolean
-        description: "Whether identity is verified"
+   user_name: mutable string
+      description: "The customer's name"
+   order_count: mutable number
+      description: "Number of items in cart"
+   is_verified: mutable boolean
+      description: "Whether identity is verified"
 ```
 
 **AiAuthoringBundle** (default value REQUIRED):
 ```agentscript
 variables:
-    user_name: mutable string = ""
-        description: "The customer's name"
-    order_count: mutable number = 0
-        description: "Number of items in cart"
-    is_verified: mutable boolean = False
-        description: "Whether identity is verified"
+   user_name: mutable string = ""
+      description: "The customer's name"
+   order_count: mutable number = 0
+      description: "Number of items in cart"
+   is_verified: mutable boolean = False
+      description: "Whether identity is verified"
 ```
 
 ### Language Block
@@ -267,9 +266,9 @@ Locale settings. **Required for deployment**.
 
 ```agentscript
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 ```
 
 ### Topic Blocks
@@ -279,27 +278,27 @@ Define conversation topics. **Each topic requires `label:` and `description:`**.
 **Entry point topic** (required):
 ```agentscript
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes users to appropriate topics"
+   label: "Topic Selector"
+   description: "Routes users to appropriate topics"
 
-    reasoning:
-        instructions: ->
-            | Determine user intent and route.
-        actions:
-            go_orders: @utils.transition to @topic.orders
+   reasoning:
+      instructions: ->
+         | Determine user intent and route.
+      actions:
+         go_orders: @utils.transition to @topic.orders
 ```
 
 **Regular topic**:
 ```agentscript
 topic orders:
-    label: "Order Management"
-    description: "Handles order inquiries"
+   label: "Order Management"
+   description: "Handles order inquiries"
 
-    reasoning:
-        instructions: ->
-            | Help with order questions.
-        actions:
-            back: @utils.transition to @topic.topic_selector
+   reasoning:
+      instructions: ->
+         | Help with order questions.
+      actions:
+         back: @utils.transition to @topic.topic_selector
 ```
 
 ---
@@ -361,13 +360,13 @@ Use `instructions: ->` (with space before arrow), NOT `instructions:->`.
 ```agentscript
 # ✅ CORRECT
 reasoning:
-    instructions: ->
-        | Determine user intent.
+   instructions: ->
+      | Determine user intent.
 
 # ❌ WRONG - missing space before arrow
 reasoning:
-    instructions:->
-        | Determine user intent.
+   instructions:->
+      | Determine user intent.
 ```
 
 ### Prompt Mode (|)
@@ -376,9 +375,9 @@ Use `|` for natural language instructions:
 
 ```agentscript
 instructions: ->
-    | This is line one.
-    | This is line two.
-    | Each line starts with a pipe.
+   | This is line one.
+   | This is line two.
+   | Each line starts with a pipe.
 ```
 
 ### Procedural Mode (->)
@@ -387,10 +386,10 @@ Use `->` for logic-based instructions:
 
 ```agentscript
 instructions: ->
-    if @variables.amount > 1000:
-        | This is a large order.
-    else:
-        | Standard order processing.
+   if @variables.amount > 1000:
+      | This is a large order.
+   else:
+      | Standard order processing.
 ```
 
 ### Template Expressions
@@ -399,8 +398,8 @@ Use `{!...}` for variable interpolation:
 
 ```agentscript
 instructions: ->
-    | Hello {!@variables.user_name}!
-    | Your order total is ${!@variables.total}.
+   | Hello {!@variables.user_name}!
+   | Your order total is ${!@variables.total}.
 ```
 
 ---
@@ -411,19 +410,19 @@ instructions: ->
 
 ```agentscript
 instructions: ->
-    if @variables.amount > 1000:
-        | Large order - requires approval.
-    else:
-        | Standard order.
+   if @variables.amount > 1000:
+      | Large order - requires approval.
+   else:
+      | Standard order.
 
-    if @variables.status == "shipped":
-        | Your order is on its way!
+   if @variables.status == "shipped":
+      | Your order is on its way!
 
-    if @variables.email is None:
-        | Please provide your email address.
+   if @variables.email is None:
+      | Please provide your email address.
 
-    if @variables.verified == True:
-        | Identity confirmed.
+   if @variables.verified == True:
+      | Identity confirmed.
 ```
 
 ### Comparison Operators
@@ -441,10 +440,10 @@ instructions: ->
 
 ```agentscript
 if @variables.name is None:
-    | Name not provided.
+   | Name not provided.
 
 if @variables.email is not None:
-    | Email is available.
+   | Email is available.
 ```
 
 ---
@@ -455,25 +454,25 @@ if @variables.email is not None:
 
 ```agentscript
 topic my_topic:
-    label: "My Topic"
-    description: "Topic description"
+   label: "My Topic"
+   description: "Topic description"
 
-    actions:
-        get_order:
-            description: "Retrieves order details"
-            inputs:
-                order_id: string
-                    description: "The order ID"
-            outputs:
-                status: string
-                    description: "Order status"
-                total: number
-                    description: "Order total"
-            target: "flow://Get_Order_Details"
+   actions:
+      get_order:
+         description: "Retrieves order details"
+         inputs:
+            order_id: string
+               description: "The order ID"
+         outputs:
+            status: string
+               description: "Order status"
+            total: number
+               description: "Order total"
+         target: "flow://Get_Order_Details"
 
-    reasoning:
-        instructions: ->
-            | Help the user with their order.
+   reasoning:
+      instructions: ->
+         | Help the user with their order.
 ```
 
 ### Target Formats
@@ -515,36 +514,36 @@ This is a platform limitation until Salesforce adds flow action support to the C
 
 ```agentscript
 reasoning:
-    actions:
-        # LLM fills input from conversation
-        lookup: @actions.get_order
-            with order_id=...
+   actions:
+      # LLM fills input from conversation
+      lookup: @actions.get_order
+         with order_id=...
 
-        # Fixed value
-        default: @actions.get_order
-            with order_id="DEFAULT"
+      # Fixed value
+      default: @actions.get_order
+         with order_id="DEFAULT"
 
-        # Variable binding
-        bound: @actions.get_order
-            with order_id=@variables.current_order_id
+      # Variable binding
+      bound: @actions.get_order
+         with order_id=@variables.current_order_id
 
-        # Capture outputs
-        full: @actions.get_order
-            with order_id=...
-            set @variables.status = @outputs.status
-            set @variables.total = @outputs.total
+      # Capture outputs
+      full: @actions.get_order
+         with order_id=...
+         set @variables.status = @outputs.status
+         set @variables.total = @outputs.total
 ```
 
 ### Action Callbacks (Chaining)
 
 ```agentscript
 process: @actions.create_order
-    with items=...
-    set @variables.order_id = @outputs.order_id
-    run @actions.send_confirmation
-        with order_id=@variables.order_id
-    run @actions.update_inventory
-        with items=@variables.cart_items
+   with items=...
+   set @variables.order_id = @outputs.order_id
+   run @actions.send_confirmation
+      with order_id=@variables.order_id
+   run @actions.update_inventory
+      with items=@variables.cart_items
 ```
 
 **Note**: Only one level of `run` nesting is supported.
@@ -553,9 +552,91 @@ process: @actions.create_order
 
 ```agentscript
 checkout: @actions.process_payment
-    with amount=@variables.total
-    available when @variables.cart_count > 0
-    available when @variables.verified == True
+   with amount=@variables.total
+   available when @variables.cart_count > 0
+   available when @variables.verified == True
+```
+
+---
+
+## Lifecycle Blocks
+
+Use `before_reasoning` and `after_reasoning` blocks for automatic initialization and cleanup.
+
+### before_reasoning
+
+Runs **BEFORE** each reasoning step. Use for:
+- Incrementing turn counters
+- Refreshing context data
+- Initializing session state
+
+```agentscript
+topic conversation:
+   before_reasoning:
+      set @variables.turn_count = @variables.turn_count + 1
+
+      # First turn initialization
+      if @variables.turn_count == 1:
+         run @actions.get_timestamp
+            set @variables.session_start = @outputs.current_timestamp
+
+      # Refresh context every turn
+      run @actions.refresh_context
+         with user_id=@variables.EndUserId
+         set @variables.current_context = @outputs.context
+
+   reasoning:
+      instructions: ->
+         | Turn {!@variables.turn_count}: Use the context above.
+```
+
+### after_reasoning
+
+Runs **AFTER** each reasoning step. Use for:
+- Logging analytics
+- Updating timestamps
+- Cleanup operations
+
+```agentscript
+topic conversation:
+   reasoning:
+      instructions: ->
+         | Respond to the user.
+
+   after_reasoning:
+      run @actions.log_turn
+         with turn_number=@variables.turn_count
+         with topic="conversation"
+
+      run @actions.update_last_activity
+         set @variables.last_activity = @outputs.timestamp
+```
+
+### Block Order
+
+When using lifecycle blocks, the order must be:
+
+1. `before_reasoning:` (optional)
+2. `reasoning:` (required)
+3. `after_reasoning:` (optional)
+
+```agentscript
+topic my_topic:
+   label: "My Topic"
+   description: "Topic with lifecycle blocks"
+
+   before_reasoning:
+      # Runs first
+      set @variables.ready = True
+
+   reasoning:
+      # Main logic
+      instructions: ->
+         | Help the user.
+
+   after_reasoning:
+      # Runs last
+      run @actions.log_event
 ```
 
 ---
@@ -566,15 +647,15 @@ checkout: @actions.process_payment
 
 ```agentscript
 reasoning:
-    actions:
-        go_orders: @utils.transition to @topic.orders
+   actions:
+      go_orders: @utils.transition to @topic.orders
 ```
 
 ### Conditional Transition
 
 ```agentscript
 go_checkout: @utils.transition to @topic.checkout
-    available when @variables.cart_count > 0
+   available when @variables.cart_count > 0
 ```
 
 ### Escalation to Human
@@ -582,22 +663,22 @@ go_checkout: @utils.transition to @topic.checkout
 **AiAuthoringBundle** (basic escalation only):
 ```agentscript
 topic escalation:
-    label: "Escalation"
-    description: "Transfers to human agent"
+   label: "Escalation"
+   description: "Transfers to human agent"
 
-    reasoning:
-        instructions: ->
-            | Transfer the conversation to a human.
-        actions:
-            escalate: @utils.escalate
-                description: "Escalate to a human agent"
+   reasoning:
+      instructions: ->
+         | Transfer the conversation to a human.
+      actions:
+         escalate: @utils.escalate
+            description: "Escalate to a human agent"
 ```
 
 **GenAiPlannerBundle** (supports reason parameter):
 ```agentscript
 reasoning:
-    actions:
-        escalate_human: @utils.escalate with reason="Customer requested human agent"
+   actions:
+      escalate_human: @utils.escalate with reason="Customer requested human agent"
 ```
 
 ⚠️ **CRITICAL**: The `with reason="..."` syntax is **ONLY supported in GenAiPlannerBundle**!
@@ -679,74 +760,74 @@ sf project retrieve start --metadata "GenAiPlannerBundle:[AgentName]" --target-o
 
 ```agentscript
 system:
-    instructions: "You are a helpful FAQ assistant. Answer concisely."
-    messages:
-        welcome: "Hello! How can I help?"
-        error: "Sorry, an error occurred."
+   instructions: "You are a helpful FAQ assistant. Answer concisely."
+   messages:
+      welcome: "Hello! How can I help?"
+      error: "Sorry, an error occurred."
 
 config:
-    developer_name: "FAQ_Agent"
-    default_agent_user: "agent@company.com"
-    agent_label: "FAQ Assistant"
-    description: "Answers frequently asked questions"
+   agent_name: "FAQ_Agent"
+   default_agent_user: "agent@company.com"
+   agent_label: "FAQ Assistant"
+   description: "Answers frequently asked questions"
 
 variables:
-    EndUserId: linked string
-        source: @MessagingSession.MessagingEndUserId
-        description: "End User ID"
-    RoutableId: linked string
-        source: @MessagingSession.Id
-        description: "Session ID"
-    ContactId: linked string
-        source: @MessagingEndUser.ContactId
-        description: "Contact ID"
+   EndUserId: linked string
+      source: @MessagingSession.MessagingEndUserId
+      description: "End User ID"
+   RoutableId: linked string
+      source: @MessagingSession.Id
+      description: "Session ID"
+   ContactId: linked string
+      source: @MessagingEndUser.ContactId
+      description: "Contact ID"
 
 language:
-    default_locale: "en_US"
-    additional_locales: ""
-    all_additional_locales: False
+   default_locale: "en_US"
+   additional_locales: ""
+   all_additional_locales: False
 
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Handles FAQ questions"
+   label: "Topic Selector"
+   description: "Handles FAQ questions"
 
-    reasoning:
-        instructions: ->
-            | Answer the user's question.
-            | If unsure, offer to connect them with support.
+   reasoning:
+      instructions: ->
+         | Answer the user's question.
+         | If unsure, offer to connect them with support.
 ```
 
 ### Multi-Topic Router
 
 ```agentscript
 start_agent topic_selector:
-    label: "Topic Selector"
-    description: "Routes to specialized topics"
+   label: "Topic Selector"
+   description: "Routes to specialized topics"
 
-    reasoning:
-        instructions: ->
-            | Determine what the user needs.
-            | Route to the appropriate topic.
-        actions:
-            orders: @utils.transition to @topic.orders
-            billing: @utils.transition to @topic.billing
-            support: @utils.transition to @topic.support
+   reasoning:
+      instructions: ->
+         | Determine what the user needs.
+         | Route to the appropriate topic.
+      actions:
+         orders: @utils.transition to @topic.orders
+         billing: @utils.transition to @topic.billing
+         support: @utils.transition to @topic.support
 ```
 
 ### Validation Pattern
 
 ```agentscript
 instructions: ->
-    if @variables.email is None:
-        set @variables.valid = False
-        | Please provide your email address.
+   if @variables.email is None:
+      set @variables.valid = False
+      | Please provide your email address.
 
-    if @variables.amount <= 0:
-        set @variables.valid = False
-        | Amount must be greater than zero.
+   if @variables.amount <= 0:
+      set @variables.valid = False
+      | Amount must be greater than zero.
 
-    if @variables.valid == True:
-        | All validations passed. Proceeding.
+   if @variables.valid == True:
+      | All validations passed. Proceeding.
 ```
 
 ---
@@ -755,14 +836,14 @@ instructions: ->
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| Parse error | Invalid syntax | Check 4-space indentation |
+| Parse error | Invalid syntax | Check 3-space indentation |
 | Unknown resource | Invalid `@` reference | Use `@variables`, `@actions`, etc. |
 | Undefined variable | Variable not declared | Add to `variables:` block |
 | Undefined topic | Topic not found | Add topic or fix reference |
 | Invalid target | Wrong action target format | Use `flow://` or `apex://` |
 | Nested run | `run` inside `run` | Flatten to sequential `run` |
 | Missing label | Topic without label | Add `label:` to all topics |
-| Wrong config field | Using `agent_name` | Use `developer_name` |
+| Wrong config field | Using `developer_name` | Use `agent_name` |
 | Missing space | `instructions:->` | Use `instructions: ->` |
 | Internal Error, try again later | Flow action in AiAuthoringBundle | Use GenAiPlannerBundle for flow actions |
 | SyntaxError: Unexpected 'with' | Escalate with reason in AiAuthoringBundle | Use basic `@utils.escalate` or GenAiPlannerBundle |
@@ -775,9 +856,10 @@ instructions: ->
 
 | Anti-Pattern | Issue | Fix |
 |--------------|-------|-----|
-| Tab indentation | Syntax error | Use 4 spaces |
+| Tab indentation | Syntax error | Use 3 spaces |
+| 4-space indentation | Syntax may fail | Use 3 spaces per level |
 | `@variable.name` | Wrong syntax | Use `@variables.name` (plural) |
-| `agent_name:` | Wrong field | Use `developer_name:` |
+| `developer_name:` | Wrong field | Use `agent_name:` |
 | `instructions:->` | Missing space | Use `instructions: ->` |
 | Missing `label:` | Deploy fails | Add label to all topics |
 | `.agentscript` | Wrong extension | Use `.agent` |

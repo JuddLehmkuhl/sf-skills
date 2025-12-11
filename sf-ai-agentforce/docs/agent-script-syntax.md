@@ -315,6 +315,18 @@ topic orders:
 
 **Note**: Boolean values must be capitalized: `True`, `False`
 
+### Data Type Mappings with Flow (Tested Dec 2025)
+
+| Agent Script Type | Flow Data Type | Status | Notes |
+|-------------------|----------------|--------|-------|
+| `string` | String | ✅ Works | Standard text values |
+| `number` | Number (scale=0) | ✅ Works | Integer values |
+| `number` | Number (scale>0) | ✅ Works | Decimal values |
+| `boolean` | Boolean | ✅ Works | Use `True`/`False` |
+| `list[string]` | Text Collection | ⚠️ Documented | Used in official recipes |
+
+**⚠️ All Flow inputs must be provided!** If Flow has more input variables than Agent Script defines, publish fails with "Internal Error".
+
 ---
 
 ## Resource References

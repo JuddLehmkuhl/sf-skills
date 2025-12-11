@@ -271,6 +271,35 @@ This will fail with "Internal Error, try again later" because the schema validat
 | **Flow Variables** | Mark as "Available for input" / "Available for output" |
 | **Deploy Order** | Deploy Flow to org BEFORE publishing agent |
 | **API Version** | API v64.0+ for AiAuthoringBundle, v65.0+ for GenAiPlannerBundle |
+| **All Inputs Required** | Agent Script must define ALL inputs that Flow expects (missing inputs = Internal Error) |
+
+### ⚠️ CRITICAL: Data Type Mappings (Tested Dec 2025)
+
+**Confirmed working data types between Agent Script and Flow:**
+
+| Agent Script Type | Flow Data Type | Status | Notes |
+|-------------------|----------------|--------|-------|
+| `string` | String | ✅ Works | Standard text values |
+| `number` | Number (scale=0) | ✅ Works | Integer values |
+| `number` | Number (scale>0) | ✅ Works | Decimal values (e.g., 3.14) |
+| `boolean` | Boolean | ✅ Works | Use `True`/`False` (capitalized) |
+| `list[string]` | Text Collection | ⚠️ Documented | Used in official recipes |
+
+**Important: All Flow inputs must be provided!**
+
+If Flow defines 6 input variables but Agent Script only provides 4, publish fails with "Internal Error":
+
+```
+❌ FAILS - Missing inputs
+   Flow inputs:    inp_String, inp_Number, inp_Boolean, inp_Date
+   Agent inputs:   inp_String, inp_Number, inp_Boolean
+   Result: "Internal Error, try again later"
+
+✅ WORKS - All inputs provided
+   Flow inputs:    inp_String, inp_Number, inp_Boolean
+   Agent inputs:   inp_String, inp_Number, inp_Boolean
+   Result: Success
+```
 
 ### Apex Actions in GenAiPlannerBundle
 

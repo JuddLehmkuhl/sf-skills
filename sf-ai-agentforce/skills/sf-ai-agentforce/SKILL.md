@@ -443,6 +443,36 @@ actions:
 | `require_user_confirmation` | Boolean | Ask user before executing |
 | `include_in_progress_indicator` | Boolean | Show progress during execution |
 
+**Minimum Required Attributes:**
+
+Only `description` and `complex_data_type_name` are required. All other attributes are optional:
+
+```agentscript
+# Minimal object type - works!
+inputs:
+   input_text: object
+      description: "Text input"
+      complex_data_type_name: "lightning__textType"
+```
+
+**Mixing Simple and Object Types:**
+
+You can mix `string`/`number`/`boolean` with `object` types in the same action:
+
+```agentscript
+inputs:
+   # Simple type (basic syntax)
+   simple_text: string
+      description: "A simple text input"
+   # Object type (advanced syntax)
+   advanced_text: object
+      description: "An advanced text input"
+      label: "Advanced Text"
+      is_required: True
+      is_user_input: True
+      complex_data_type_name: "lightning__textType"
+```
+
 ### Apex Actions in GenAiPlannerBundle
 
 **`apex://` targets work in GenAiPlannerBundle if the Apex class exists:**

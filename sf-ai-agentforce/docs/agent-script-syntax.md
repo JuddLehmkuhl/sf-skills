@@ -323,9 +323,42 @@ topic orders:
 | `number` | Number (scale=0) | ✅ Works | Integer values |
 | `number` | Number (scale>0) | ✅ Works | Decimal values |
 | `boolean` | Boolean | ✅ Works | Use `True`/`False` |
-| `list[string]` | Text Collection | ⚠️ Documented | Used in official recipes |
+| `list[string]` | Text Collection | ✅ Works | Use `isCollection=true` in Flow |
+| `string` | Date | ✅ Works* | *See String I/O pattern below |
+| `string` | DateTime | ✅ Works* | *See String I/O pattern below |
 
 **⚠️ All Flow inputs must be provided!** If Flow has more input variables than Agent Script defines, publish fails with "Internal Error".
+
+### Date/DateTime Handling (No Native Types)
+
+Agent Script does NOT have native `date` or `datetime` types. Direct type coercion between `string` (Agent Script) and `Date`/`DateTime` (Flow) will fail.
+
+**Use the String I/O Pattern:**
+
+1. Flow accepts String inputs (not Date/DateTime)
+2. Flow parses strings internally with `DATEVALUE()` or `DATETIMEVALUE()`
+3. Flow converts back to String for output with `TEXT()`
+
+```xml
+<!-- Flow variables use String, not Date -->
+<variables>
+    <name>inp_DateString</name>
+    <dataType>String</dataType>  <!-- NOT Date -->
+    <isInput>true</isInput>
+</variables>
+<formulas>
+    <name>parsedDate</name>
+    <dataType>Date</dataType>
+    <expression>DATEVALUE({!inp_DateString})</expression>
+</formulas>
+```
+
+```agentscript
+# Agent Script uses string type for dates
+inputs:
+   inp_DateString: string
+      description: "Date in YYYY-MM-DD format"
+```
 
 ---
 

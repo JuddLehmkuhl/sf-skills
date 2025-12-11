@@ -283,7 +283,78 @@ This will fail with "Internal Error, try again later" because the schema validat
 | `number` | Number (scale=0) | ✅ Works | Integer values |
 | `number` | Number (scale>0) | ✅ Works | Decimal values (e.g., 3.14) |
 | `boolean` | Boolean | ✅ Works | Use `True`/`False` (capitalized) |
-| `list[string]` | Text Collection | ⚠️ Documented | Used in official recipes |
+| `list[string]` | Text Collection | ✅ Works | Collection with `isCollection=true` |
+| `string` | Date | ✅ Works* | *Use String I/O pattern (see below) |
+| `string` | DateTime | ✅ Works* | *Use String I/O pattern (see below) |
+
+**⚠️ Date/DateTime Workaround Pattern**
+
+Agent Script does NOT have native `date` or `datetime` types. If you try to connect an Agent Script `string` input to a Flow `Date` or `DateTime` input, it will fail with "Internal Error" because the platform cannot coerce types.
+
+**Solution: Use String I/O pattern**
+
+1. **Flow accepts/returns Strings** (not Date/DateTime)
+2. **Flow parses strings internally** using `DATEVALUE()` or `DATETIMEVALUE()`
+3. **Flow converts back to string** using `TEXT()` for output
+
+```xml
+<!-- Flow with String I/O for Date handling -->
+<variables>
+    <name>inp_DateString</name>
+    <dataType>String</dataType>       <!-- NOT Date -->
+    <isInput>true</isInput>
+</variables>
+<variables>
+    <name>out_DateString</name>
+    <dataType>String</dataType>       <!-- NOT Date -->
+    <isOutput>true</isOutput>
+</variables>
+<formulas>
+    <name>formula_ParseDate</name>
+    <dataType>Date</dataType>
+    <expression>DATEVALUE({!inp_DateString})</expression>
+</formulas>
+<formulas>
+    <name>formula_DateAsString</name>
+    <dataType>String</dataType>
+    <expression>TEXT({!formula_ParseDate})</expression>
+</formulas>
+```
+
+```agentscript
+# Agent Script with string type for date
+actions:
+   process_date:
+      inputs:
+         inp_DateString: string
+            description: "A date value in YYYY-MM-DD format"
+      outputs:
+         out_DateString: string
+            description: "The processed date as string"
+      target: "flow://Test_Date_Type_StringIO"
+```
+
+**Collection Types (list[string])**
+
+`list[string]` maps directly to Flow Text Collection:
+
+```xml
+<variables>
+    <name>inp_TextList</name>
+    <dataType>String</dataType>
+    <isCollection>true</isCollection>  <!-- This makes it a list -->
+    <isInput>true</isInput>
+</variables>
+```
+
+```agentscript
+actions:
+   process_collection:
+      inputs:
+         inp_TextList: list[string]
+            description: "A list of text values"
+      target: "flow://Test_Collection_StringIO"
+```
 
 **Important: All Flow inputs must be provided!**
 

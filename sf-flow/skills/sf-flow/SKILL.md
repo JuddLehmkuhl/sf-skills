@@ -163,11 +163,19 @@ Score: 92/110 ⭐⭐⭐⭐ Very Good
 
 ⚠️ **MANDATORY: Use sf-deploy Skill** - NEVER use direct CLI commands.
 
+**Why sf-deploy is mandatory:**
+1. Proper deployment ordering (dependencies first)
+2. Automatic --dry-run validation
+3. Consistent error handling and troubleshooting
+4. FLS and permission warnings
+
 **Pattern**:
 1. `Skill(skill="sf-deploy")` → "Deploy flow [path] to [org] with --dry-run"
 2. Review validation results
 3. `Skill(skill="sf-deploy")` → "Proceed with actual deployment"
-4. Edit `<status>Draft</status>` → `Active`, redeploy
+4. Edit `<status>Draft</status>` → `Active`, redeploy via sf-deploy
+
+**For Agentforce Flows**: Variable names must match Agent Script input/output names exactly.
 
 For complex flows: [../../docs/governance-checklist.md](../../docs/governance-checklist.md)
 
@@ -311,11 +319,49 @@ screens → start → status → subflows → textTemplates → variables → wa
 
 See [../../shared/docs/cross-skill-integration.md](../../shared/docs/cross-skill-integration.md)
 
+### ⚠️ MANDATORY: Use sf-deploy for Deployments
+
+**CRITICAL**: After creating a Flow, you MUST use the `sf-deploy` skill to deploy it. **NEVER use direct CLI commands** for deployment.
+
+**Why?**
+1. sf-deploy handles proper deployment ordering (Objects → Permission Sets → Flows → Apex)
+2. sf-deploy always validates with --dry-run before actual deployment
+3. sf-deploy provides consistent error handling and troubleshooting
+4. sf-deploy handles Flow activation (Draft → Active) workflow correctly
+
+**Deployment Pattern:**
+```bash
+# 1. Create Flow (sf-flow generates XML)
+# 2. Deploy Flow using sf-deploy skill (MANDATORY)
+Skill(skill="sf-deploy")
+Request: "Deploy Flow:Auto_Lead_Assignment to [alias] with --dry-run first"
+
+# 3. After dry-run succeeds, deploy for real
+Skill(skill="sf-deploy")
+Request: "Proceed with actual deployment"
+
+# 4. Activate Flow (edit status, redeploy via sf-deploy)
+```
+
+### ⚠️ MANDATORY: Flows for sf-ai-agentforce
+
+**When sf-ai-agentforce requests a Flow:**
+- sf-ai-agentforce will invoke sf-flow (this skill) to create Flows
+- sf-flow creates the validated Flow XML
+- sf-deploy handles deployment to org
+- Only THEN can sf-ai-agentforce use `flow://FlowName` targets
+
+**Variable Name Matching**: When creating Flows for Agentforce agents:
+- Agent Script input/output names MUST match Flow variable API names exactly
+- Use descriptive names (e.g., `inp_AccountId`, `out_AccountName`)
+- Mismatched names cause "Internal Error" during agent publish
+
 | Direction | Pattern |
 |-----------|---------|
 | sf-flow → sf-metadata | "Describe Invoice__c" (verify fields before flow) |
-| sf-flow → sf-deploy | "Deploy with --dry-run" (validate & deploy) |
+| sf-flow → sf-deploy | "Deploy with --dry-run" (validate & deploy) - **MANDATORY** |
 | sf-flow → sf-data | "Create 200 test Accounts" (test data after deploy) |
+| sf-ai-agentforce → sf-flow | "Create Autolaunched Flow for agent action" - **sf-flow is MANDATORY** |
 
 ## Notes
 

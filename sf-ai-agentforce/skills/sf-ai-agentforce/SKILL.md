@@ -41,6 +41,27 @@ There are **two deployment methods** with **different capabilities**:
 
 ---
 
+## ⚠️ CRITICAL: Orchestration Order
+
+**sf-metadata → sf-apex → sf-flow → sf-deploy → sf-ai-agentforce** (you are here: sf-ai-agentforce)
+
+**Why this order?**
+1. **sf-metadata**: Custom objects/fields must exist before Apex or Flows reference them
+2. **sf-apex**: InvocableMethod classes must be deployed before Flow wrappers call them
+3. **sf-flow**: Flows must be created AND deployed before agents can reference them
+4. **sf-deploy**: All dependencies must be deployed to org before agent publishing
+5. **sf-ai-agentforce**: Agent is published LAST after all dependencies are in place
+
+**⚠️ MANDATORY Skill Delegation:**
+- **Flows**: ALWAYS use `Skill(skill="sf-flow")` - never manually write Flow XML
+- **Deployments**: ALWAYS use `Skill(skill="sf-deploy")` - never use direct CLI commands
+- **Apex**: ALWAYS use `Skill(skill="sf-apex")` for InvocableMethod classes
+- **Agent Publishing**: Use `sf agent publish authoring-bundle` directly (not sf-deploy)
+
+See [../../shared/docs/orchestration.md](../../shared/docs/orchestration.md) for cross-skill orchestration details.
+
+---
+
 ## ⚠️ CRITICAL: API Version Requirement
 
 **Agent Script requires API v64+ (Summer '25 or later)**
@@ -1151,22 +1172,45 @@ instructions: ->
 
 ## Cross-Skill Integration
 
+### ⚠️ MANDATORY: Use sf-flow for Flow Creation
+
+**CRITICAL**: When an agent requires Flow-based actions, you MUST use the `sf-flow` skill to create the Flow. **NEVER manually write Flow XML** - always delegate to sf-flow.
+
+**Why?**
+1. sf-flow validates Flow XML against 110-point scoring criteria
+2. sf-flow ensures proper XML element ordering (prevents "Element duplicated" errors)
+3. sf-flow handles recordLookups best practices (e.g., no parent field traversal via queriedFields)
+4. sf-flow catches common errors like missing fault paths, DML in loops, etc.
+
+### ⚠️ MANDATORY: Use sf-deploy for Deployments
+
+**CRITICAL**: For ALL deployments (Flows, Apex, Metadata), you MUST use the `sf-deploy` skill. **NEVER use direct CLI commands** unless sf-deploy explicitly delegates to them.
+
+**Why?**
+1. sf-deploy handles proper deployment ordering (Objects → Permission Sets → Flows → Apex)
+2. sf-deploy always validates with --dry-run before actual deployment
+3. sf-deploy provides consistent error handling and troubleshooting
+4. sf-deploy ensures FLS warnings and permission set assignments
+
+**Exception**: Agent publishing uses `sf agent publish authoring-bundle` which is NOT handled by sf-deploy. This command is specific to Agent Script.
+
 ### Flow Integration (Fully Supported)
 
 **Workflow:**
 ```bash
-# 1. Create Flow using sf-flow skill
+# 1. Create Flow using sf-flow skill (MANDATORY)
 Skill(skill="sf-flow")
 Request: "Create an Autolaunched Flow Get_Account_Info with input account_id and outputs account_name, industry"
 
-# 2. Deploy Flow to org
-sf project deploy start --metadata Flow --test-level NoTestRun --target-org [alias]
+# 2. Deploy Flow to org using sf-deploy skill (MANDATORY)
+Skill(skill="sf-deploy")
+Request: "Deploy the Flow Get_Account_Info to [alias] with --dry-run first"
 
 # 3. Create Agent with flow:// target
 Skill(skill="sf-agentforce")
 Request: "Create an agent that uses flow://Get_Account_Info"
 
-# 4. Publish Agent
+# 4. Publish Agent (Agent Script specific command)
 sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 
@@ -1176,24 +1220,26 @@ sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 
 **Workflow:**
 ```bash
-# 1. Create Apex class with @InvocableMethod
+# 1. Create Apex class with @InvocableMethod using sf-apex skill (MANDATORY)
 Skill(skill="sf-apex")
 Request: "Create CaseCreationService with @InvocableMethod createCase"
 
-# 2. Deploy Apex to org
-sf project deploy start --metadata ApexClass --test-level NoTestRun --target-org [alias]
+# 2. Deploy Apex to org using sf-deploy skill (MANDATORY)
+Skill(skill="sf-deploy")
+Request: "Deploy ApexClass:CaseCreationService to [alias] with tests"
 
-# 3. Create Autolaunched Flow wrapper that calls the Apex
+# 3. Create Autolaunched Flow wrapper that calls the Apex using sf-flow skill (MANDATORY)
 Skill(skill="sf-flow")
 Request: "Create Autolaunched Flow Create_Support_Case that wraps CaseCreationService Apex"
 
-# 4. Deploy Flow to org
-sf project deploy start --metadata Flow --test-level NoTestRun --target-org [alias]
+# 4. Deploy Flow to org using sf-deploy skill (MANDATORY)
+Skill(skill="sf-deploy")
+Request: "Deploy Flow:Create_Support_Case to [alias]"
 
 # 5. Reference Flow in Agent Script
 target: "flow://Create_Support_Case"  # Flow wrapper that calls Apex
 
-# 6. Publish Agent
+# 6. Publish Agent (Agent Script specific command)
 sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 

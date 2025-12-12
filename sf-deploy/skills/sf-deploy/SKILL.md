@@ -249,6 +249,29 @@ See [examples/deployment-workflows.md](examples/deployment-workflows.md) for scr
 | `SObject type 'Object__c' not supported` | Custom Object | Deploy object via sf-metadata first |
 | `Queue 'QueueName' not found` | Queue Metadata | Deploy queue via sf-metadata first |
 
+### sf-ai-agentforce Integration
+
+**When deploying for Agentforce agents:**
+- sf-ai-agentforce MUST use sf-deploy for all Flow and Apex deployments
+- Deploy order: Apex classes → Flows → then agent can use `flow://` targets
+- Agent publishing uses `sf agent publish authoring-bundle` (NOT sf-deploy)
+
+**Common Agentforce Deployment Pattern:**
+```bash
+# 1. sf-apex creates InvocableMethod class
+# 2. sf-deploy deploys Apex
+Skill(skill="sf-deploy")
+Request: "Deploy ApexClass:CaseCreationService to [alias] with tests"
+
+# 3. sf-flow creates Flow wrapper
+# 4. sf-deploy deploys Flow
+Skill(skill="sf-deploy")
+Request: "Deploy Flow:Create_Support_Case to [alias]"
+
+# 5. sf-ai-agentforce publishes agent (separate command)
+sf agent publish authoring-bundle --api-name AgentName --target-org [alias]
+```
+
 ---
 
 ## Deployment Script Template

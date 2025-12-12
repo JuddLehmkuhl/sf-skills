@@ -1140,73 +1140,33 @@ instructions: ->
 
 ## Cross-Skill Integration
 
-### ⚠️ MANDATORY: Use sf-flow for Flow Creation
+### ⚠️ MANDATORY Delegations
 
-**CRITICAL**: When an agent requires Flow-based actions, you MUST use the `sf-flow` skill to create the Flow. **NEVER manually write Flow XML** - always delegate to sf-flow.
+| Requirement | Skill/Agent | Why | Never Do |
+|-------------|-------------|-----|----------|
+| **Flow Creation** | `Skill(skill="sf-flow")` | 110-point validation, proper XML ordering, prevents errors | Manually write Flow XML |
+| **ALL Deployments** | `Task(subagent_type="sf-devops-architect")` | Centralized orchestration, dry-run validation, proper ordering | `Skill(skill="sf-deploy")` or direct CLI |
 
-**Why?**
-1. sf-flow validates Flow XML against 110-point scoring criteria
-2. sf-flow ensures proper XML element ordering (prevents "Element duplicated" errors)
-3. sf-flow handles recordLookups best practices (e.g., no parent field traversal via queriedFields)
-4. sf-flow catches common errors like missing fault paths, DML in loops, etc.
+### Flow Integration Workflow
 
-### ⚠️ MANDATORY: Use sf-devops-architect for Deployments
+| Step | Command | Purpose |
+|------|---------|---------|
+| 1 | `Skill(skill="sf-flow")` → Create Autolaunched Flow | Build Flow with inputs/outputs |
+| 2 | `Task(subagent_type="sf-devops-architect")` → Deploy Flow | Validate and deploy Flow |
+| 3 | Use `target: "flow://FlowApiName"` in Agent Script | Reference Flow as action |
+| 4 | `Task(subagent_type="sf-devops-architect")` → Publish agent | Deploy agent |
 
-**CRITICAL**: For ALL deployments (Flows, Apex, Metadata, Agent Publishing), you MUST use the `sf-devops-architect` sub-agent. **NEVER use direct CLI commands** or sf-deploy skill directly.
+### Apex Integration (via Flow Wrapper)
 
-**Why?**
-1. sf-devops-architect provides centralized deployment orchestration
-2. Delegates to sf-deploy with proper ordering (Objects → Permission Sets → Flows → Apex)
-3. Always validates with --dry-run before actual deployment
-4. Consistent error handling and troubleshooting
+**⚠️ `apex://` targets DON'T work in Agent Script. Use Flow Wrapper pattern.**
 
-❌ NEVER use `Skill(skill="sf-deploy")` directly - always route through sf-devops-architect.
-
-### Flow Integration (Fully Supported)
-
-**Workflow:**
-```bash
-# 1. Create Flow using sf-flow skill (MANDATORY)
-Skill(skill="sf-flow")
-Request: "Create an Autolaunched Flow Get_Account_Info with input account_id and outputs account_name, industry"
-
-# 2. Deploy Flow using sf-devops-architect (MANDATORY)
-Task(subagent_type="sf-devops-architect", prompt="Deploy the Flow Get_Account_Info to [alias] with --dry-run first")
-
-# 3. Create Agent with flow:// target
-Skill(skill="sf-agentforce")
-Request: "Create an agent that uses flow://Get_Account_Info"
-
-# 4. Publish Agent using sf-devops-architect (MANDATORY)
-Task(subagent_type="sf-devops-architect", prompt="Publish agent [AgentName] to [alias]")
-```
-
-### Apex Integration (Use Flow Wrapper)
-
-**⚠️ ONLY `flow://` targets work in Agent Script. Use Flow Wrapper pattern for Apex.**
-
-**Workflow:**
-```bash
-# 1. Create Apex class with @InvocableMethod using sf-apex skill (MANDATORY)
-Skill(skill="sf-apex")
-Request: "Create CaseCreationService with @InvocableMethod createCase"
-
-# 2. Deploy Apex using sf-devops-architect (MANDATORY)
-Task(subagent_type="sf-devops-architect", prompt="Deploy ApexClass:CaseCreationService to [alias] with tests")
-
-# 3. Create Autolaunched Flow wrapper that calls the Apex using sf-flow skill (MANDATORY)
-Skill(skill="sf-flow")
-Request: "Create Autolaunched Flow Create_Support_Case that wraps CaseCreationService Apex"
-
-# 4. Deploy Flow using sf-devops-architect (MANDATORY)
-Task(subagent_type="sf-devops-architect", prompt="Deploy Flow:Create_Support_Case to [alias]")
-
-# 5. Reference Flow in Agent Script
-target: "flow://Create_Support_Case"  # Flow wrapper that calls Apex
-
-# 6. Publish Agent using sf-devops-architect (MANDATORY)
-Task(subagent_type="sf-devops-architect", prompt="Publish agent [AgentName] to [alias]")
-```
+| Step | Command | Purpose |
+|------|---------|---------|
+| 1 | `Skill(skill="sf-apex")` → Create `@InvocableMethod` class | Build callable Apex |
+| 2 | Deploy Apex via sf-devops-architect | Get Apex in org |
+| 3 | `Skill(skill="sf-flow")` → Create wrapper Flow calling Apex | Bridge to Agent Script |
+| 4 | Deploy Flow + Publish agent via sf-devops-architect | Complete deployment |
+| 5 | Use `target: "flow://WrapperFlowName"` in Agent Script | Reference wrapper Flow |
 
 | Direction | Pattern | Supported |
 |-----------|---------|-----------|
@@ -1220,9 +1180,9 @@ Task(subagent_type="sf-devops-architect", prompt="Publish agent [AgentName] to [
 
 ## Agent Actions (Expanded)
 
-This section covers all four action types supported in Agentforce agents.
+This section covers all four action types. See **Action Target Syntax** section above for deployment method compatibility.
 
-### ⚠️ CRITICAL: Action Target Summary
+### Action Target Summary
 
 | Action Type | Agent Script Target | Deployment Method | Recommended |
 |-------------|---------------------|-------------------|-------------|

@@ -177,67 +177,14 @@ sf project deploy start --source-dir force-app/main/default/namedCredentials,for
 
 ## Named Credentials
 
-### OAuth 2.0 Client Credentials
+| Auth Type | Use Case | Template | Key Config |
+|-----------|----------|----------|------------|
+| **OAuth 2.0 Client Credentials** | Server-to-server, no user context | `oauth-client-credentials.namedCredential-meta.xml` | scope, tokenEndpoint |
+| **OAuth 2.0 JWT Bearer** | CI/CD, backend services | `oauth-jwt-bearer.namedCredential-meta.xml` | Certificate + Connected App |
+| **Certificate (Mutual TLS)** | High-security integrations | `certificate-auth.namedCredential-meta.xml` | Client cert required |
+| **Custom (API Key/Basic)** | Simple APIs | `custom-auth.namedCredential-meta.xml` | username/password |
 
-**Use Case**: Server-to-server integration without user context
-
-**Template**: `templates/named-credentials/oauth-client-credentials.namedCredential-meta.xml`
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<NamedCredential xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>{{CredentialName}}</fullName>
-    <label>{{CredentialLabel}}</label>
-    <endpoint>{{BaseEndpoint}}</endpoint>
-    <principalType>NamedUser</principalType>
-    <protocol>Oauth</protocol>
-    <oauthScope>{{Scopes}}</oauthScope>
-    <oauthTokenEndpoint>{{TokenEndpoint}}</oauthTokenEndpoint>
-    <generateAuthorizationHeader>true</generateAuthorizationHeader>
-    <allowMergeFieldsInBody>true</allowMergeFieldsInBody>
-    <allowMergeFieldsInHeader>true</allowMergeFieldsInHeader>
-</NamedCredential>
-```
-
-### OAuth 2.0 JWT Bearer
-
-**Use Case**: Server-to-server with certificate-based authentication (CI/CD, backend services)
-
-**Template**: `templates/named-credentials/oauth-jwt-bearer.namedCredential-meta.xml`
-
-**Requirements**:
-- Certificate uploaded to Salesforce (Setup → Certificate and Key Management)
-- Connected App configured for JWT Bearer flow
-- Certificate registered with external system
-
-### Certificate-Based Authentication (Mutual TLS)
-
-**Use Case**: High-security integrations requiring client certificate
-
-**Template**: `templates/named-credentials/certificate-auth.namedCredential-meta.xml`
-
-### Custom Authentication (API Key / Basic Auth)
-
-**Use Case**: Simple APIs with API key or username/password
-
-**Template**: `templates/named-credentials/custom-auth.namedCredential-meta.xml`
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<NamedCredential xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>{{CredentialName}}</fullName>
-    <label>{{CredentialLabel}}</label>
-    <endpoint>{{BaseEndpoint}}</endpoint>
-    <principalType>NamedUser</principalType>
-    <protocol>Password</protocol>
-    <username>{{Username}}</username>
-    <generateAuthorizationHeader>true</generateAuthorizationHeader>
-    <allowMergeFieldsInBody>true</allowMergeFieldsInBody>
-    <allowMergeFieldsInHeader>true</allowMergeFieldsInHeader>
-</NamedCredential>
-```
-
-**⚠️ CRITICAL**: Password is stored in Named Credential, NOT in code. Never hardcode credentials!
+Templates in `templates/named-credentials/`. ⚠️ **NEVER hardcode credentials** - always use Named Credentials!
 
 ---
 
@@ -814,38 +761,18 @@ Score: XX/120 Rating
 
 ## Cross-Skill Integration
 
-| To Skill | When to Use | Example Invocation |
-|----------|-------------|-------------------|
-| sf-connected-apps | Need OAuth Connected App for Named Credential | `Skill(skill="sf-connected-apps")` → "Create Connected App for API integration" |
-| sf-apex | Need custom callout service beyond templates | `Skill(skill="sf-apex")` → "Create Queueable callout service" |
-| sf-metadata | Query existing Named Credentials or objects | `Skill(skill="sf-metadata")` → "List Named Credentials in org" |
-| sf-deploy | Deploy integration components | `Skill(skill="sf-deploy")` → "Deploy Named Credential with dry-run" |
-| sf-ai-agentforce | Create agent action using External Service | `Skill(skill="sf-ai-agentforce")` → "Create agent with API action" |
-| sf-flow | Create HTTP Callout Flow for agent | `Skill(skill="sf-flow")` → "Create Autolaunched HTTP Callout Flow" |
-| sf-data | Test integration with sample data | `Skill(skill="sf-data")` → "Create test Account for callout testing" |
+| To Skill | When to Use |
+|----------|-------------|
+| sf-connected-apps | OAuth Connected App for Named Credential |
+| sf-apex | Custom callout service beyond templates |
+| sf-metadata | Query existing Named Credentials |
+| **sf-devops-architect** | ⚠️ MANDATORY for ALL deployments |
+| sf-ai-agentforce | Agent action using External Service |
+| sf-flow | HTTP Callout Flow for agent |
 
-### Integration with sf-ai-agentforce
+### Agentforce Integration Flow
 
-When creating agents that need external API access:
-
-1. **sf-integration creates**: Named Credential + External Service
-2. **sf-flow creates**: HTTP Callout Flow wrapper
-3. **sf-ai-agentforce creates**: Agent with `flow://` action targeting the callout flow
-
-**Workflow**:
-```
-User: "Create agent that checks order status from external API"
-                    ↓
-sf-ai-agentforce detects API need → calls sf-integration
-                    ↓
-sf-integration creates Named Credential + External Service
-                    ↓
-sf-flow creates HTTP Callout Flow
-                    ↓
-sf-ai-agentforce creates agent with flow:// target
-                    ↓
-sf-deploy deploys all components
-```
+`sf-integration` → Named Credential + External Service → `sf-flow` → HTTP Callout wrapper → `sf-ai-agentforce` → Agent with `flow://` target → `sf-devops-architect` → Deploy all
 
 ---
 

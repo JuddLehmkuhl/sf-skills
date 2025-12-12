@@ -128,20 +128,13 @@ Score: XX/120 ⭐⭐⭐⭐ Rating
 
 ### Scoring Thresholds
 
-| Rating | Score |
-|--------|-------|
-| ⭐⭐⭐⭐⭐ Excellent | 108-120 |
-| ⭐⭐⭐⭐ Very Good | 90-107 |
-| ⭐⭐⭐ Good | 72-89 |
-| ⭐⭐ Needs Work | 54-71 |
-| ⭐ Critical Issues | <54 |
+See [../../shared/docs/scoring-overview.md](../../shared/docs/scoring-overview.md). Block deployment if score < 54.
 
 ### Phase 5: Deployment & Documentation
 
-**Deployment via sf-deploy**:
+**Deployment via sf-devops-architect** (MANDATORY):
 ```
-Skill(skill="sf-deploy")
-Request: "Deploy connected apps at force-app/main/default/connectedApps/ to [target-org] with --dry-run"
+Task(subagent_type="sf-devops-architect", prompt="Deploy connected apps at force-app/main/default/connectedApps/ to [target-org] with --dry-run")
 ```
 
 **Completion Summary**:
@@ -262,36 +255,16 @@ Next Steps:
 </ExtlClntAppGlobalOauthSettings>
 ```
 
-**Required Fields**:
-| Field | Description |
-|-------|-------------|
-| `callbackUrl` | OAuth callback URL |
-| `externalClientApplication` | Reference to parent ECA (must match .eca file name) |
-| `label` | Display label for this configuration |
+**ECA Required Fields** (both GlobalOauth and OauthSettings):
+- `externalClientApplication` - Reference to parent ECA (must match .eca file name)
+- `label` - Display label
+- Global: `callbackUrl` | Instance: `commaSeparatedOauthScopes` (NOT individual `<scopes>` tags)
 
 ### ExtlClntAppOauthSettings (Instance OAuth)
 
 **File**: `[AppName].ecaOauth-meta.xml`
 
-> ⚠️ **IMPORTANT**: Uses `commaSeparatedOauthScopes` string, NOT individual `<scopes>` tags
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<ExtlClntAppOauthSettings xmlns="http://soap.sforce.com/2006/04/metadata">
-    <commaSeparatedOauthScopes>Api, RefreshToken, OpenID</commaSeparatedOauthScopes>
-    <externalClientApplication>My_App_Name</externalClientApplication>
-    <label>My App OAuth Settings</label>
-</ExtlClntAppOauthSettings>
-```
-
-**Required Fields**:
-| Field | Description |
-|-------|-------------|
-| `commaSeparatedOauthScopes` | Comma-separated list of scopes (e.g., "Api, RefreshToken") |
-| `externalClientApplication` | Reference to parent ECA (must match .eca file name) |
-| `label` | Display label for this configuration |
-
-> **Note**: OAuth flows (Authorization Code, Client Credentials, JWT) are configured via the Admin UI or `ExtlClntAppOauthConfigurablePolicies`, not in this metadata type.
+> **Note**: OAuth flows are configured via Admin UI or `ExtlClntAppConfigurablePolicies`.
 
 ### ExtlClntAppConfigurablePolicies (Admin Policies)
 
@@ -317,26 +290,7 @@ Next Steps:
 
 ## Security Best Practices
 
-### Critical Requirements
-
-**OAuth Security** (30 points):
-- ALWAYS enable PKCE for public clients (mobile, SPA)
-- Use `isConsumerSecretOptional=false` for confidential clients
-- Enable refresh token rotation for long-lived sessions
-- Never use wildcard `*` in callback URLs
-- Use specific, HTTPS callback URLs only
-
-**Scope Management** (15 points):
-- Follow principle of least privilege
-- Avoid `Full` scope unless absolutely necessary
-- Prefer specific scopes: `Api`, `RefreshToken`, `OpenID`
-- Remove unused scopes during reviews
-
-**Token Policies** (20 points):
-- Set appropriate token expiration
-- Configure IP restrictions for server-to-server
-- Use `ENFORCE` IP relaxation for high-security apps
-- Enable introspection for token validation needs
+> 📋 **Scoring details**: See Phase 4 Scoring Criteria above for point breakdown.
 
 ### Anti-Patterns
 
@@ -389,10 +343,10 @@ For **External Client Apps**, add these features to your scratch org definition:
 
 ## Cross-Skill Integration
 
-| Skill | When to Use | Example |
-|-------|-------------|---------|
+| Skill/Agent | When to Use | Example |
+|-------------|-------------|---------|
 | sf-metadata | Create Named Credentials for secure callouts | `Skill(skill="sf-metadata")` → "Create Named Credential for Stripe API" |
-| sf-deploy | Deploy and validate apps | `Skill(skill="sf-deploy")` → "Deploy connected apps with validation" |
+| **sf-devops-architect** | ⚠️ MANDATORY for deployment | `Task(subagent_type="sf-devops-architect", ...)` |
 | sf-apex | Create Apex for OAuth token handling | `Skill(skill="sf-apex")` → "Create OAuth token refresh service" |
 
 ---

@@ -6,7 +6,8 @@ Scoring: 100 points across 6 categories.
 
 Updated to match official Salesforce Agent Script syntax (Dec 2025):
 - Uses agent_name (not developer_name)
-- Uses 3-space indentation (not 4-space!)
+- Uses TAB indentation (recommended) or consistent spaces
+- CRITICAL: Never mix tabs and spaces (causes parse errors)
 - Uses instructions: -> (space before arrow)
 - Requires label: for all topics
 - Requires linked variables (EndUserId, RoutableId, ContactId)
@@ -130,45 +131,48 @@ class AgentScriptValidator:
             )
 
     def _validate_indentation(self, lines: List[str]):
-        """Validate that indentation uses 3 spaces (not tabs, not 4 spaces)."""
+        """Validate indentation consistency (tabs recommended, or consistent spaces).
+
+        CRITICAL: Mixing tabs and spaces causes parse errors.
+        Either use all tabs (recommended) or all spaces consistently.
+        """
+        has_tabs = False
+        has_spaces = False
+
         for i, line in enumerate(lines, 1):
             # Skip empty lines and comments
             stripped = line.lstrip()
             if not stripped or stripped.startswith("#"):
                 continue
 
-            # Check for tabs
-            if "\t" in line:
+            # Detect indentation type used
+            leading_whitespace = line[:len(line) - len(line.lstrip())]
+            if '\t' in leading_whitespace:
+                has_tabs = True
+            if ' ' in leading_whitespace and leading_whitespace.replace('\t', ''):
+                # Has spaces in indentation (not just tabs)
+                space_only = leading_whitespace.replace('\t', '')
+                if space_only:
+                    has_spaces = True
+
+            # Check for mixed tabs and spaces on same line (CRITICAL ERROR)
+            if '\t' in leading_whitespace and ' ' in leading_whitespace:
                 self._add_issue(
                     "Structure & Syntax",
-                    "Use spaces, not tabs for indentation",
+                    "CRITICAL: Mixed tabs and spaces on same line - this causes parse errors",
                     "error",
                     line=i,
-                    deduction=3,
+                    deduction=5,
                 )
 
-            # Check indentation level
-            leading_spaces = len(line) - len(line.lstrip())
-            if leading_spaces > 0:
-                # Indentation should be multiples of 3
-                if leading_spaces % 3 != 0:
-                    # Check if it's the common 4-space mistake
-                    if leading_spaces % 4 == 0 and leading_spaces % 3 != 0:
-                        self._add_issue(
-                            "Structure & Syntax",
-                            f"Use 3-space indentation, found {leading_spaces} spaces (likely 4-space)",
-                            "error",
-                            line=i,
-                            deduction=3,
-                        )
-                    else:
-                        self._add_issue(
-                            "Structure & Syntax",
-                            f"Indentation should be multiples of 3, found {leading_spaces} spaces",
-                            "warning",
-                            line=i,
-                            deduction=1,
-                        )
+        # Check for mixing tabs and spaces across the file
+        if has_tabs and has_spaces:
+            self._add_issue(
+                "Structure & Syntax",
+                "CRITICAL: File mixes tabs and spaces for indentation - use one consistently (tabs recommended)",
+                "error",
+                deduction=5,
+            )
 
     def _validate_blocks(self, content: str, lines: List[str]):
         """Validate required blocks are present."""
@@ -263,8 +267,8 @@ class AgentScriptValidator:
             defined_topics.add(match.group(1))
 
         # Check for topic labels (CRITICAL - required for deployment)
-        # Find topic blocks and check for label
-        topic_block_pattern = r"^(start_agent\s+)?topic\s+(\w+):\s*\n((?:[ ]{3}.*\n)*)"
+        # Find topic blocks and check for label (supports tabs or spaces)
+        topic_block_pattern = r"^(start_agent\s+)?topic\s+(\w+):\s*\n((?:[ \t]+.*\n)*)"
         for match in re.finditer(topic_block_pattern, content, re.MULTILINE):
             topic_block = match.group(3)
             topic_name = match.group(2)
@@ -287,8 +291,8 @@ class AgentScriptValidator:
                     deduction=2,
                 )
 
-        # Also check start_agent block patterns
-        start_block_pattern = r"^start_agent\s+(\w+):\s*\n((?:[ ]{3}.*\n)*)"
+        # Also check start_agent block patterns (supports tabs or spaces)
+        start_block_pattern = r"^start_agent\s+(\w+):\s*\n((?:[ \t]+.*\n)*)"
         for match in re.finditer(start_block_pattern, content, re.MULTILINE):
             topic_block = match.group(2)
             topic_name = match.group(1)
@@ -332,8 +336,8 @@ class AgentScriptValidator:
 
     def _validate_variables(self, content: str, lines: List[str]):
         """Validate variable definitions and usage."""
-        # Find mutable variable definitions
-        var_pattern = r"^\s{3}(\w+):\s*mutable\s+(\w+)"
+        # Find mutable variable definitions (supports tabs or spaces)
+        var_pattern = r"^[ \t]+(\w+):\s*mutable\s+(\w+)"
         defined_vars = set()
 
         for match in re.finditer(var_pattern, content, re.MULTILINE):
@@ -350,14 +354,14 @@ class AgentScriptValidator:
                     deduction=2,
                 )
 
-        # Find linked variable definitions
-        linked_pattern = r"^\s{3}(\w+):\s*linked\s+(\w+)"
+        # Find linked variable definitions (supports tabs or spaces)
+        linked_pattern = r"^[ \t]+(\w+):\s*linked\s+(\w+)"
         for match in re.finditer(linked_pattern, content, re.MULTILINE):
             var_name = match.group(1)
             defined_vars.add(var_name)
 
-        # Check for variable descriptions
-        var_block_pattern = r"^\s{3}(\w+):\s*(?:mutable|linked)\s+\w+.*\n((?:\s{6}.*\n)*)"
+        # Check for variable descriptions (supports tabs or spaces)
+        var_block_pattern = r"^[ \t]+(\w+):\s*(?:mutable|linked)\s+\w+.*\n((?:[ \t]+.*\n)*)"
         for match in re.finditer(var_block_pattern, content, re.MULTILINE):
             var_block = match.group(2)
             var_name = match.group(1)
@@ -393,7 +397,8 @@ class AgentScriptValidator:
     def _validate_linked_variables(self, content: str):
         """Validate required linked variables are present."""
         for var_name in self.REQUIRED_LINKED_VARS:
-            pattern = rf"^\s{{3}}{var_name}:\s*linked"
+            # Support tabs or spaces for indentation
+            pattern = rf"^[ \t]+{var_name}:\s*linked"
             if not re.search(pattern, content, re.MULTILINE):
                 self._add_issue(
                     "Variable Management",
@@ -404,8 +409,8 @@ class AgentScriptValidator:
 
     def _validate_actions(self, content: str, lines: List[str]):
         """Validate action definitions and invocations."""
-        # Find action definitions
-        action_def_pattern = r"^\s{3}(\w+):\s*\n\s{6}description:"
+        # Find action definitions (supports tabs or spaces)
+        action_def_pattern = r"^[ \t]+(\w+):\s*\n[ \t]+description:"
         defined_actions = set()
 
         for match in re.finditer(action_def_pattern, content, re.MULTILINE):
@@ -493,9 +498,9 @@ class AgentScriptValidator:
 
     def _validate_security(self, content: str, lines: List[str]):
         """Validate security guardrails."""
-        # Check for system instructions
+        # Check for system instructions (supports tabs or spaces)
         system_block = re.search(
-            r"^system:\s*\n((?:\s{3}.*\n)*)", content, re.MULTILINE
+            r"^system:\s*\n((?:[ \t]+.*\n)*)", content, re.MULTILINE
         )
         if system_block:
             system_content = system_block.group(1)
@@ -557,8 +562,8 @@ class AgentScriptValidator:
         1. Use 'transition to' NOT '@utils.transition to' in lifecycle blocks
         2. Pipe (|) is NOT supported in lifecycle blocks
         """
-        # Find before_reasoning and after_reasoning blocks
-        lifecycle_block_pattern = r"(before_reasoning|after_reasoning):\s*\n((?:\s{6}.*\n)*)"
+        # Find before_reasoning and after_reasoning blocks (supports tabs or spaces)
+        lifecycle_block_pattern = r"(before_reasoning|after_reasoning):\s*\n((?:[ \t]+.*\n)*)"
 
         for match in re.finditer(lifecycle_block_pattern, content, re.MULTILINE):
             block_type = match.group(1)

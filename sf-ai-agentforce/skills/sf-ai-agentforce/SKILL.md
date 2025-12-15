@@ -829,6 +829,8 @@ The blocks MUST appear in this order:
 
 ### Config Block
 
+**📝 NOTE: No Separate Config File!** All configuration goes directly in the `.agent` file's `config:` block. There is no separate `.agentscript`, `.agentconfig`, or similar config file format.
+
 ```agentscript
 config:
    agent_name: "Agent_API_Name"
@@ -880,20 +882,25 @@ system:
 
 #### Variable Types (Complete Reference)
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `string` | Text values | `name: mutable string = "John"` |
-| `number` | Floating-point (decimals) | `price: mutable number = 99.99` |
-| `integer` | Integer values only | `count: mutable integer = 5` |
-| `long` | Long integers | `big_num: mutable long = 9999999999` |
-| `boolean` | True/False (capitalized!) | `active: mutable boolean = True` |
-| `date` | YYYY-MM-DD format | `start: mutable date = 2025-01-15` |
-| `datetime` | Full timestamp | `created: mutable datetime` |
-| `time` | Time only | `appointment: mutable time` |
-| `currency` | Money values | `total: mutable currency` |
-| `id` | Salesforce Record ID | `record_id: mutable id` |
-| `object` | Complex JSON objects | `data: mutable object = {}` |
-| `list[type]` | Collections | `items: mutable list[string]` |
+| Type | Description | Example | AiAuthoringBundle |
+|------|-------------|---------|-------------------|
+| `string` | Text values | `name: mutable string = "John"` | ✅ Supported |
+| `number` | Numeric (integers & decimals) | `price: mutable number = 99.99` | ✅ Supported |
+| `boolean` | True/False (capitalized!) | `active: mutable boolean = True` | ✅ Supported |
+| `date` | YYYY-MM-DD format | `start: mutable date = 2025-01-15` | ✅ Supported |
+| `datetime` | Full timestamp | `created: mutable datetime` | ✅ Supported |
+| `time` | Time only | `appointment: mutable time` | ✅ Supported |
+| `currency` | Money values | `total: mutable currency` | ✅ Supported |
+| `id` | Salesforce Record ID | `record_id: mutable id` | ✅ Supported |
+| `object` | Complex JSON objects | `data: mutable object = {}` | ✅ Supported |
+| `list[type]` | Collections | `items: mutable list[string]` | ✅ Supported |
+| `integer` | Integer values only | `count: mutable integer = 5` | ❌ NOT Supported |
+| `long` | Long integers | `big_num: mutable long = 9999999999` | ❌ NOT Supported |
+
+**⚠️ CRITICAL: `integer` and `long` types are NOT supported in AiAuthoringBundle!**
+- Validation fails with: "Variable with type integer is not supported for mutable variables"
+- Use `number` instead for all numeric values (works for both integers and decimals)
+- These types may be supported in GenAiPlannerBundle or future releases
 
 **Note**: Linked variables support only: `string`, `number`, `boolean`, `date`, `id`
 
@@ -925,7 +932,7 @@ variables:
    # Without defaults - works in both deployment methods (tested Dec 2025)
    user_name: mutable string
       description: "User's name"
-   order_count: mutable integer
+   order_count: mutable number
       description: "Number of items in cart"
    price_total: mutable number
       description: "Total price with decimals"
@@ -939,6 +946,8 @@ variables:
    # With explicit defaults - also valid (optional)
    status: mutable string = ""
       description: "Current status"
+   counter: mutable number = 0
+      description: "A counter (use number, not integer!)"
 ```
 
 ### Language Block
@@ -1022,6 +1031,21 @@ reasoning:
       | Determine user intent.
       | Provide helpful response.
       | If unclear, ask clarifying questions.
+```
+
+**⚠️ CRITICAL: Pipes Cannot Be Nested Inside Pipes!**
+```agentscript
+# ❌ WRONG - Nested pipes cause "Start token somehow not of the form | + 2 spaces" error
+instructions: ->
+   | if @variables.name is None:
+   | 	| Please provide your name.    # NESTED PIPE - FAILS!
+
+# ✅ CORRECT - Conditionals at same level as pipes
+instructions: ->
+   if @variables.name is None:
+      | Please provide your name.
+   else:
+      | Hello, {!@variables.name}!
 ```
 
 **System instructions** (must be single string):

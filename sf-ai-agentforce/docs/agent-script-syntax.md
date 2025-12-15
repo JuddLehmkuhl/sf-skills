@@ -215,6 +215,8 @@ system:
 
 Defines agent metadata. **Required fields**: agent_name, default_agent_user, agent_label, description.
 
+**📝 NOTE: No Separate Config File!** All configuration goes directly in the `.agent` file's `config:` block. There is no separate `.agentscript`, `.agentconfig`, or similar config file format.
+
 ```agentscript
 config:
    agent_name: "Customer_Support_Agent"
@@ -318,20 +320,24 @@ topic orders:
 
 ### Complete Type Reference
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `string` | Text values | `name: mutable string = "John"` |
-| `number` | Floating-point (decimals) | `price: mutable number = 99.99` |
-| `integer` | Integer values only | `count: mutable integer = 5` |
-| `long` | Long integers | `big_num: mutable long = 9999999999` |
-| `boolean` | True/False (capitalized!) | `active: mutable boolean = True` |
-| `date` | YYYY-MM-DD format | `start: mutable date = 2025-01-15` |
-| `datetime` | Full timestamp | `created: mutable datetime` |
-| `time` | Time only | `appointment: mutable time` |
-| `currency` | Money values | `total: mutable currency` |
-| `id` | Salesforce Record ID | `record_id: mutable id` |
-| `object` | Complex object with Lightning type | See advanced syntax below |
-| `list[type]` | Array of values | `list[string]`, `list[number]` |
+| Type | Description | Example | AiAuthoringBundle |
+|------|-------------|---------|-------------------|
+| `string` | Text values | `name: mutable string = "John"` | ✅ Supported |
+| `number` | Numeric (integers & decimals) | `price: mutable number = 99.99` | ✅ Supported |
+| `boolean` | True/False (capitalized!) | `active: mutable boolean = True` | ✅ Supported |
+| `date` | YYYY-MM-DD format | `start: mutable date = 2025-01-15` | ✅ Supported |
+| `datetime` | Full timestamp | `created: mutable datetime` | ✅ Supported |
+| `time` | Time only | `appointment: mutable time` | ✅ Supported |
+| `currency` | Money values | `total: mutable currency` | ✅ Supported |
+| `id` | Salesforce Record ID | `record_id: mutable id` | ✅ Supported |
+| `object` | Complex object with Lightning type | See advanced syntax below | ✅ Supported |
+| `list[type]` | Array of values | `list[string]`, `list[number]` | ✅ Supported |
+| `integer` | Integer values only | `count: mutable integer = 5` | ❌ NOT Supported |
+| `long` | Long integers | `big_num: mutable long = 9999999999` | ❌ NOT Supported |
+
+**⚠️ CRITICAL: `integer` and `long` types are NOT supported in AiAuthoringBundle!**
+- Validation fails with: "Variable with type integer is not supported for mutable variables"
+- Use `number` instead for all numeric values (works for both integers and decimals)
 
 **Notes**:
 - Boolean values must be capitalized: `True`, `False`
@@ -489,6 +495,23 @@ instructions: ->
       | This is a large order.
    else:
       | Standard order processing.
+```
+
+**⚠️ CRITICAL: Pipes Cannot Be Nested Inside Pipes!**
+
+```agentscript
+# ❌ WRONG - Nested pipes cause "Start token somehow not of the form | + 2 spaces" error
+instructions: ->
+   | Some text.
+   | if @variables.name is None:
+   | 	| Please provide your name.    # NESTED PIPE - FAILS!
+
+# ✅ CORRECT - Conditionals at same level as pipes, not nested inside
+instructions: ->
+   | Some introductory text.
+   if @variables.name is None:
+      | Please provide your name.
+   | More text continues here.
 ```
 
 ### Template Expressions

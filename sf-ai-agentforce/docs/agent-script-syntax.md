@@ -30,7 +30,7 @@ There are **two deployment methods** with **different capabilities**:
 | Lifecycle blocks (`before/after_reasoning`) | ✅ Supported | ✅ Supported (tested Dec 2025) |
 | Topic transitions (`@utils.transition`) | ✅ Supported | ✅ Supported |
 | Basic escalation (`@utils.escalate`) | ✅ Supported | ✅ Supported |
-| API Version | v65.0+ required | v64.0+ |
+| API Version | v65.0+ required | v65.0+ required |
 
 **Why the difference?** These methods correspond to two authoring experiences:
 - **Script View** (GenAiPlannerBundle): Full Agent Script syntax with utility actions (transition, set variables, escalate) inherent to the script

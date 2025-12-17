@@ -160,7 +160,7 @@ Score: 100/100 ⭐⭐⭐⭐⭐ Excellent
 
 ## Requirements
 
-- API Version: 64.0+ (Summer '25 or later)
+- API Version: 65.0+ (Winter '26 or later)
 - Salesforce CLI: @salesforce/plugin-agent v1.25.0 or later
 - Licenses: Agentforce (Default), Einstein Prompt Templates
 

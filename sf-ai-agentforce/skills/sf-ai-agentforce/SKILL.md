@@ -123,7 +123,7 @@ There are **two deployment methods** with **different capabilities**:
 | Lifecycle blocks (`before/after_reasoning`) | ✅ Supported | ✅ Supported |
 | Topic transitions (`@utils.transition`) | ✅ Supported | ✅ Supported |
 | Basic escalation (`@utils.escalate`) | ✅ Supported | ✅ Supported |
-| API Version | v65.0+ required | v64.0+ |
+| API Version | v65.0+ required | v65.0+ required |
 
 **Why the difference?** These methods correspond to two authoring experiences:
 - **Script View** (GenAiPlannerBundle): Full Agent Script syntax with utility actions inherent to the script
@@ -404,7 +404,7 @@ This will fail with "Internal Error, try again later" because the schema validat
 | **Flow Type** | Must be **Autolaunched Flow** (not Screen Flow) |
 | **Flow Variables** | Mark as "Available for input" / "Available for output" |
 | **Deploy Order** | Deploy Flow to org BEFORE publishing agent |
-| **API Version** | API v64.0+ for AiAuthoringBundle, v65.0+ for GenAiPlannerBundle |
+| **API Version** | API v65.0+ required for both AiAuthoringBundle and GenAiPlannerBundle |
 | **All Inputs Required** | Agent Script must define ALL inputs that Flow expects (missing inputs = Internal Error) |
 
 ### ⚠️ CRITICAL: Flow Validation Timing (Tested Dec 2025)
@@ -901,7 +901,7 @@ sf agent activate --api-name [AgentName] --target-org [alias]
 
 ```
 ✓ Agent Complete: [AgentName]
-  Type: Agentforce Agent | API: 64.0+
+  Type: Agentforce Agent | API: 65.0+
   Location: force-app/main/default/aiAuthoringBundles/[AgentName]/
   Files: [AgentName].agent, [AgentName].bundle-meta.xml
   Validation: PASSED (Score: XX/100)
@@ -1527,7 +1527,7 @@ Before deployment, ensure you have:
 
 **Dependencies**: sf-deploy (optional) for additional deployment options. Install: `/plugin install github:Jaganpro/sf-skills/sf-deploy`
 
-**Notes**: API 64.0+ required | Agent Script is GA (2025) | Block if score < 60
+**Notes**: API 65.0+ required | Agent Script is GA (2025) | Block if score < 60
 
 ---
 

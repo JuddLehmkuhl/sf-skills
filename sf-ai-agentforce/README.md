@@ -16,7 +16,7 @@ Create Agentforce agents using Agent Script syntax with 100-point validation sco
 
 | Requirement | Value |
 |-------------|-------|
-| API Version | **64.0+** (Summer '25 or later) |
+| API Version | **65.0+** (Winter '26 or later) |
 | Licenses | Agentforce (Default), Einstein Prompt Templates |
 | sf CLI | v2.x with agent commands |
 

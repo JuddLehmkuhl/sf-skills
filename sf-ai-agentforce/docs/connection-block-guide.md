@@ -260,6 +260,6 @@ This approach lets you implement complex routing (skills, queues, business hours
 
 ## Related Documentation
 
-- [SKILL.md - Escalation Section](../skills/sf-ai-agentforce/SKILL.md)
+- [SKILL.md - Escalation Section](../SKILL.md)
 - [Agent Script Syntax](./agent-script-syntax.md)
 - [Salesforce Omni-Channel Documentation](https://help.salesforce.com/s/articleView?id=sf.omnichannel_intro.htm)

@@ -505,8 +505,7 @@ Extend Sub_LogError to send Platform Events:
 
 - [Error Logging Example](../examples/error-logging-example.md) - Detailed Sub_LogError usage
 - [Orchestration Guide](orchestration-guide.md) - Parent-child flow patterns
-- [Best Practices](flow-best-practices.md) - Flow development guidelines
-- [Security Guide](security-best-practices.md) - System vs user mode considerations
+- [Flow Best Practices](flow-best-practices.md) - Flow guidelines and security
 
 ---
 

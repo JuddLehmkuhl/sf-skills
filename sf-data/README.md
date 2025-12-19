@@ -72,7 +72,7 @@ Request: "Create 251 test Accounts to trigger AccountTrigger bulk testing"
 
 ```
 sf-data/
-├── skills/sf-data/SKILL.md    # Main skill prompt
+├── SKILL.md                   # Main skill prompt
 ├── templates/
 │   ├── factories/             # Apex test data factories
 │   ├── soql/                  # SOQL query templates

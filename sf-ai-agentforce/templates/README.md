@@ -151,6 +151,6 @@ ADVANCED
 
 ## Related Documentation
 
-- [SKILL.md](../skills/sf-ai-agentforce/SKILL.md) - Entry point, workflow guide
+- [SKILL.md](../SKILL.md) - Entry point, workflow guide
 - [pattern-catalog.md](../docs/pattern-catalog.md) - Pattern decision tree
 - [agent-script-syntax.md](../docs/agent-script-syntax.md) - Complete syntax reference

@@ -974,6 +974,6 @@ Skills invoked:
 
 - [GenAiFunction Reference](./genai-function-reference.md)
 - [Prompt Template Guide](./prompt-template-guide.md)
-- [sf-integration Skill](../../sf-integration/skills/sf-integration/SKILL.md)
-- [sf-apex Skill](../../sf-apex/skills/sf-apex/SKILL.md)
-- [sf-flow Skill](../../sf-flow/skills/sf-flow/SKILL.md)
+- [sf-integration Skill](../../sf-integration/SKILL.md)
+- [sf-apex Skill](../../sf-apex/SKILL.md)
+- [sf-flow Skill](../../sf-flow/SKILL.md)

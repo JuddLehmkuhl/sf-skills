@@ -503,7 +503,7 @@ class FlowDocGenerator:
         docs = [
             "- [Subflow Library](../docs/subflow-library.md)",
             "- [Orchestration Guide](../docs/orchestration-guide.md)",
-            "- [Security Best Practices](../docs/security-best-practices.md)",
+            "- [Flow Best Practices](../docs/flow-best-practices.md)",
             "- [Governance Checklist](../docs/governance-checklist.md)"
         ]
         return '\n'.join(docs)

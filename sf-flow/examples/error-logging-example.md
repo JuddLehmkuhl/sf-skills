@@ -193,7 +193,7 @@ sf data query --query "SELECT Flow_Name__c, Error_Message__c FROM Flow_Error_Log
 
 - [Subflow Library](../docs/subflow-library.md) - All reusable subflows
 - [Orchestration Patterns](../docs/orchestration-guide.md) - Parent-child flow architecture
-- [Security Best Practices](../docs/security-best-practices.md) - Running mode and permissions
+- [Flow Best Practices](../docs/flow-best-practices.md) - Running mode and permissions
 
 ## Questions?
 

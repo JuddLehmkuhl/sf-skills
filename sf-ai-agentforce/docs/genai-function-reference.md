@@ -536,4 +536,4 @@ sf project retrieve start -m "GenAiFunction:Calculate_Shipping_Cost"
 
 - [Agent Actions Guide](./agent-actions-guide.md)
 - [Prompt Template Guide](./prompt-template-guide.md)
-- [sf-apex Skill](../../sf-apex/skills/sf-apex/SKILL.md)
+- [sf-apex Skill](../../sf-apex/SKILL.md)

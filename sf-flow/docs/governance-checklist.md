@@ -259,7 +259,7 @@ Approver: [Who approved this exception?]
 ### Documentation
 - [Subflow Library](subflow-library.md): Reusable components
 - [Orchestration Guide](orchestration-guide.md): Architecture patterns
-- [Security Best Practices](security-best-practices.md): Security guidelines
+- [Flow Best Practices](flow-best-practices.md): Security guidelines
 - [Architecture Review Template](../templates/architecture-review-template.md): Formal review process
 
 ### Salesforce Resources

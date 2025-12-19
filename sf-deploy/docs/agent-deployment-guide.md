@@ -481,5 +481,4 @@ sf agent activate --api-name My_Agent --target-org myorg
 
 - [Agent CLI Reference](../../sf-ai-agentforce/docs/agent-cli-reference.md)
 - [Agent Preview Guide](../../sf-ai-agentforce/docs/agent-preview-guide.md)
-- [Testing and Validation Guide](../../sf-ai-agentforce/docs/testing-validation-guide.md)
 - [Agent Script Syntax](../../sf-ai-agentforce/docs/agent-script-syntax.md)

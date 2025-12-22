@@ -15,16 +15,16 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./sf-apex/skills/sf-apex",
-        "./sf-flow/skills/sf-flow",
-        "./sf-metadata/skills/sf-metadata",
-        "./sf-data/skills/sf-data",
-        "./sf-deploy/skills/sf-deploy",
-        "./skill-builder/skills/skill-builder",
-        "./sf-ai-agentforce/skills/sf-ai-agentforce",
-        "./sf-diagram/skills/sf-diagram",
-        "./sf-integration/skills/sf-integration",
-        "./sf-connected-apps/skills/sf-connected-apps"
+        "./sf-apex",
+        "./sf-flow",
+        "./sf-metadata",
+        "./sf-data",
+        "./sf-deploy",
+        "./skill-builder",
+        "./sf-ai-agentforce",
+        "./sf-diagram",
+        "./sf-integration",
+        "./sf-connected-apps"
       ]
     },
     {

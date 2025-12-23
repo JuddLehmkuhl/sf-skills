@@ -8,7 +8,7 @@
 #   - Reduce unnecessary API calls
 #
 # ★ Key Insights:
-#   - `run @actions.x` can appear INSIDE `instructions:->` blocks
+#   - `run @actions.x` can appear INSIDE `instructions: ->` blocks
 #   - Actions execute when their containing conditional is true
 #   - Different from actions: block which defines what LLM CAN call
 #   - This is PROCEDURAL (you control when) vs DECLARATIVE (LLM chooses)

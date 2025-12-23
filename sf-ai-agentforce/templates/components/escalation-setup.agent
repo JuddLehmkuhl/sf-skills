@@ -58,6 +58,7 @@ language:
 
 # ★ CONNECTION BLOCK - Required for @utils.escalate to work
 # This defines where escalated conversations are routed
+# Use singular 'connection' for one channel, plural 'connections' for multiple
 connection messaging:
 	# ⚠️ IMPORTANT: Only "OmniChannelFlow" is supported (not "queue", "skill", or "agent")
 	outbound_route_type: "OmniChannelFlow"
@@ -65,6 +66,21 @@ connection messaging:
 	outbound_route_name: "{{OMNI_CHANNEL_FLOW_NAME}}"
 	# ⚠️ REQUIRED: escalation_message must be included when connection block is present
 	escalation_message: "Transferring you to a human agent now..."
+	# Optional: Allow agent to adapt responses during escalation
+	adaptive_response_allowed: True
+
+# ★ MULTI-CHANNEL EXAMPLE (use 'connections' plural for multiple channels)
+# connections:
+#    messaging:
+#       outbound_route_type: "OmniChannelFlow"
+#       outbound_route_name: "Chat_Support_Flow"
+#       escalation_message: "Connecting you to chat support..."
+#       adaptive_response_allowed: True
+#    telephony:
+#       outbound_route_type: "OmniChannelFlow"
+#       outbound_route_name: "Phone_Support_Flow"
+#       escalation_message: "Transferring to phone support..."
+#       adaptive_response_allowed: False
 
 # Entry point
 start_agent topic_selector:

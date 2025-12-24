@@ -8,6 +8,8 @@ A collection of reusable skills for **Agentic Salesforce Development**, enabling
 
 > **14 skills** • **50+ templates** • **420+ validation points** • **LSP integration**
 
+> ⚠️ **Alpha Software** — This project is under active development. Expect breaking changes between releases. Pin to a specific commit hash for stability.
+
 ---
 
 ## 💡 What is a Skill?
@@ -88,19 +90,12 @@ First, add the marketplace to Claude Code:
 ```
 
 <details>
-<summary><b>📺 Video Tutorials</b> (click to expand)</summary>
+<summary><b>Video Tutorials</b> (click to expand)</summary>
 
-### Video 1: How to Add/Install Skills to Claude Code
-
-<a href="https://youtu.be/a38MM8PBTe4" target="_blank">
-  <img src="https://img.youtube.com/vi/a38MM8PBTe4/maxresdefault.jpg" alt="How to Add/Install Skills to Claude Code" width="600" />
-</a>
-
-### Video 2: Skills Demo & Walkthrough
-
-<a href="https://www.youtube.com/watch?v=gW2RP96jdBc" target="_blank">
-  <img src="https://img.youtube.com/vi/gW2RP96jdBc/maxresdefault.jpg" alt="Skills Demo & Walkthrough" width="600" />
-</a>
+| Video | Description |
+|-------|-------------|
+| [How to Add/Install Skills](https://youtu.be/a38MM8PBTe4) | Install the sf-skills marketplace and add skills to Claude Code |
+| [Skills Demo & Walkthrough](https://www.youtube.com/watch?v=gW2RP96jdBc) | Live demo of Apex, Flow, Metadata, and Agentforce skills in action |
 
 </details>
 

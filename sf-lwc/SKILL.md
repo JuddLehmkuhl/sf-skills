@@ -6,9 +6,9 @@ description: >
   Salesforce UIs with proper reactivity, accessibility, and performance patterns.
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: "Jag Valaiyapathy"
-  scoring: "130 points across 6 categories"
+  scoring: "140 points across 7 categories (SLDS 2 compliant)"
 ---
 
 # sf-lwc: Lightning Web Components Development
@@ -182,25 +182,98 @@ describe('c-account-list', () => {
 
 ---
 
-## Best Practices (130-Point Scoring)
+## SLDS 2 Validation (140-Point Scoring)
 
-| Category | Points | Key Rules |
-|----------|--------|-----------|
-| **Component Structure** | 25 | Proper file organization, naming conventions |
-| **Data Handling** | 25 | Correct wire usage, error handling, loading states |
-| **Event Architecture** | 20 | Proper event bubbling, composed flags |
-| **Accessibility** | 20 | ARIA labels, keyboard navigation, screen reader |
-| **Performance** | 20 | Lazy loading, efficient rendering, no memory leaks |
-| **Test Coverage** | 20 | Jest tests for all scenarios |
+The sf-lwc skill includes automated SLDS 2 (Salesforce Lightning Design System 2) validation that runs on every Write/Edit operation. This ensures your components are dark mode compatible, accessible, and use modern styling hooks.
+
+| Category | Points | Key Checks |
+|----------|--------|------------|
+| **SLDS Class Usage** | 25 | Valid class names, proper `slds-*` utilities |
+| **Accessibility** | 25 | ARIA labels, roles, alt-text, keyboard navigation |
+| **Dark Mode** | 25 | No hardcoded colors, CSS variables only |
+| **SLDS Migration** | 20 | No deprecated SLDS 1 patterns/tokens |
+| **Styling Hooks** | 20 | Proper `--slds-g-*` variable usage |
+| **Component Structure** | 15 | Uses `lightning-*` base components |
+| **Performance** | 10 | Efficient selectors, no `!important` |
 
 **Scoring Thresholds**:
 ```
-⭐⭐⭐⭐⭐ 115-130 pts → Production-ready component
-⭐⭐⭐⭐   100-114 pts → Good component, minor improvements
-⭐⭐⭐    85-99 pts   → Functional, needs polish
-⭐⭐      70-84 pts   → Basic functionality, missing patterns
-⭐        <70 pts    → Incomplete implementation
+⭐⭐⭐⭐⭐ 125-140 pts → Production-ready, SLDS 2 compliant
+⭐⭐⭐⭐   110-124 pts → Good component, minor SLDS issues
+⭐⭐⭐     90-109 pts → Functional, needs SLDS cleanup
+⭐⭐       70-89 pts  → Basic functionality, SLDS issues
+⭐         <70 pts   → Needs significant SLDS work
 ```
+
+### Sample Validation Output
+
+```
+🎨 SLDS 2 Validation: myComponent.html
+════════════════════════════════════════════════════════════════
+📊 Score: 125/140 ⭐⭐⭐⭐ Good
+
+📋 Category Breakdown:
+   ✅ SLDS Class Usage: 25/25
+   ✅ Accessibility: 25/25
+   ⚠️ Dark Mode: 20/25 (-5)
+   ✅ SLDS Migration: 20/20
+   ⚠️ Styling Hooks: 15/20 (-5)
+   ✅ Component Structure: 15/15
+   ✅ Performance: 10/10
+
+⚠️ Issues Found (2):
+   🟠 L45 Hardcoded color #333333 - use --slds-g-color-on-surface
+   🟡 L78 Deprecated --lwc-colorBackground - use --slds-g-color-surface-1
+════════════════════════════════════════════════════════════════
+```
+
+### SLDS 2 Key Concepts
+
+**Dark Mode Compatibility (Critical)**:
+- Never use hardcoded hex colors (`#FFFFFF`, `#333333`)
+- Never use hardcoded RGB/RGBA values
+- Always use CSS variables: `var(--slds-g-color-surface-1)`
+
+**SLDS 1 → SLDS 2 Migration**:
+| SLDS 1 (Deprecated) | SLDS 2 (Use Instead) |
+|---------------------|----------------------|
+| `$color-background` | `--slds-g-color-surface-1` |
+| `--lwc-colorBackground` | `--slds-g-color-surface-1` |
+| `$spacing-medium` | `--slds-g-spacing-5` |
+| `--lwc-spacingMedium` | `--slds-g-spacing-5` |
+
+**Global Styling Hooks** (`--slds-g-*`):
+- **Surface colors**: `--slds-g-color-surface-1` to `-4`, `-container-1` to `-3`
+- **Text colors**: `--slds-g-color-on-surface`, `-on-surface-1`, `-on-surface-2`
+- **Border colors**: `--slds-g-color-border-1`, `-border-2`, `-border-brand-1`
+- **Spacing**: `--slds-g-spacing-0` to `--slds-g-spacing-12`
+- **Font sizes**: `--slds-g-font-size-1` to `--slds-g-font-size-10`
+- **Border radius**: `--slds-g-radius-border-1` to `-4`, `-circle`
+
+### Optional: SLDS Linter Integration
+
+For additional validation, install the official Salesforce SLDS Linter:
+
+```bash
+npm install -g @salesforce-ux/slds-linter
+```
+
+When installed, the validator will automatically use it for enhanced HTML template and CSS styling hooks validation. The custom Python validators still run regardless, providing comprehensive coverage.
+
+---
+
+## Best Practices (Component Quality)
+
+Beyond SLDS validation, ensure your components follow these patterns:
+
+| Category | Key Rules |
+|----------|-----------|
+| **Component Structure** | Proper file organization, naming conventions |
+| **Data Handling** | Correct wire usage, error handling, loading states |
+| **Event Architecture** | Proper event bubbling, composed flags |
+| **Accessibility** | ARIA labels, keyboard navigation, screen reader |
+| **Performance** | Lazy loading, efficient rendering, no memory leaks |
+| **Test Coverage** | Jest tests for all scenarios |
 
 ---
 

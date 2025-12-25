@@ -538,23 +538,40 @@ Hooks provide **advisory feedback** — they inform but don't block operations.
 
 **Required:**
 - **Claude Code** (latest version)
-- **Salesforce CLI** v2.x (`sf` command)
+- **Salesforce CLI** v2.x (`sf` command) — `npm install -g @salesforce/cli`
 - **Python 3.10+** (for validation hooks)
+- **Authenticated Salesforce Org** — DevHub, Sandbox, or Scratch Org
+- **sfdx-project.json** — Standard DX project structure
+
+**API Version Requirements:**
+| Skills | Minimum API | Notes |
+|--------|-------------|-------|
+| Most skills | **62.0** (Winter '25) | sf-apex, sf-flow, sf-lwc, sf-metadata |
+| sf-connected-apps, sf-integration | **61.0** | External Client Apps |
+| sf-ai-agentforce | **65.0** (Winter '26) | Full agent deployment |
 
 **Optional** (enables additional features):
 
-*Code Analyzer engines:*
+*Code Analyzer V5 engines:*
 - **Java 11+** — Enables PMD, CPD, SFGE engines (`brew install openjdk@11`)
-- **Node.js** — Enables ESLint, RetireJS for LWC (`brew install node`)
+- **Node.js 18+** — Enables ESLint, RetireJS for LWC (`brew install node`)
 - **Code Analyzer plugin** — `sf plugins install @salesforce/sfdx-code-analyzer`
+
+*LWC Testing & Linting:*
+- **@salesforce/sfdx-lwc-jest** — Jest testing for LWC (`npm install @salesforce/sfdx-lwc-jest --save-dev`)
+- **@salesforce-ux/slds-linter** — SLDS validation (`npm install -g @salesforce-ux/slds-linter`)
 
 *LSP real-time validation (auto-fix loops):*
 - **VS Code with Salesforce Extensions** — LSP servers are bundled with VS Code extensions
-  - Agent Script: Install "Agent Script" extension by Salesforce
   - Apex: Install "Salesforce Extension Pack"
   - LWC: Install "Salesforce Extension Pack" (includes LWC Language Server)
+  - Agent Script: Install "Salesforce Agent Script" extension
 - **Java 11+** — Required for Apex LSP (same as Code Analyzer)
 - **Node.js 18+** — Required for Agent Script and LWC LSP
+
+*Apex Development:*
+- **Trigger Actions Framework (TAF)** — Optional package for sf-apex trigger patterns
+  - Package ID: `04tKZ000000gUEFYA2` or [GitHub repo](https://github.com/mitchspano/trigger-actions-framework)
 
 <details>
 <summary><h2>💬 Usage Examples</h2></summary>

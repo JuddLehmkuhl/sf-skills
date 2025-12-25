@@ -61,7 +61,6 @@ sf-apex/
 | **Amp CLI** | ✅ Compatible | `.claude/skills/` | ![Amp](https://img.shields.io/badge/Sourcegraph-Amp-FF5543?logo=sourcegraph&logoColor=white) |
 | **Droid CLI** | ✅ Installer | `.factory/skills/` | ![Factory](https://img.shields.io/badge/Factory.ai-Droid-6366F1?logo=robot&logoColor=white) |
 | **Cursor CLI** | ✅ Installer | `.cursor/rules/` | ![Cursor](https://img.shields.io/badge/Cursor-Agent_CLI-000000?logo=cursor&logoColor=white) |
-| **Cline** | ✅ Installer | `.clinerules/` | ![Cline](https://img.shields.io/badge/Cline-VS_Code-007ACC?logo=visualstudiocode&logoColor=white) |
 | **Agentforce Vibes** | ✅ Installer | `.clinerules/` | ![Salesforce](https://img.shields.io/badge/Salesforce-Vibes-00A1E0?logo=salesforce&logoColor=white) |
 
 > **Agent Skills Open Standard:** These skills follow the [Agent Skills specification](https://agentskills.io) for cross-CLI compatibility.
@@ -107,20 +106,20 @@ python tools/installer.py --cli cursor --all
 </details>
 
 <details>
-<summary><b>Cline</b> — VS Code Extension with MCP Support</summary>
+<summary><b>Agentforce Vibes</b> (Salesforce) — Enterprise Vibe-Coding Tool</summary>
 
-[Cline](https://cline.bot) is an open-source AI coding agent for VS Code with strong Model Context Protocol (MCP) support.
+[Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/einstein-overview.html) is Salesforce's enterprise vibe-coding tool with strong Model Context Protocol (MCP) support.
 
 ```bash
-# Install all skills for Cline
-python tools/installer.py --cli cline --all
+# Install all skills for Agentforce Vibes
+python tools/installer.py --cli agentforce-vibes --all
 ```
 
 - **Install Path:** `.clinerules/` (project directory)
 - **Format:** Pure markdown files with numeric prefixes (`01-sf-apex.md`, `02-sf-flow.md`, etc.)
 - **Templates:** Inlined directly into markdown rules (self-contained)
-- **Validation:** Scripts not included (Cline doesn't support automatic hooks)
-- **Docs:** [docs.cline.bot/features/cline-rules](https://docs.cline.bot/features/cline-rules)
+- **Includes:** `/newrule` command references, Salesforce DX MCP Server tips
+- **Docs:** [Agentforce Vibes Blog](https://developer.salesforce.com/blogs/2025/10/unleash-your-innovation-with-agentforce-vibes-vibe-coding-for-the-enterprise)
 
 **Output Structure:**
 ```
@@ -131,25 +130,7 @@ python tools/installer.py --cli cline --all
 └── ... (13 skills total)
 ```
 
-</details>
-
-<details>
-<summary><b>Agentforce Vibes</b> (Salesforce) — Enterprise Cline Fork</summary>
-
-[Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/einstein-overview.html) is Salesforce's enterprise vibe-coding tool, built on a fork of Cline.
-
-```bash
-# Install all skills for Agentforce Vibes
-python tools/installer.py --cli agentforce-vibes --all
-```
-
-- **Install Path:** `.clinerules/` (same as Cline)
-- **Format:** Pure markdown with Agentforce-specific tips
-- **Includes:** `/newrule` command references, Salesforce DX MCP Server tips
-- **Foundation:** Built on Cline for MCP support
-- **Docs:** [Agentforce Vibes Blog](https://developer.salesforce.com/blogs/2025/10/unleash-your-innovation-with-agentforce-vibes-vibe-coding-for-the-enterprise)
-
-**Why Salesforce chose Cline:** Strong MCP support enables integration with Salesforce DX MCP Server (20+ tools) for org connectivity, metadata operations, and deployment.
+**Why Agentforce Vibes:** Strong MCP support enables integration with Salesforce DX MCP Server (20+ tools) for org connectivity, metadata operations, and deployment.
 
 </details>
 
@@ -182,7 +163,7 @@ Add the marketplace to Claude Code:
 /plugin marketplace add Jaganpro/sf-skills
 ```
 
-### Other CLIs (OpenCode, Codex, Gemini, Droid, Cursor, Cline, Agentforce Vibes)
+### Other CLIs (OpenCode, Codex, Gemini, Droid, Cursor, Agentforce Vibes)
 
 Use the installer script to transform and install skills for other agentic CLIs:
 
@@ -197,7 +178,6 @@ python tools/installer.py --cli codex --all            # Codex (OpenAI)
 python tools/installer.py --cli gemini --all           # Gemini (Google)
 python tools/installer.py --cli droid --all            # Droid (Factory.ai)
 python tools/installer.py --cli cursor --all           # Cursor (MDC format)
-python tools/installer.py --cli cline --all            # Cline (VS Code)
 python tools/installer.py --cli agentforce-vibes --all # Agentforce Vibes (Salesforce)
 
 # Install specific skills
@@ -212,10 +192,10 @@ python tools/installer.py --list-clis
 ```
 
 The installer:
-- Transforms SKILL.md for CLI compatibility (MDC for Cursor, markdown for Cline)
+- Transforms SKILL.md for CLI compatibility (MDC for Cursor, markdown for Agentforce Vibes)
 - Bundles shared modules for self-contained installation
 - Exports validation hooks as standalone scripts (where supported)
-- Inlines templates for Cline/Agentforce Vibes (self-contained rules)
+- Inlines templates for Agentforce Vibes (self-contained rules)
 - Generates README with manual validation instructions
 
 See [tools/README.md](tools/README.md) for detailed installer documentation.

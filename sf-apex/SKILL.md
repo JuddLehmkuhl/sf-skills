@@ -352,6 +352,58 @@ See `docs/trigger-actions-framework.md` (in sf-apex folder) for full patterns.
 
 ---
 
+## Flow Integration (@InvocableMethod)
+
+Apex classes can be called from Flow using `@InvocableMethod`. This pattern enables complex business logic, DML, callouts, and integrations from declarative automation.
+
+### Quick Reference
+
+| Annotation | Purpose |
+|------------|---------|
+| `@InvocableMethod` | Makes method callable from Flow |
+| `@InvocableVariable` | Exposes properties in Request/Response wrappers |
+
+### Template
+
+Use `templates/invocable-method.cls` for the complete pattern with Request/Response wrappers.
+
+### Example
+
+```apex
+public with sharing class RecordProcessor {
+
+    @InvocableMethod(label='Process Record' category='Custom')
+    public static List<Response> execute(List<Request> requests) {
+        List<Response> responses = new List<Response>();
+        for (Request req : requests) {
+            Response res = new Response();
+            res.isSuccess = true;
+            res.processedId = req.recordId;
+            responses.add(res);
+        }
+        return responses;
+    }
+
+    public class Request {
+        @InvocableVariable(label='Record ID' required=true)
+        public Id recordId;
+    }
+
+    public class Response {
+        @InvocableVariable(label='Is Success')
+        public Boolean isSuccess;
+        @InvocableVariable(label='Processed ID')
+        public Id processedId;
+    }
+}
+```
+
+**See Also**:
+- [docs/flow-integration.md](docs/flow-integration.md) - Complete @InvocableMethod guide
+- [shared/docs/flow-lwc-apex-triangle.md](../shared/docs/flow-lwc-apex-triangle.md) - Full Triangle architecture
+
+---
+
 ## Cross-Skill Integration
 
 | Skill | When to Use | Example |
@@ -359,6 +411,8 @@ See `docs/trigger-actions-framework.md` (in sf-apex folder) for full patterns.
 | sf-metadata | Discover object/fields before coding | `Skill(skill="sf-metadata")` → "Describe Invoice__c" |
 | sf-data | Generate 251+ test records after deploy | `Skill(skill="sf-data")` → "Create 251 Accounts for bulk testing" |
 | sf-deploy | Deploy to org - see Phase 4 | `Skill(skill="sf-deploy", args="Deploy to [org]")` |
+| sf-flow | Create Flow that calls your Apex | See @InvocableMethod section above |
+| sf-lwc | Create LWC that calls your Apex | `@AuraEnabled` controller patterns |
 
 ## Dependencies
 

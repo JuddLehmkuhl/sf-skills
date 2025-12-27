@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Salesforce development skills for Claude Code",
-    "version": "2.2.0"
+    "version": "2.3.0"
   },
   "plugins": [
     {
@@ -28,7 +28,8 @@
         "./sf-lwc",
         "./sf-debug",
         "./sf-soql",
-        "./sf-testing"
+        "./sf-testing",
+        "./salesforce-trigger-framework"
       ]
     },
     {
@@ -100,6 +101,11 @@
       "name": "sf-testing",
       "description": "Apex test execution, coverage analysis, and agentic test-fix loops with 120-point scoring",
       "source": "./sf-testing"
+    },
+    {
+      "name": "salesforce-trigger-framework",
+      "description": "Mitch Spano's Trigger Actions Framework with PS Advisory conventions - metadata-driven trigger orchestration",
+      "source": "./salesforce-trigger-framework"
     }
   ]
 }

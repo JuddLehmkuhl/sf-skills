@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>{{ObjectName}} {{Context}} {{Order}} {{ActionName}}</label>
+    <protected>false</protected>
+    <values>
+        <field>Apex_Class_Name__c</field>
+        <value xsi:type="xsd:string">TA_{{ObjectName}}_{{ActionName}}</value>
+    </values>
+    <values>
+        <field>Order__c</field>
+        <value xsi:type="xsd:double">{{Order}}</value>
+    </values>
+    <values>
+        <field>Bypass_Permission__c</field>
+        <value xsi:nil="true"/>
+    </values>
+    <values>
+        <field>Required_Permission__c</field>
+        <value xsi:nil="true"/>
+    </values>
+    <values>
+        <field>sObject__c</field>
+        <value xsi:type="xsd:string">sObject_Trigger_Setting.{{ObjectName}}</value>
+    </values>
+    <values>
+        <field>Flow_Name__c</field>
+        <value xsi:nil="true"/>
+    </values>
+    <values>
+        <field>Allow_Flow_Recursion__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+</CustomMetadata>

@@ -167,13 +167,25 @@ public with sharing class TA_<ObjectName>_<ActionDescription> implements Trigger
 
 ### Step 5: Create the Trigger Action Metadata Record
 
-Register the action with the framework.
+Register the action with the framework using **context-specific lookup fields**.
+
+**IMPORTANT**: The framework uses context-specific fields (`Before_Insert__c`, `After_Update__c`, etc.) to link actions to their trigger context. This is NOT a generic `sObject__c` lookup - you must use the correct field for your trigger context.
 
 **File path**: `force-app/main/default/customMetadata/Trigger_Action.<ObjectName>_<Context>_<Order>_<ActionName>.md-meta.xml`
 
+**Available context fields** (use ONE that matches your trigger context):
+- `Before_Insert__c` - for beforeInsert actions
+- `After_Insert__c` - for afterInsert actions
+- `Before_Update__c` - for beforeUpdate actions
+- `After_Update__c` - for afterUpdate actions
+- `Before_Delete__c` - for beforeDelete actions
+- `After_Delete__c` - for afterDelete actions
+- `After_Undelete__c` - for afterUndelete actions
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <label><ObjectName> <Context> <Order> <ActionDescription></label>
     <protected>false</protected>
     <values>
@@ -185,20 +197,42 @@ Register the action with the framework.
         <value xsi:type="xsd:double"><Order></value>
     </values>
     <values>
-        <field>Bypass_Permission__c</field>
-        <value xsi:nil="true"/>
+        <field><Context>__c</field>
+        <value xsi:type="xsd:string"><ObjectName></value>
     </values>
     <values>
-        <field>Required_Permission__c</field>
-        <value xsi:nil="true"/>
+        <field>Description__c</field>
+        <value xsi:type="xsd:string">Description of what this action does</value>
     </values>
     <values>
-        <field>sObject__c</field>
-        <value xsi:type="xsd:string">sObject_Trigger_Setting.<ObjectName></value>
+        <field>Allow_Flow_Recursion__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+</CustomMetadata>
+```
+
+**Example** - Before Insert action for Lead:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Lead Before_Insert 10 SetDefaults</label>
+    <protected>false</protected>
+    <values>
+        <field>Apex_Class_Name__c</field>
+        <value xsi:type="xsd:string">TA_Lead_SetDefaults</value>
     </values>
     <values>
-        <field>Flow_Name__c</field>
-        <value xsi:nil="true"/>
+        <field>Order__c</field>
+        <value xsi:type="xsd:double">10</value>
+    </values>
+    <values>
+        <field>Before_Insert__c</field>
+        <value xsi:type="xsd:string">Lead</value>
+    </values>
+    <values>
+        <field>Description__c</field>
+        <value xsi:type="xsd:string">Sets default LeadSource and Status values</value>
     </values>
     <values>
         <field>Allow_Flow_Recursion__c</field>
@@ -267,9 +301,12 @@ Create an Auto-Launched Flow with these required variables:
 
 ### Step 2: Register the Flow as a Trigger Action
 
+Use `TriggerActionFlow` as the Apex class and specify the Flow API name.
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <label>Lead Before_Insert 25 Enrich_From_External</label>
     <protected>false</protected>
     <values>
@@ -285,20 +322,16 @@ Create an Auto-Launched Flow with these required variables:
         <value xsi:type="xsd:double">25</value>
     </values>
     <values>
-        <field>sObject__c</field>
-        <value xsi:type="xsd:string">sObject_Trigger_Setting.Lead</value>
+        <field>Before_Insert__c</field>
+        <value xsi:type="xsd:string">Lead</value>
+    </values>
+    <values>
+        <field>Description__c</field>
+        <value xsi:type="xsd:string">Enriches Lead data from external source via Flow</value>
     </values>
     <values>
         <field>Allow_Flow_Recursion__c</field>
         <value xsi:type="xsd:boolean">false</value>
-    </values>
-    <values>
-        <field>Bypass_Permission__c</field>
-        <value xsi:nil="true"/>
-    </values>
-    <values>
-        <field>Required_Permission__c</field>
-        <value xsi:nil="true"/>
     </values>
 </CustomMetadata>
 ```
@@ -432,8 +465,64 @@ public with sharing class TA_Case_EscalateOnPriorityChange implements TriggerAct
 }
 ```
 
+## Troubleshooting
+
+### Trigger Action Not Firing
+
+**Symptom**: You deployed the trigger, action class, and metadata, but the action doesn't execute.
+
+**Common Causes**:
+
+1. **Wrong context field in Trigger_Action__mdt**
+   - The framework uses context-specific lookup fields (`Before_Insert__c`, `After_Update__c`, etc.)
+   - **Wrong**: `<field>sObject__c</field>` (this field doesn't exist)
+   - **Correct**: `<field>Before_Insert__c</field>` with value `<ObjectName>`
+
+2. **Missing sObject_Trigger_Setting__mdt record**
+   - Every object needs an sObject_Trigger_Setting record
+   - The `Object_API_Name__c` must match exactly (case-sensitive)
+   - For custom objects, include the `__c` suffix
+
+3. **Trigger not calling MetadataTriggerHandler**
+   - Verify trigger body contains `new MetadataTriggerHandler().run();`
+
+**Debugging Steps**:
+```bash
+# Verify sObject Trigger Setting exists
+sf data query --query "SELECT DeveloperName, Object_API_Name__c FROM sObject_Trigger_Setting__mdt WHERE Object_API_Name__c = '<ObjectName>'" --target-org <alias>
+
+# Verify Trigger Action is configured for the right context
+sf data query --query "SELECT Label, Apex_Class_Name__c, Before_Insert__c, After_Insert__c, Before_Update__c, After_Update__c FROM Trigger_Action__mdt WHERE Apex_Class_Name__c LIKE '%<ObjectName>%'" --target-org <alias>
+```
+
+### Framework Package Not Installed
+
+**Symptom**: Deployment fails with "Invalid type: MetadataTriggerHandler" or similar.
+
+**Solution**: Install the framework package first:
+```bash
+sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10
+```
+
+### Metadata Fields Reference
+
+**sObject_Trigger_Setting__mdt fields**:
+- `Object_API_Name__c` - The SObject API name (e.g., "Lead", "Custom_Object__c")
+- `Bypass_Permission__c` - Custom Permission to bypass all triggers for this object
+- `Required_Permission__c` - Custom Permission required to run triggers
+
+**Trigger_Action__mdt fields**:
+- `Apex_Class_Name__c` - The trigger action class name
+- `Order__c` - Execution order (use increments of 10)
+- `Before_Insert__c` / `After_Insert__c` / etc. - Context lookup to sObject_Trigger_Setting
+- `Description__c` - Description of what this action does
+- `Flow_Name__c` - Flow API name (for Flow-based actions)
+- `Allow_Flow_Recursion__c` - Whether to allow Flow recursion
+- `Bypass_Permission__c` - Custom Permission to bypass this specific action
+- `Required_Permission__c` - Custom Permission required to run this action
+
 ## Dependencies
 
 - Salesforce CLI (`sf`)
-- Trigger Actions Framework package or source
+- Trigger Actions Framework package (04t8b000001Hep2AAC) or source deployment
 - API Version 55.0 or higher recommended

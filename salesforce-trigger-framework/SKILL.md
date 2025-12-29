@@ -486,13 +486,17 @@ public with sharing class TA_Case_EscalateOnPriorityChange implements TriggerAct
 3. **Trigger not calling MetadataTriggerHandler**
    - Verify trigger body contains `new MetadataTriggerHandler().run();`
 
+4. **Bypass checkbox is checked**
+   - Check `Bypass_Execution__c` on both `sObject_Trigger_Setting__mdt` AND `Trigger_Action__mdt`
+   - These checkboxes provide immediate on/off control from Setup
+
 **Debugging Steps**:
 ```bash
-# Verify sObject Trigger Setting exists
-sf data query --query "SELECT DeveloperName, Object_API_Name__c FROM sObject_Trigger_Setting__mdt WHERE Object_API_Name__c = '<ObjectName>'" --target-org <alias>
+# Verify sObject Trigger Setting exists and bypass is off
+sf data query --query "SELECT DeveloperName, Object_API_Name__c, Bypass_Execution__c FROM sObject_Trigger_Setting__mdt WHERE Object_API_Name__c = '<ObjectName>'" --target-org <alias>
 
-# Verify Trigger Action is configured for the right context
-sf data query --query "SELECT Label, Apex_Class_Name__c, Before_Insert__c, After_Insert__c, Before_Update__c, After_Update__c FROM Trigger_Action__mdt WHERE Apex_Class_Name__c LIKE '%<ObjectName>%'" --target-org <alias>
+# Verify Trigger Action is configured correctly and bypass is off
+sf data query --query "SELECT Label, Apex_Class_Name__c, Before_Insert__c, After_Insert__c, Before_Update__c, After_Update__c, Bypass_Execution__c FROM Trigger_Action__mdt WHERE Apex_Class_Name__c LIKE '%<ObjectName>%'" --target-org <alias>
 ```
 
 ### Framework Package Not Installed
@@ -508,7 +512,8 @@ sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10
 
 **sObject_Trigger_Setting__mdt fields**:
 - `Object_API_Name__c` - The SObject API name (e.g., "Lead", "Custom_Object__c")
-- `Bypass_Permission__c` - Custom Permission to bypass all triggers for this object
+- `Bypass_Execution__c` - **Checkbox** to bypass ALL triggers for this object (immediate on/off)
+- `Bypass_Permission__c` - Custom Permission API name to bypass all triggers for this object
 - `Required_Permission__c` - Custom Permission required to run triggers
 
 **Trigger_Action__mdt fields**:
@@ -517,7 +522,9 @@ sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10
 - `Before_Insert__c` / `After_Insert__c` / etc. - Context lookup to sObject_Trigger_Setting
 - `Description__c` - Description of what this action does
 - `Flow_Name__c` - Flow API name (for Flow-based actions)
-- `Allow_Flow_Recursion__c` - Whether to allow Flow recursion
+- `Entry_Criteria__c` - Formula to determine if action should execute (dynamic entry criteria)
+- `Allow_Flow_Recursion__c` - **Checkbox** to allow Flow recursion
+- `Bypass_Execution__c` - **Checkbox** to bypass this specific action (immediate on/off)
 - `Bypass_Permission__c` - Custom Permission to bypass this specific action
 - `Required_Permission__c` - Custom Permission required to run this action
 

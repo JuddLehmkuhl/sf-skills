@@ -1,0 +1,615 @@
+---
+name: sf-docs
+description: >
+  Generates multi-audience documentation from Salesforce code and metadata.
+  Creates three outputs: Feature Summary (business-facing, zero jargon),
+  Technical Record (developer-facing), and Change Entry (release notes).
+  Use this skill after completing significant features, trigger implementations,
+  or any changes that require stakeholder communication.
+license: MIT
+metadata:
+  version: "1.0.0"
+  author: "Jag Valaiyapathy"
+  outputs: "Feature Summary, Technical Record, Change Entry"
+---
+
+# sf-docs - Salesforce Documentation Generation
+
+Generates documentation automatically from code, metadata, and context during development.
+
+## What This Produces
+
+Three documentation outputs, all auto-generated, each for a different audience:
+
+| Output | Audience | Language | Focus |
+|--------|----------|----------|-------|
+| **Feature Summary** | Business stakeholders, PMs | Zero jargon, outcome-focused | What changed and why it matters |
+| **Technical Record** | Developers, Admins | Technical, precise | How it works, how to maintain |
+| **Change Entry** | Release notes readers | Brief, scannable | What shipped |
+
+---
+
+## Commands
+
+```
+/docs              # Generate all three outputs
+/docs summary      # Feature Summary only (business-facing)
+/docs tech         # Technical Record only (developer-facing)
+/docs entry        # Change Entry only (release notes)
+```
+
+---
+
+## Output 1: Feature Summary (Business-Facing)
+
+**Audience:** Project managers, business analysts, operations managers, executives reviewing progress
+
+**Purpose:** Explain what was delivered in terms anyone can understand
+
+### Writing Rules - CRITICAL
+
+**Language:**
+- Write for someone who has never seen Salesforce Setup
+- No technical terms without plain-English explanation
+- No code references, API names, or developer jargon
+- No acronyms unless defined AND necessary
+- Use "the system" not "Salesforce" where possible
+
+**Tone:**
+- Confident and direct
+- Focus on what users experience, not how it's built
+- Active voice ("The system now does X" not "X has been implemented")
+- Short sentences (under 20 words)
+
+**Structure:**
+- Lead with what changed for users
+- Explain the benefit in human terms
+- Keep it under one page
+- Use tables for before/after comparisons
+
+### Banned Phrases
+
+Never use these in Feature Summary:
+
+| Don't Use | Use Instead |
+|-------------|----------------|
+| "Implemented" | "Added" or "Now [verb]" |
+| "Trigger" / "Apex" / "Flow" | "Automatic process" or "The system" |
+| "Custom Metadata" | "Configuration" or "Settings" |
+| "Framework" | "Foundation" or omit entirely |
+| "Architecture" | Omit - not relevant to business |
+| "Metadata-driven" | "Configurable" or "Adjustable without IT" |
+| "Deployed" | "Released" or "Now available" |
+| "Object" (Salesforce) | Use the business name: "Leads," "Accounts," "Policies" |
+| "Record" | Use specific: "lead," "account," "policy" |
+| "Field" | Use specific: "Lead Source," "Status" |
+| "SOQL" / "Query" | "Lookup" or "Search" |
+| "Governor limits" | Omit - internal concern |
+| "Bulkified" | Omit - internal concern |
+| "Test coverage" | Omit - internal concern |
+| "Package" | "Add-on" or omit |
+| "API" | Omit unless user-facing |
+
+### Template
+
+```markdown
+# [Feature Name - in business terms]
+
+**Status:** [Ready for Testing / Released]
+**Release Date:** [Date]
+
+---
+
+## What's New
+
+[2-3 sentences maximum. What can users do now that they couldn't before? Or: What does the system do now that it didn't before? Write this for someone who will never read past this section.]
+
+---
+
+## Why This Matters
+
+[One paragraph. What problem does this solve? What was frustrating, slow, or error-prone before? What's better now? No technical details.]
+
+---
+
+## What Changed
+
+| Before | After |
+|--------|-------|
+| [Old user experience] | [New user experience] |
+| [Old manual step] | [New automatic behavior] |
+
+---
+
+## Who This Affects
+
+[List roles and what changes for each. Be specific about job functions, not technical roles.]
+
+| Role | What's Different |
+|------|------------------|
+| [Job title] | [Plain description of change] |
+
+---
+
+## What Happens Automatically
+
+[List automatic behaviors in plain language. "When X happens, the system now Y."]
+
+- When [user action or event], the system now [automatic result]
+- When [user action or event], the system now [automatic result]
+
+---
+
+## What's NOT Included
+
+[Set clear expectations. What does this NOT do yet?]
+
+- This does not [limitation in plain terms]
+- [Future capability] is planned for a later phase
+
+---
+
+## Questions?
+
+Contact [team/person] for questions about this change.
+```
+
+### Example: Trigger Framework (Business Version)
+
+```markdown
+# Automatic Lead Data Completion
+
+**Status:** Ready for Testing
+**Release Date:** December 2024
+
+---
+
+## What's New
+
+When someone creates a new lead, the system now automatically fills in the Lead Source and Status fields if they're left blank. This ensures every lead has complete information from the moment it's created.
+
+---
+
+## Why This Matters
+
+Previously, leads created without a source or status would cause problems downstream. Assignment rules wouldn't work correctly, reports would show incomplete data, and someone had to manually clean up the gaps. Now the system handles this automatically.
+
+---
+
+## What Changed
+
+| Before | After |
+|--------|-------|
+| Leads could be saved with blank Lead Source | Lead Source is automatically set if left blank |
+| Leads could be saved with blank Status | Status is automatically set if left blank |
+| Incomplete leads caused assignment rule failures | All leads have the minimum data needed for routing |
+
+---
+
+## Who This Affects
+
+| Role | What's Different |
+|------|------------------|
+| Anyone creating leads | You'll notice Lead Source and Status are filled in automatically if you leave them blank |
+| Sales managers | Reports will show consistent lead source data |
+| Operations | Fewer leads falling through the cracks due to missing data |
+
+---
+
+## What Happens Automatically
+
+- When a lead is created without a Lead Source, the system sets it to the default value
+- When a lead is created without a Status, the system sets it to the default value
+- This happens instantly when the lead is saved - no delay, no manual step
+
+---
+
+## What's NOT Included
+
+- This does not change leads that already exist in the system
+- This does not apply when you edit an existing lead (only new leads)
+- Automatic lead assignment (routing to the right person) is planned for a future phase
+
+---
+
+## Questions?
+
+Contact the project team for questions about this change.
+```
+
+**Compare to the technical version:**
+
+| Technical (Bad for Business) | Business-Friendly (Good) |
+|------------------------------|--------------------------|
+| "Implemented Trigger Actions Framework with metadata-driven dispatch" | "The system now automatically fills in missing lead information" |
+| "Custom Metadata configuration enables runtime bypass" | "Settings can be adjusted without waiting for IT" |
+| "Bulkified for governor limit compliance" | [Omit - they don't care] |
+| "TA_Lead_SetDefaults implements TriggerAction.BeforeInsert" | [Omit - they don't care] |
+
+---
+
+## Output 2: Technical Record (Developer-Facing)
+
+**Audience:** Developers, system administrators, technical architects
+
+**Purpose:** Complete implementation reference for maintenance, troubleshooting, and extension
+
+### Writing Rules
+
+- Technical terminology is appropriate
+- Be precise and complete
+- Include all components, paths, dependencies
+- Document architecture decisions and rationale
+- Include deployment and rollback procedures
+- Assume reader knows Salesforce but not this project
+
+### Template
+
+```markdown
+# Technical Record: [Feature Name]
+
+**Generated:** [Timestamp]
+**Commit/Branch:** [If known]
+
+---
+
+## Summary
+
+[2-3 sentences: What was built, what pattern was used, what it enables]
+
+---
+
+## Components
+
+### Created
+
+| Component | Type | Purpose |
+|-----------|------|---------|
+| [Name] | [Apex/Trigger/Flow/Metadata] | [What it does] |
+
+### File Paths
+
+```
+force-app/main/default/
+├── classes/
+│   └── [files]
+├── triggers/
+│   └── [files]
+└── customMetadata/
+    └── [files]
+```
+
+---
+
+## Architecture
+
+**Pattern:** [Name]
+
+**Flow:**
+```
+[Diagram or description]
+```
+
+**Design Decisions:**
+- [Decision]: [Rationale]
+
+---
+
+## Behavior
+
+### What It Does
+
+[Detailed description of logic]
+
+### Contexts/Events
+
+| Context | Behavior |
+|---------|----------|
+| [Context] | [What happens] |
+
+### Edge Cases
+
+- [Case]: [Handling]
+
+---
+
+## Dependencies
+
+### Packages
+
+| Package | ID/Version | Required For |
+|---------|------------|--------------|
+| [Name] | [ID] | [Purpose] |
+
+### Objects/Fields
+
+| Object | Fields | Access |
+|--------|--------|--------|
+| [Object] | [Fields] | [Read/Write] |
+
+### Permissions
+
+| Permission | Reason |
+|------------|--------|
+| [Permission] | [Why needed] |
+
+---
+
+## Testing
+
+| Test Class | Coverage |
+|------------|----------|
+| [Class] | [%] |
+
+### Scenarios
+
+| Scenario | Validates |
+|----------|-----------|
+| [Scenario] | [What it proves] |
+
+---
+
+## Deployment
+
+### Order
+
+1. [Step]
+2. [Step]
+
+### Verification
+
+```bash
+[commands]
+```
+
+### Rollback
+
+1. [Step]
+2. [Step]
+
+---
+
+## Extension
+
+### Adding New [Behavior]
+
+1. [Step]
+2. [Step]
+
+### Configuration
+
+| Setting | Location | Effect |
+|---------|----------|--------|
+| [Setting] | [Where] | [What it does] |
+
+---
+
+## Limitations
+
+- [Limitation]
+```
+
+---
+
+## Output 3: Change Entry (Release Notes)
+
+**Audience:** Anyone scanning release notes
+
+**Purpose:** Brief summary of what shipped
+
+### Writing Rules
+
+- One bolded sentence summarizing the change
+- 3-5 bullet points of specific changes
+- Keep entire entry under 75 words
+- Lead with user impact, not technical details
+
+### Template
+
+```markdown
+## [Feature Name]
+
+**[One sentence: What users can now do or what the system now does]**
+
+- [Change 1 - user-facing impact]
+- [Change 2 - user-facing impact]
+- [Change 3 - user-facing impact]
+```
+
+### Example
+
+```markdown
+## Automatic Lead Data Completion
+
+**New leads now automatically receive default values for Lead Source and Status, ensuring complete data for routing and reporting.**
+
+- Leads saved without a Lead Source get a default value automatically
+- Leads saved without a Status get a default value automatically
+- Applies to all new leads created in any way (manual, import, web form)
+```
+
+---
+
+## Translating Technical to Business Language
+
+When generating Feature Summary, translate technical concepts:
+
+### Actions/Behaviors
+
+| Technical Concept | Business Translation |
+|-------------------|---------------------|
+| Trigger fires on insert | When someone creates a new [record type] |
+| Trigger fires on update | When someone edits a [record type] |
+| Validation rule prevents save | The system checks that [condition] before saving |
+| Flow runs after save | After saving, the system automatically [action] |
+| Field default value | The system fills in [field] automatically |
+| Required field | You must enter [field] before saving |
+| Lookup filter | When selecting [related record], only [criteria] options appear |
+| Assignment rule | The system automatically assigns [record] to [owner/queue] |
+| Workflow email | The system sends an email when [condition] |
+| Scheduled job | Every [frequency], the system [action] |
+
+### Components
+
+| Technical Term | Business Translation |
+|----------------|---------------------|
+| Apex class | Automatic process |
+| Trigger | Automatic process |
+| Flow | Automatic process |
+| Custom Metadata | Configuration / Settings |
+| Permission Set | Access settings |
+| Profile | User type settings |
+| Custom Object | [Use business name] |
+| Custom Field | [Use field label] |
+| Page Layout | Screen layout |
+| Lightning Component | Screen section / Feature |
+| Validation Rule | Data check / Requirement |
+| Formula Field | Calculated field |
+| Roll-up Summary | Automatic total |
+
+### Patterns
+
+| Technical Pattern | Business Translation |
+|-------------------|---------------------|
+| "Implemented X framework" | [Omit or] "Added foundation for [capability]" |
+| "Refactored for performance" | "Improved speed of [feature]" |
+| "Added error handling" | "Better error messages when [scenario]" |
+| "Bulkified processing" | [Omit - internal] |
+| "Optimized queries" | "[Feature] now loads faster" |
+| "Added test coverage" | [Omit - internal] |
+| "Metadata-driven configuration" | "Settings can be adjusted without code changes" |
+| "Enabled bypass mechanism" | "Can be turned off during data imports" |
+
+---
+
+## Inferring Business Impact from Code
+
+Connect technical implementation to business outcome:
+
+### What the Code Does to What It Means for Users
+
+| Code Behavior | User Impact |
+|---------------|-------------|
+| Sets default field values | Users don't have to fill in every field manually |
+| Validates required fields | Prevents incomplete records that cause problems later |
+| Auto-creates related records | Setup steps that were manual now happen automatically |
+| Sends notification | Users get alerted when [event] without checking manually |
+| Updates parent record | Totals and summaries stay up-to-date automatically |
+| Assigns owner | Records get routed to the right person without manual intervention |
+| Enforces sharing rules | Users see only the records they're supposed to see |
+
+### Object to Business User Mapping
+
+Customize this table for your project's industry/context:
+
+| Salesforce Object | Typical Business Users |
+|-------------------|------------------------|
+| Lead | Sales team, marketing, business development |
+| Account | Account managers, service reps |
+| Contact | Sales reps, customer service |
+| Opportunity | Sales reps, sales managers |
+| Case | Service reps, support team |
+| Task/Event | All users with activity management |
+| Custom Objects | [Map to your business domain] |
+
+---
+
+## Quality Checklist
+
+### Feature Summary (Business)
+
+- [ ] Could a non-technical manager understand every sentence?
+- [ ] Are there ZERO technical terms (trigger, apex, flow, metadata, object, field)?
+- [ ] Does it explain what changed for users, not what developers built?
+- [ ] Is "Why This Matters" written in terms of user problems solved?
+- [ ] Is "Who This Affects" using job titles, not system roles?
+- [ ] Is it under one page?
+- [ ] Could someone skim just the headers and tables and understand it?
+
+### Technical Record (Developer)
+
+- [ ] All components listed with correct paths?
+- [ ] Architecture and patterns documented?
+- [ ] Dependencies explicit and complete?
+- [ ] Deployment order accurate?
+- [ ] Rollback procedure would actually work?
+- [ ] Extension points documented?
+
+### Change Entry (Release Notes)
+
+- [ ] Under 75 words total?
+- [ ] Lead sentence describes user impact (not technical implementation)?
+- [ ] Bullet points are user-facing changes?
+
+---
+
+## Output Location
+
+| Output | Location |
+|--------|----------|
+| Feature Summary | `/docs/features/[feature-name].md` |
+| Technical Record | `/docs/technical/[feature-name].md` |
+| Change Entry | Appended to `/docs/changelog/[YYYY-MM].md` |
+
+---
+
+## Generation Prompt: Feature Summary
+
+When generating Feature Summary, use this internal guidance:
+
+```
+You are writing for a business audience who will never look at Salesforce Setup.
+
+RULES:
+- No technical jargon. None. Zero.
+- Translate every technical concept to user experience.
+- "Trigger" → "When someone creates/edits a [record]"
+- "Flow" → "The system automatically"
+- "Custom Metadata" → "Settings" or omit
+- "Object" → Use the business name (Lead, Account, Policy)
+- "Field" → Use the label users see
+- Focus on WHAT CHANGED FOR USERS, not what developers built.
+- Keep sentences under 20 words.
+- Active voice only.
+- One page maximum.
+
+STRUCTURE:
+1. What's New (2-3 sentences - the headline)
+2. Why This Matters (the user problem solved)
+3. What Changed (before/after table)
+4. Who This Affects (job titles and plain descriptions)
+5. What Happens Automatically (when X, system does Y)
+6. What's NOT Included (manage expectations)
+
+If you catch yourself writing a technical term, stop and translate it.
+```
+
+---
+
+## Generation Prompt: Technical Record
+
+When generating Technical Record, use this internal guidance:
+
+```
+You are writing for developers and admins who need to maintain and extend this.
+
+INCLUDE:
+- Every component with file paths
+- Architecture pattern and rationale
+- All dependencies (packages, objects, permissions)
+- Complete deployment sequence
+- Rollback procedure
+- Extension points
+- Known limitations
+
+ASSUME:
+- Reader knows Salesforce development
+- Reader does NOT know this specific project's context
+- Reader may need to troubleshoot at 2am
+
+FORMAT:
+- Tables for component lists
+- Code blocks for commands and paths
+- Clear headers for scanning
+- Diagrams for complex flows
+```

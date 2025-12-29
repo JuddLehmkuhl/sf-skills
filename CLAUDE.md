@@ -31,6 +31,7 @@ Load skills based on the task at hand. Skills are organized by domain:
 ### DevOps & Documentation
 - `sf-deploy` - Deployment automation using sf CLI v2
 - `sf-diagram` - Mermaid diagrams for ERD, OAuth flows, architecture
+- `sf-docs` - Multi-audience documentation (business summaries, technical records, release notes)
 
 ### Utilities
 - `skill-builder` - Interactive wizard for creating new Claude Code skills
@@ -109,5 +110,6 @@ When working on a specific domain, read the relevant SKILL.md file first:
 - **Debugging**: Read `sf-debug/SKILL.md`
 - **Deployments**: Read `sf-deploy/SKILL.md`
 - **Diagrams**: Read `sf-diagram/SKILL.md`
+- **Documentation**: Read `sf-docs/SKILL.md`
 - **Integrations**: Read `sf-integration/SKILL.md`
 - **Connected Apps**: Read `sf-connected-apps/SKILL.md`

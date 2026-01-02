@@ -1,0 +1,12 @@
+{
+  "name": "salesforce-trigger-framework",
+  "version": "1.0.0",
+  "description": "Mitch Spano's Trigger Actions Framework with PS Advisory conventions - metadata-driven trigger orchestration for Salesforce Apex",
+  "author": {
+    "name": "Jag Valaiyapathy",
+    "url": "https://github.com/Jaganpro"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Jaganpro/sf-skills",
+  "keywords": ["salesforce", "apex", "trigger", "framework", "metadata"]
+}

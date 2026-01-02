@@ -2,6 +2,7 @@
   "name": "sf-skills",
   "owner": {
     "name": "Jag Valaiyapathy",
+    "email": "judd.lehmkuhl@psadvisory.com",
     "url": "https://github.com/Jaganpro"
   },
   "metadata": {
@@ -14,6 +15,8 @@
       "description": "Complete Salesforce development suite - Apex, Flow, Metadata, Data, Deployment, and Skill Builder (install all at once)",
       "source": "./",
       "strict": false,
+      "category": "development",
+      "tags": ["salesforce", "full-suite", "bundle"],
       "skills": [
         "./sf-apex",
         "./sf-flow",
@@ -29,83 +32,121 @@
         "./sf-debug",
         "./sf-soql",
         "./sf-testing",
-        "./salesforce-trigger-framework"
+        "./salesforce-trigger-framework",
+        "./sf-docs"
       ]
     },
     {
       "name": "sf-apex",
       "description": "Apex code generation and review with 150-point scoring and TAF patterns",
-      "source": "./sf-apex"
+      "source": "./sf-apex",
+      "category": "development",
+      "tags": ["salesforce", "apex", "backend", "triggers"]
     },
     {
       "name": "sf-flow",
       "description": "Salesforce Flow creation and validation with 110-point scoring",
-      "source": "./sf-flow"
+      "source": "./sf-flow",
+      "category": "development",
+      "tags": ["salesforce", "flow", "automation", "low-code"]
     },
     {
       "name": "sf-metadata",
       "description": "Salesforce metadata generation and org querying with 120-point scoring",
-      "source": "./sf-metadata"
+      "source": "./sf-metadata",
+      "category": "metadata",
+      "tags": ["salesforce", "metadata", "objects", "fields"]
     },
     {
       "name": "sf-data",
       "description": "Salesforce data operations with SOQL expertise, test data factories, and 130-point validation",
-      "source": "./sf-data"
+      "source": "./sf-data",
+      "category": "data",
+      "tags": ["salesforce", "data", "soql", "test-data"]
     },
     {
       "name": "sf-deploy",
       "description": "Salesforce DevOps automation using sf CLI v2",
-      "source": "./sf-deploy"
+      "source": "./sf-deploy",
+      "category": "devops",
+      "tags": ["salesforce", "deployment", "devops", "cli"]
     },
     {
       "name": "skill-builder",
       "description": "Interactive wizard for creating Claude Code skills",
-      "source": "./skill-builder"
+      "source": "./skill-builder",
+      "category": "utilities",
+      "tags": ["claude-code", "skills", "wizard", "generator"]
     },
     {
       "name": "sf-ai-agentforce",
       "description": "Agentforce agent creation using Agent Script syntax with 100-point scoring (API v64+)",
-      "source": "./sf-ai-agentforce"
+      "source": "./sf-ai-agentforce",
+      "category": "ai",
+      "tags": ["salesforce", "agentforce", "ai", "agents"]
     },
     {
       "name": "sf-diagram",
       "description": "Mermaid diagrams for OAuth flows, ERDs, integrations, and Agentforce architecture with 80-point scoring",
-      "source": "./sf-diagram"
+      "source": "./sf-diagram",
+      "category": "documentation",
+      "tags": ["salesforce", "diagrams", "mermaid", "architecture"]
     },
     {
       "name": "sf-integration",
       "description": "Named Credentials, External Services, REST/SOAP callouts, Platform Events, and CDC with 120-point scoring",
-      "source": "./sf-integration"
+      "source": "./sf-integration",
+      "category": "integration",
+      "tags": ["salesforce", "integration", "api", "rest", "soap"]
     },
     {
       "name": "sf-connected-apps",
       "description": "Connected Apps and External Client Apps with OAuth configuration and 120-point scoring",
-      "source": "./sf-connected-apps"
+      "source": "./sf-connected-apps",
+      "category": "integration",
+      "tags": ["salesforce", "oauth", "connected-apps", "authentication"]
     },
     {
       "name": "sf-lwc",
       "description": "Lightning Web Components development with SLDS 2 validation and 140-point scoring",
-      "source": "./sf-lwc"
+      "source": "./sf-lwc",
+      "category": "development",
+      "tags": ["salesforce", "lwc", "frontend", "lightning"]
     },
     {
       "name": "sf-debug",
       "description": "Salesforce debugging with log analysis, governor limits, and agentic fix suggestions",
-      "source": "./sf-debug"
+      "source": "./sf-debug",
+      "category": "devops",
+      "tags": ["salesforce", "debugging", "logs", "troubleshooting"]
     },
     {
       "name": "sf-soql",
       "description": "SOQL query generation, optimization, and 100-point validation",
-      "source": "./sf-soql"
+      "source": "./sf-soql",
+      "category": "data",
+      "tags": ["salesforce", "soql", "queries", "optimization"]
     },
     {
       "name": "sf-testing",
       "description": "Apex test execution, coverage analysis, and agentic test-fix loops with 120-point scoring",
-      "source": "./sf-testing"
+      "source": "./sf-testing",
+      "category": "devops",
+      "tags": ["salesforce", "testing", "coverage", "apex"]
     },
     {
       "name": "salesforce-trigger-framework",
       "description": "Mitch Spano's Trigger Actions Framework with PS Advisory conventions - metadata-driven trigger orchestration",
-      "source": "./salesforce-trigger-framework"
+      "source": "./salesforce-trigger-framework",
+      "category": "development",
+      "tags": ["salesforce", "triggers", "framework", "best-practices"]
+    },
+    {
+      "name": "sf-docs",
+      "description": "Multi-audience Salesforce documentation generation - Feature Summary, Technical Record, and Change Entry outputs",
+      "source": "./sf-docs",
+      "category": "documentation",
+      "tags": ["salesforce", "documentation", "release-notes"]
     }
   ]
 }

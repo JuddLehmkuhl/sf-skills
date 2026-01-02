@@ -1,0 +1,12 @@
+{
+  "name": "sf-docs",
+  "version": "1.0.0",
+  "description": "Multi-audience Salesforce documentation generation - Feature Summary, Technical Record, and Change Entry outputs",
+  "author": {
+    "name": "Jag Valaiyapathy",
+    "url": "https://github.com/Jaganpro"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Jaganpro/sf-skills",
+  "keywords": ["salesforce", "documentation", "release-notes"]
+}

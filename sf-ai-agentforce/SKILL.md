@@ -28,7 +28,7 @@ Expert Agentforce developer specializing in Agent Script syntax, topic design, a
 4. **Validation & Scoring**: Score agents against best practices (0-100 points)
 5. **Deployment**: Publish agents using `sf agent publish authoring-bundle`
 
-## 📚 Document Map (Progressive Disclosure)
+## Document Map (Progressive Disclosure)
 
 **Read documents in tier order based on what you need:**
 
@@ -37,6 +37,7 @@ Expert Agentforce developer specializing in Agent Script syntax, topic design, a
 |------|----------|-------------|
 | **Full syntax + gotchas** | [agent-script-reference.md](docs/agent-script-reference.md) | Complete Agent Script spec + reserved words |
 | **CLI commands** | [cli-guide.md](docs/cli-guide.md) | sf agent commands, preview, publish |
+| **Syntax deep dive** | [agent-script-syntax-reference.md](docs/agent-script-syntax-reference.md) | Indentation, types, action targets, data mappings |
 
 ### Tier 3: Detailed References
 | Need | Document | Description |
@@ -45,84 +46,126 @@ Expert Agentforce developer specializing in Agent Script syntax, topic design, a
 | **Patterns & practices** | [patterns-and-practices.md](docs/patterns-and-practices.md) | Decision tree + best practices |
 | **Prompt templates** | [prompt-templates.md](docs/prompt-templates.md) | PromptTemplate metadata integration |
 
-**⚡ Quick Links:**
+### Tier 3: Battle-Tested Patterns (NEW)
+| Need | Document | Description |
+|------|----------|-------------|
+| **Action invocation** | [action-invocation-patterns.md](docs/action-invocation-patterns.md) | Doomprompting fix, slot-filling, variable capture |
+| **Prompt Builder** | [prompt-builder-integration.md](docs/prompt-builder-integration.md) | GenAiPromptTemplate actions, gotchas, merge fields |
+| **Flow design** | [agent-flow-design.md](docs/agent-flow-design.md) | Naming, read-only pattern, session variables, ID detection |
+| **Deployment lifecycle** | [deployment-lifecycle.md](docs/deployment-lifecycle.md) | Wave rollout, deploy cycle, version management, test suite |
+
+### Examples
+| File | Description |
+|------|-------------|
+| [customer-service-agent.agent](examples/customer-service-agent.agent) | Complete 7-topic agent with session variables and Prompt Builder |
+| [agent-get-account-details.flow-meta.xml](examples/agent-get-account-details.flow-meta.xml) | Flow with ID/name detection, formatted output, inp_/out_ convention |
+
+**Quick Links:**
 - [Key Insights Table](#-key-insights) - Common errors and fixes
 - [Scoring System](#scoring-system-100-points) - 6-category validation
 - [Required Files Checklist](#required-files-checklist) - Pre-deployment verification
 
-**📚 Official Reference:**
+**Official Reference:**
 - [trailheadapps/agent-script-recipes](https://github.com/trailheadapps/agent-script-recipes) - Salesforce's official Agent Script examples
 
 ---
 
-## 🆕 New Patterns (December 2025)
+## Battle-Tested Patterns
 
-Patterns added from cross-comparison with official Salesforce agent-script-recipes repository:
+These patterns are validated in production Salesforce orgs and address the most common Agentforce development challenges.
 
-| Pattern | Template | Description |
-|---------|----------|-------------|
-| **Prompt Template Actions** | `patterns/prompt-template-action.agent` | Invoke PromptTemplates directly using `generatePromptResponse://` target |
-| **Multi-Step Workflows** | `patterns/multi-step-workflow.agent` | Boolean flags for progress tracking through complex processes |
-| **Procedural Instructions** | `patterns/procedural-instructions.agent` | Execute `run @actions.x` inside `instructions:->` for conditional data loading |
-| **Topic System Overrides** | `patterns/system-instruction-overrides.agent` | Use `system:` blocks inside topics for persona switching |
-| **Input Binding Patterns** | See [patterns-and-practices.md](docs/patterns-and-practices.md) | When to use `...`, `@variables.x`, or fixed values |
+### Action Invocation (Doomprompting Fix)
+> **Full guide**: [action-invocation-patterns.md](docs/action-invocation-patterns.md)
 
-### Prompt Template Action Syntax (NEW)
+**Problem**: Behavioral prompts ("IMMEDIATELY call this action", "MUST invoke") fail because the Atlas planner treats all text as conversation context, not execution directives.
 
+**Solution**: Use `reasoning.actions` with slot-filling syntax:
+```agentscript
+reasoning:
+    actions:
+        lookup_account: @actions.get_account_details
+            with inp_AccountNameOrId=...
+            set @variables.current_account_id = @outputs.out_AccountId
+```
+
+The `...` means "LLM extracts this from conversation." The `set` captures output for follow-up actions.
+
+### Prompt Builder Integration
+> **Full guide**: [prompt-builder-integration.md](docs/prompt-builder-integration.md)
+
+**When to use**: Generative content (briefings, summaries, analysis). Use Flows for deterministic data retrieval.
+
+**Key syntax**:
 ```agentscript
 actions:
-   Generate_Content:
-      description: "Generate AI content using a prompt template"
-      inputs:
-         # MUST use "Input:" prefix for template variables
-         "Input:email": string
-            description: "User's email"
-            is_required: True
-      outputs:
-         # Standard output field name
-         promptResponse: string
-            description: "Generated content"
-            is_used_by_planner: True
-      # Target protocol for prompt templates
-      target: "generatePromptResponse://Template_API_Name"
+    generate_briefing:
+        inputs:
+            "Input:Account": object
+                complex_data_type_name: "lightning__recordInfoType"
+        outputs:
+            promptResponse: string
+        target: "generatePromptResponse://Template_Name"
 ```
 
-### Topic-Level System Override Syntax (NEW)
+**Critical**: Input MUST use `object` type with `lightning__recordInfoType`, NOT string.
 
-```agentscript
-topic formal_mode:
-   label: "Formal Mode"
-   description: "Professional communication"
+### Agent Flow Design
+> **Full guide**: [agent-flow-design.md](docs/agent-flow-design.md)
 
-   # Topic-level system: OVERRIDES global system instructions
-   system:
-      instructions: "You are a formal business professional. Use professional language."
+**Key conventions**:
+| Convention | Pattern | Example |
+|------------|---------|---------|
+| Flow name | `Agent_Get_<Entity>` | `Agent_Get_Account_Details` |
+| Input vars | `inp_<Name>` | `inp_AccountId` |
+| Output vars | `out_<Name>` | `out_ContactList` |
+| Architecture | Read-only (SOQL only, no DML) | Agent queries, doesn't modify |
 
-   reasoning:
-      instructions: ->
-         | [Formal Mode Engaged]
-         | How may I assist you today?
-```
+**ID vs Name detection**: `LEFT({!inp_AccountNameOrId}, 3) = '001'` routes to ID lookup vs name search.
+
+### Deployment Lifecycle
+> **Full guide**: [deployment-lifecycle.md](docs/deployment-lifecycle.md)
+
+**Mandatory cycle**: Deactivate -> Modify -> Deploy -> Validate -> Publish -> Activate
+
+**Wave rollout**: Start with 3-4 flows (Wave 1), test, fix, then add 2-3 topics per wave. Agent routing changes with each new topic -- test incrementally.
+
+**Post-deploy iteration is normal**: Expect 2-3 iterations per wave for hallucination fixes, routing corrections, and reasoning strengthening.
 
 ---
 
-## ⚠️ CRITICAL: Two Deployment Methods (Tested Dec 2025)
+## Pattern Templates (December 2025)
+
+Template files for common patterns are in `templates/patterns/`:
+
+| Pattern | Template | Description |
+|---------|----------|-------------|
+| **Prompt Template Actions** | `patterns/prompt-template-action.agent` | `generatePromptResponse://` target |
+| **Multi-Step Workflows** | `patterns/multi-step-workflow.agent` | Boolean flags for progress tracking |
+| **Procedural Instructions** | `patterns/procedural-instructions.agent` | `run @actions.x` inside instructions |
+| **Topic System Overrides** | `patterns/system-instruction-overrides.agent` | `system:` blocks for persona switching |
+| **Input Binding Patterns** | See [patterns-and-practices.md](docs/patterns-and-practices.md) | `...`, `@variables.x`, fixed values |
+
+> **Production patterns**: See [Battle-Tested Patterns](#battle-tested-patterns) for patterns validated in production deployments.
+
+---
+
+## CRITICAL: Two Deployment Methods (Tested Dec 2025)
 
 There are **two deployment methods** with **different capabilities**:
 
 | Aspect | GenAiPlannerBundle | AiAuthoringBundle |
 |--------|-------------------|-------------------|
 | Deploy Command | `sf project deploy start` | `sf agent publish authoring-bundle` |
-| **Visible in Agentforce Studio** | ❌ NO | ✅ YES |
-| Flow Actions (`flow://`) | ✅ Supported | ✅ Supported (see requirements below) |
-| Apex Actions (`apex://`) | ✅ Supported | ⚠️ Limited (class must exist) |
-| Escalation (`@utils.escalate with reason`) | ✅ Supported | ❌ NOT Supported (SyntaxError) |
-| `run` keyword (action callbacks) | ✅ Supported | ❌ NOT Supported (SyntaxError) |
-| `filter_from_agent` (conditional actions) | ✅ Supported | ❌ NOT Supported (SyntaxError) |
-| Variables without defaults | ✅ Supported | ✅ Supported |
-| Lifecycle blocks (`before/after_reasoning`) | ✅ Supported | ✅ Supported |
-| Topic transitions (`@utils.transition`) | ✅ Supported | ✅ Supported |
-| Basic escalation (`@utils.escalate`) | ✅ Supported | ✅ Supported |
+| **Visible in Agentforce Studio** | No | Yes |
+| Flow Actions (`flow://`) | Supported | Supported (see requirements below) |
+| Apex Actions (`apex://`) | Supported | Limited (class must exist) |
+| Escalation (`@utils.escalate with reason`) | Supported | NOT Supported (SyntaxError) |
+| `run` keyword (action callbacks) | Supported | NOT Supported (SyntaxError) |
+| `filter_from_agent` (conditional actions) | Supported | NOT Supported (SyntaxError) |
+| Variables without defaults | Supported | Supported |
+| Lifecycle blocks (`before/after_reasoning`) | Supported | Supported |
+| Topic transitions (`@utils.transition`) | Supported | Supported |
+| Basic escalation (`@utils.escalate`) | Supported | Supported |
 | API Version | v65.0+ required | v65.0+ required |
 
 **Why the difference?** These methods correspond to two authoring experiences:
@@ -133,9 +176,9 @@ There are **two deployment methods** with **different capabilities**:
 
 ---
 
-## ⚠️ CRITICAL: Orchestration Order
+## CRITICAL: Orchestration Order
 
-**sf-metadata → sf-apex → sf-flow → sf-deploy → sf-ai-agentforce** (you are here: sf-ai-agentforce)
+**sf-metadata -> sf-apex -> sf-flow -> sf-deploy -> sf-ai-agentforce** (you are here: sf-ai-agentforce)
 
 **Why this order?**
 1. **sf-metadata**: Custom objects/fields must exist before Apex or Flows reference them
@@ -144,7 +187,7 @@ There are **two deployment methods** with **different capabilities**:
 4. **sf-deploy**: Deploy all metadata before publishing agent
 5. **sf-ai-agentforce**: Agent is published LAST after all dependencies are in place
 
-**⚠️ MANDATORY Delegation:**
+**MANDATORY Delegation:**
 - **Flows**: ALWAYS use `Skill(skill="sf-flow")` - never manually write Flow XML
 - **Deployments**: Use `Skill(skill="sf-deploy")` for all deployments
 - **Apex**: ALWAYS use `Skill(skill="sf-apex")` for InvocableMethod classes
@@ -153,7 +196,7 @@ See `shared/docs/orchestration.md` (project root) for cross-skill orchestration 
 
 ---
 
-## ⚠️ CRITICAL: API Version Requirement
+## CRITICAL: API Version Requirement
 
 **Agent Script requires API v64+ (Summer '25 or later)**
 
@@ -166,7 +209,7 @@ If API version < 64, Agent Script features won't be available.
 
 ---
 
-## ⚠️ CRITICAL: File Structure
+## CRITICAL: File Structure
 
 | Method | Path | Files | Deploy Command |
 |--------|------|-------|----------------|
@@ -175,545 +218,37 @@ If API version < 64, Agent Script features won't be available.
 
 **XML templates**: See `templates/` for bundle-meta.xml and genAiPlannerBundle examples.
 
-⚠️ GenAiPlannerBundle agents do NOT appear in Agentforce Studio UI.
+GenAiPlannerBundle agents do NOT appear in Agentforce Studio UI.
 
 ---
 
-## ⚠️ CRITICAL: Indentation Rules
+## Agent Script Syntax Reference
 
-**Agent Script is whitespace-sensitive (like Python/YAML). Use CONSISTENT indentation throughout.**
+For detailed syntax rules including indentation, comments, reserved words, action targets, data type mappings, and advanced field attributes, see:
 
-| Rule | Details |
-|------|---------|
-| **Tabs (Recommended)** | ✅ Use tabs for easier manual editing and consistent alignment |
-| **Spaces** | 2, 3, or 4 spaces also work if used consistently |
-| **Mixing** | ❌ NEVER mix tabs and spaces (causes parse errors) |
-| **Consistency** | All lines at same nesting level must use same indentation |
+> **[agent-script-syntax-reference.md](docs/agent-script-syntax-reference.md)** -- Complete syntax reference
 
-**⚠️ RECOMMENDED: Use TAB indentation for all Agent Script files.** Tabs are easier to edit manually and provide consistent visual alignment across editors.
-
-```agentscript
-# ✅ RECOMMENDED - consistent tabs (best for manual editing)
-config:
-	agent_name: "My_Agent"
-	description: "My agent description"
-
-variables:
-	user_name: mutable string
-		description: "The user's name"
-
-# ✅ ALSO CORRECT - consistent spaces (if you prefer)
-config:
-   agent_name: "My_Agent"
-
-# ❌ WRONG - mixing tabs and spaces
-config:
-	agent_name: "My_Agent"    # tab
-   description: "My agent"    # spaces - PARSE ERROR!
-```
-
-**Why Tabs are Recommended:**
-- Easier to edit manually in any text editor
-- Consistent visual alignment regardless of editor tab width settings
-- Single keypress per indentation level
-- Clear distinction between indentation levels
+**Quick reminders:**
+- Use TABS for indentation (recommended) -- never mix tabs and spaces
+- System instructions: single quoted string only (no pipe `|` syntax)
+- Reserved words: `description`, `inputs`, `outputs`, `target`, `label`, `source`, `escalate`
+- Flow variable names MUST match Agent Script input/output names exactly
+- Use `list[type]` not `list<type>`, `number` not `integer`, `True`/`False` not `true`/`false`
 
 ---
-
-## Comments Syntax
-
-**Single-line comments** use the `#` (pound/hash) symbol:
-
-```agentscript
-# This is a top-level comment
-system:
-   # Comment explaining the instructions
-   instructions: "You are a helpful assistant."
-
-config:
-   agent_name: "My_Agent"  # Inline comment
-   # This describes the agent
-   description: "A helpful assistant"
-
-topic help:
-   # This topic handles help requests
-   label: "Help"
-   description: "Provides assistance"
-```
-
-**Notes:**
-- Everything after `#` on a line is ignored
-- Use comments to document complex logic or business rules
-- Comments are recommended for clarity but don't affect execution
-
----
-
-## ⚠️ CRITICAL: System Instructions Syntax
-
-**System instructions MUST be a single quoted string. The `|` pipe multiline syntax does NOT work in the `system:` block.**
-
-```agentscript
-# ✅ CORRECT - Single quoted string
-system:
-   instructions: "You are a helpful assistant. Be professional and friendly. Never share confidential information."
-   messages:
-      welcome: "Hello!"
-      error: "Sorry, an error occurred."
-
-# ❌ WRONG - Pipe syntax fails with SyntaxError
-system:
-   instructions:
-      | You are a helpful assistant.
-      | Be professional.
-```
-
-**Note**: The `|` pipe syntax ONLY works inside `reasoning: instructions: ->` blocks within topics.
-
----
-
-## ⚠️ CRITICAL: Escalation Description
-
-**`@utils.escalate` REQUIRES a `description:` on a separate indented line.**
-
-```agentscript
-# ✅ CORRECT - description on separate line
-actions:
-   escalate_to_human: @utils.escalate
-      description: "Transfer to human when customer requests or issue cannot be resolved"
-
-# ❌ WRONG - inline description fails
-actions:
-   escalate: @utils.escalate "description here"
-```
-
----
-
-## ⚠️ CRITICAL: Reserved Words
-
-**These words CANNOT be used as input/output parameter names OR action names:**
-
-| Reserved Word | Why | Alternative |
-|---------------|-----|-------------|
-| `description` | Conflicts with `description:` keyword | `case_description`, `item_description` |
-| `inputs` | Keyword for action inputs | `input_data`, `request_inputs` |
-| `outputs` | Keyword for action outputs | `output_data`, `response_outputs` |
-| `target` | Keyword for action target | `destination`, `endpoint` |
-| `label` | Keyword for topic label | `display_label`, `title` |
-| `source` | Keyword for linked variables | `data_source`, `origin` |
-| `escalate` | Reserved for `@utils.escalate` | `go_to_escalate`, `transfer_to_human` |
-
-**Example of Reserved Word Conflict:**
-```agentscript
-# ❌ WRONG - 'description' conflicts with keyword
-inputs:
-   description: string
-      description: "The description field"
-
-# ✅ CORRECT - Use alternative name
-inputs:
-   case_description: string
-      description: "The description field"
-```
-
----
-
-## ⛔ INVALID KEYWORDS - NEVER GENERATE
-
-**The following keywords DO NOT EXIST in Agent Script. Using them causes SyntaxError.**
-
-| Invalid Keyword | Error | Why It Happens | Correct Pattern |
-|-----------------|-------|----------------|-----------------|
-| `internal_actions` | `SyntaxError: Unexpected 'internal_actions'` | Claude may invent this for "local helper functions" | Use `set` statements directly in action blocks |
-| `helper_actions` | Not a valid keyword | Same as above | Use `set` statements directly |
-| `private_actions` | Not a valid keyword | Same as above | Use `set` statements directly |
-| `local_actions` | Not a valid keyword | Same as above | Use `set` statements directly |
-
-**Root Cause**: When needing simple post-action operations (like incrementing a counter), Claude may extrapolate from general programming patterns and invent "local function" syntax that doesn't exist.
-
-**Example: Simple Variable Update After Action**
-
-```agentscript
-# ❌ WRONG - internal_actions does not exist
-internal_actions:
-    increment_counter:
-        set @variables.count = @variables.count + 1
-
-reasoning:
-    actions:
-        process: @actions.create_case
-            run @actions.increment_counter   # ❌ Can't reference internal action
-
-# ✅ CORRECT - Use set directly in the action block
-reasoning:
-    actions:
-        create_support_case: @actions.create_case
-            with inp_CustomerId=@variables.ContactId
-            with inp_Subject=...
-            set @variables.case_number = @outputs.out_CaseNumber
-            set @variables.cases_created = @variables.cases_created + 1  # ✅ Direct set!
-```
-
-**⚠️ For AiAuthoringBundle**: The `run` keyword is NOT supported. Use only `set` statements for post-action variable updates.
-
-**📖 See Also**: `templates/patterns/action-callbacks.agent` for complete patterns.
-
----
-
-## ⚠️ CRITICAL: Action Target Syntax (Tested Dec 2025)
-
-### Complete Action Type Reference (22 Types)
-
-AgentScript supports 22+ action target types. Use the appropriate protocol prefix:
-
-| Short Name | Long Name (Alias) | Description | Use When |
-|------------|-------------------|-------------|----------|
-| `flow` | `flow` | Salesforce Flow | ✅ **PRIMARY** - Most reliable, recommended for all actions |
-| `apex` | `apex` | Apex Class (@InvocableMethod) | Custom server-side logic (use Flow wrapper in AiAuthoringBundle) |
-| `prompt` | `generatePromptResponse` | Prompt Template | AI content generation |
-| `standardInvocableAction` | `standardInvocableAction` | Built-in Salesforce actions | Standard platform actions (send email, create task) |
-| `externalService` | `externalService` | External API via OpenAPI schema | External system calls via External Services |
-| `quickAction` | `quickAction` | Object-specific quick actions | Quick actions (log call, create related record) |
-| `api` | `api` | REST API calls | Direct Salesforce API calls |
-| `apexRest` | `apexRest` | Apex REST endpoints | Custom REST services |
-| `serviceCatalog` | `createCatalogItemRequest` | Service Catalog requests | IT service requests, catalog items |
-| `integrationProcedureAction` | `executeIntegrationProcedure` | OmniStudio Integration Procedure | OmniStudio/Vlocity integrations |
-| `expressionSet` | `runExpressionSet` | Expression Set calculations | Business rule calculations |
-| `cdpMlPrediction` | `cdpMlPrediction` | CDP ML predictions | Customer Data Platform ML models |
-| `externalConnector` | `externalConnector` | External system connector | Pre-built external connectors |
-| `slack` | `slack` | Slack integration | Slack-specific actions |
-| `namedQuery` | `namedQuery` | Predefined SOQL queries | Named queries for data retrieval |
-| `auraEnabled` | `auraEnabled` | Aura-enabled Apex methods | Lightning component methods |
-| `mcpTool` | `mcpTool` | Model Context Protocol tools | MCP tool integrations |
-| `retriever` | `retriever` | Knowledge retrieval | Knowledge base searches |
-
-**Target Format**: `<type>://<DeveloperName>` (e.g., `flow://Get_Account_Info`, `standardInvocableAction://sendEmail`)
-
-**⚠️ 0-shot Tip**: If you need a built-in action, check if `standardInvocableAction://` applies before creating a custom Flow.
-
-### Action Targets by Deployment Method
-
-| Target Type | GenAiPlannerBundle | AiAuthoringBundle |
-|-------------|-------------------|-------------------|
-| `flow://FlowName` | ✅ Works | ✅ Works (with exact name matching) |
-| `apex://ClassName` | ✅ Works | ⚠️ Limited (class must exist) |
-| `prompt://TemplateName` | ✅ Works | ⚠️ Requires asset in org |
-
-### ⚠️ CRITICAL: Flow Action Requirements (Both Methods)
-
-**`flow://` actions work in BOTH AiAuthoringBundle and GenAiPlannerBundle**, but require:
-
-1. **EXACT variable name matching** between Agent Script and Flow
-2. Flow must be an **Autolaunched Flow** (not Screen Flow)
-3. Flow variables must be marked "Available for input" / "Available for output"
-4. Flow must be deployed to org **BEFORE** agent publish
-
-**⚠️ The "Internal Error" occurs when input/output names don't match Flow variables!**
-
-```
-ERROR: "property account_id was not found in the available list of
-        properties: [inp_AccountId]"
-
-This error appears as generic "Internal Error, try again later" in CLI.
-```
-
-### ✅ Correct Flow Action Pattern
-
-**Step 1: Create Flow with specific variable names**
-```xml
-<!-- Get_Account_Info.flow-meta.xml -->
-<variables>
-    <name>inp_AccountId</name>     <!-- INPUT variable -->
-    <dataType>String</dataType>
-    <isInput>true</isInput>
-    <isOutput>false</isOutput>
-</variables>
-<variables>
-    <name>out_AccountName</name>   <!-- OUTPUT variable -->
-    <dataType>String</dataType>
-    <isInput>false</isInput>
-    <isOutput>true</isOutput>
-</variables>
-```
-
-**Step 2: Agent Script MUST use EXACT same names**
-```agentscript
-actions:
-   get_account:
-      description: "Retrieves account information"
-      inputs:
-         inp_AccountId: string        # ← MUST match Flow variable name!
-            description: "Salesforce Account ID"
-      outputs:
-         out_AccountName: string      # ← MUST match Flow variable name!
-            description: "Account name"
-      target: "flow://Get_Account_Info"
-```
-
-### ❌ Common Mistake (Causes "Internal Error")
-
-```agentscript
-# ❌ WRONG - Names don't match Flow variables
-actions:
-   get_account:
-      inputs:
-         account_id: string           # Flow expects "inp_AccountId"!
-      outputs:
-         account_name: string         # Flow expects "out_AccountName"!
-      target: "flow://Get_Account_Info"
-```
-
-This will fail with "Internal Error, try again later" because the schema validation fails silently.
-
-### Requirements Summary
-
-| Requirement | Details |
-|-------------|---------|
-| **Variable Name Matching** | Agent Script input/output names MUST exactly match Flow variable API names |
-| **Flow Type** | Must be **Autolaunched Flow** (not Screen Flow) |
-| **Flow Variables** | Mark as "Available for input" / "Available for output" |
-| **Deploy Order** | Deploy Flow to org BEFORE publishing agent |
-| **API Version** | API v65.0+ required for both AiAuthoringBundle and GenAiPlannerBundle |
-| **All Inputs Required** | Agent Script must define ALL inputs that Flow expects (missing inputs = Internal Error) |
-
-### ⚠️ CRITICAL: Flow Validation Timing (Tested Dec 2025)
-
-**Flow existence is validated at DEPLOYMENT time, NOT during `sf agent validate`!**
-
-| Command | What It Checks | Flow Validation |
-|---------|----------------|-----------------|
-| `sf agent validate authoring-bundle` | Syntax only | ❌ Does NOT check if flows exist |
-| `sf project deploy start` | Full deployment | ✅ Validates flow existence |
-
-**This means:**
-- An agent can **PASS validation** with `sf agent validate authoring-bundle`
-- But **FAIL deployment** if the referenced flow doesn't exist in the org
-
-```bash
-# ✅ Passes - only checks Agent Script syntax
-sf agent validate authoring-bundle --api-name My_Agent --target-org MyOrg
-# Status: COMPLETED, Errors: 0
-
-# ❌ Fails - flow doesn't exist in org
-sf project deploy start --source-dir force-app/main/default/aiAuthoringBundles/My_Agent
-# Error: "We couldn't find the flow, prompt, or apex class: flow://Missing_Flow"
-```
-
-**Best Practice: Always deploy flows BEFORE deploying agents that reference them.**
-
-### ⚠️ CRITICAL: Data Type Mappings (Tested Dec 2025)
-
-**Confirmed working data types between Agent Script and Flow:**
-
-| Agent Script Type | Flow Data Type | Status | Notes |
-|-------------------|----------------|--------|-------|
-| `string` | String | ✅ Works | Standard text values |
-| `number` | Number (scale=0) | ✅ Works | Integer values |
-| `number` | Number (scale>0) | ✅ Works | Decimal values (e.g., 3.14) |
-| `boolean` | Boolean | ✅ Works | Use `True`/`False` (capitalized) |
-| `list[string]` | Text Collection | ✅ Works | Collection with `isCollection=true` |
-| `string` | Date | ✅ Works* | *Use String I/O pattern (see below) |
-| `string` | DateTime | ✅ Works* | *Use String I/O pattern (see below) |
-
-**⚠️ Date/DateTime Workaround Pattern**
-
-Agent Script does NOT have native `date` or `datetime` types. If you try to connect an Agent Script `string` input to a Flow `Date` or `DateTime` input, it will fail with "Internal Error" because the platform cannot coerce types.
-
-**Solution: Use String I/O pattern**
-
-1. **Flow accepts/returns Strings** (not Date/DateTime)
-2. **Flow parses strings internally** using `DATEVALUE()` or `DATETIMEVALUE()`
-3. **Flow converts back to string** using `TEXT()` for output
-
-```xml
-<!-- Flow with String I/O for Date handling -->
-<variables>
-    <name>inp_DateString</name>
-    <dataType>String</dataType>       <!-- NOT Date -->
-    <isInput>true</isInput>
-</variables>
-<variables>
-    <name>out_DateString</name>
-    <dataType>String</dataType>       <!-- NOT Date -->
-    <isOutput>true</isOutput>
-</variables>
-<formulas>
-    <name>formula_ParseDate</name>
-    <dataType>Date</dataType>
-    <expression>DATEVALUE({!inp_DateString})</expression>
-</formulas>
-<formulas>
-    <name>formula_DateAsString</name>
-    <dataType>String</dataType>
-    <expression>TEXT({!formula_ParseDate})</expression>
-</formulas>
-```
-
-```agentscript
-# Agent Script with string type for date
-actions:
-   process_date:
-      inputs:
-         inp_DateString: string
-            description: "A date value in YYYY-MM-DD format"
-      outputs:
-         out_DateString: string
-            description: "The processed date as string"
-      target: "flow://Test_Date_Type_StringIO"
-```
-
-**Collection Types (list[string])**
-
-`list[string]` maps directly to Flow Text Collection:
-
-```xml
-<variables>
-    <name>inp_TextList</name>
-    <dataType>String</dataType>
-    <isCollection>true</isCollection>  <!-- This makes it a list -->
-    <isInput>true</isInput>
-</variables>
-```
-
-```agentscript
-actions:
-   process_collection:
-      inputs:
-         inp_TextList: list[string]
-            description: "A list of text values"
-      target: "flow://Test_Collection_StringIO"
-```
-
-**Important: All Flow inputs must be provided!**
-
-If Flow defines 6 input variables but Agent Script only provides 4, publish fails with "Internal Error":
-
-```
-❌ FAILS - Missing inputs
-   Flow inputs:    inp_String, inp_Number, inp_Boolean, inp_Date
-   Agent inputs:   inp_String, inp_Number, inp_Boolean
-   Result: "Internal Error, try again later"
-
-✅ WORKS - All inputs provided
-   Flow inputs:    inp_String, inp_Number, inp_Boolean
-   Agent inputs:   inp_String, inp_Number, inp_Boolean
-   Result: Success
-```
-
-### Advanced Action Fields with `object` Type (Tested Dec 2025)
-
-For fine-grained control over action behavior, use the `object` type with `complex_data_type_name` and advanced field attributes.
-
-> **⚠️ Note**: The `filter_from_agent` attribute shown below is **GenAiPlannerBundle only**. It causes "Unexpected 'filter_from_agent'" errors in AiAuthoringBundle. Omit this attribute when using `sf agent publish authoring-bundle`.
-
-```agentscript
-actions:
-   lookup_order:
-      description: "Retrieve order details for a given Order Number."
-      inputs:
-         order_number: object
-            description: "The Order Number the user has provided"
-            label: "order_number"
-            is_required: False
-            is_user_input: False
-            complex_data_type_name: "lightning__textType"
-      outputs:
-         order_id: object
-            description: "The Record ID of the Order"
-            label: "order_id"
-            complex_data_type_name: "lightning__textType"
-            filter_from_agent: False
-            is_used_by_planner: True
-            is_displayable: False
-         order_is_current: object
-            description: "Whether the order is current"
-            label: "order_is_current"
-            complex_data_type_name: "lightning__booleanType"
-            filter_from_agent: False
-            is_used_by_planner: True
-            is_displayable: False
-      target: "flow://lookup_order"
-      label: "Lookup Order"
-      require_user_confirmation: False
-      include_in_progress_indicator: False
-```
-
-**Lightning Data Types (`complex_data_type_name`):**
-
-| Type | Description |
-|------|-------------|
-| `lightning__textType` | Text/String values |
-| `lightning__numberType` | Numeric values |
-| `lightning__booleanType` | Boolean True/False |
-| `lightning__dateTimeStringType` | DateTime as string |
-
-**Input Field Attributes:**
-
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `is_required` | Boolean | Whether the input must be provided |
-| `is_user_input` | Boolean | Whether the LLM should collect from user |
-| `label` | String | Display label for the field |
-| `complex_data_type_name` | String | Lightning data type mapping |
-
-**Output Field Attributes:**
-
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `filter_from_agent` | Boolean | Hide output from agent reasoning |
-| `is_used_by_planner` | Boolean | Whether planner uses this output |
-| `is_displayable` | Boolean | Show output to user |
-| `complex_data_type_name` | String | Lightning data type mapping |
-
-**Action-Level Attributes:**
-
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `label` | String | Display name for the action |
-| `require_user_confirmation` | Boolean | Ask user before executing |
-| `include_in_progress_indicator` | Boolean | Show progress during execution |
-
-**Minimum Required Attributes:**
-
-Only `description` and `complex_data_type_name` are required. All other attributes are optional:
-
-```agentscript
-# Minimal object type - works!
-inputs:
-   input_text: object
-      description: "Text input"
-      complex_data_type_name: "lightning__textType"
-```
-
-**Mixing Simple and Object Types:**
-
-You can mix `string`/`number`/`boolean` with `object` types in the same action:
-
-```agentscript
-inputs:
-   # Simple type (basic syntax)
-   simple_text: string
-      description: "A simple text input"
-   # Object type (advanced syntax)
-   advanced_text: object
-      description: "An advanced text input"
-      label: "Advanced Text"
-      is_required: True
-      is_user_input: True
-      complex_data_type_name: "lightning__textType"
-```
 
 ### Apex Actions in GenAiPlannerBundle
 
 **`apex://` targets work in GenAiPlannerBundle if the Apex class exists:**
 
 ```agentscript
-# ✅ Works in GenAiPlannerBundle (if class exists in org)
+# Works in GenAiPlannerBundle (if class exists in org)
 target: "apex://CaseCreationService"
 ```
 
 **The following do NOT work in either method:**
 ```agentscript
-# ❌ DOES NOT WORK - Invalid format
+# DOES NOT WORK - Invalid format
 target: "apex://CaseService.createCase"  # No method name allowed
 target: "action://Create_Support_Case"   # action:// not supported
 ```
@@ -735,7 +270,7 @@ The only reliable way to call Apex from Agent Script is to wrap the Apex in an A
 4. **Deploy Flow** to org
 5. **Reference Flow** in Agent Script:
 ```agentscript
-# ✅ CORRECT - Use flow:// target pointing to Flow wrapper
+# CORRECT - Use flow:// target pointing to Flow wrapper
 target: "flow://Create_Support_Case"  # Flow that wraps Apex InvocableMethod
 ```
 
@@ -813,6 +348,8 @@ Use **AskUserQuestion** to gather:
 | **Procedural Instructions** | Conditional data loading | `templates/patterns/procedural-instructions.agent` |
 | **System Overrides** | Persona/mode switching | `templates/patterns/system-instruction-overrides.agent` |
 
+> **Production patterns**: For action invocation, Prompt Builder, flow design, and deployment lifecycle patterns validated in production, see [Battle-Tested Patterns](#battle-tested-patterns).
+
 **Pattern Decision Guide**: See [patterns-and-practices.md](docs/patterns-and-practices.md) for detailed decision tree.
 
 **Template Path Resolution** (try in order):
@@ -845,21 +382,23 @@ force-app/main/default/aiAuthoringBundles/[AgentName]/[AgentName].bundle-meta.xm
 5. `start_agent topic_selector:` - Entry point topic with label and description
 6. `topic [name]:` - Additional topics (each with label and description)
 
+> **Slot-filling and variable capture**: For actions that need deterministic input binding and output capture, use the `with`/`set` pattern from [Battle-Tested Patterns: Action Invocation](#action-invocation-doomprompting-fix). This works in GenAiPlannerBundle (production-validated).
+
 **Validation Report Format** (6-Category Scoring 0-100):
 ```
-Score: 85/100 ⭐⭐⭐⭐ Very Good
-├─ Structure & Syntax:     18/20 (90%)
-├─ Topic Design:           16/20 (80%)
-├─ Action Integration:     18/20 (90%)
-├─ Variable Management:    13/15 (87%)
-├─ Instructions Quality:   12/15 (80%)
-└─ Security & Guardrails:   8/10 (80%)
+Score: 85/100 Very Good
+|- Structure & Syntax:     18/20 (90%)
+|- Topic Design:           16/20 (80%)
+|- Action Integration:     18/20 (90%)
+|- Variable Management:    13/15 (87%)
+|- Instructions Quality:   12/15 (80%)
+|- Security & Guardrails:   8/10 (80%)
 
 Issues:
-⚠️ [Syntax] Line 15: Inconsistent indentation (mixing tabs and spaces)
-⚠️ [Topic] Missing label for topic 'checkout'
-✓ All topic references valid
-✓ All variable references valid
+[Syntax] Line 15: Inconsistent indentation (mixing tabs and spaces)
+[Topic] Missing label for topic 'checkout'
+All topic references valid
+All variable references valid
 ```
 
 ### Phase 4: Deployment
@@ -873,9 +412,9 @@ sf project deploy start --metadata Flow --test-level NoTestRun --target-org [ali
 sf project deploy start --metadata ApexClass --test-level NoTestRun --target-org [alias]
 ```
 
-**Step 2: ⚠️ VALIDATE AGENT (MANDATORY)**
+**Step 2: VALIDATE AGENT (MANDATORY)**
 
-**⚠️ CRITICAL: Always validate before deployment to catch syntax errors early!**
+**CRITICAL: Always validate before deployment to catch syntax errors early!**
 
 ```bash
 sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
@@ -901,7 +440,7 @@ sf project deploy start --source-dir force-app/main/default/aiAuthoringBundles/[
 sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 
-**⚠️ CRITICAL: NEW Agents vs UPDATING Existing Agents**
+**CRITICAL: NEW Agents vs UPDATING Existing Agents**
 
 | Operation | Use This Method | Reason |
 |-----------|-----------------|--------|
@@ -910,7 +449,7 @@ sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 
 **HTTP 404 Error is BENIGN for BotDefinition, but BLOCKS UI Visibility**:
 - The `sf agent publish authoring-bundle` command may fail with `ERROR_HTTP_404` during "Retrieve Metadata" step
-- If "Publish Agent" step completed (✔), the **BotDefinition WAS created** successfully
+- If "Publish Agent" step completed, the **BotDefinition WAS created** successfully
 - However, the **AiAuthoringBundle metadata is NOT deployed** to the org
 - This means **agents will be INVISIBLE in Agentforce Studio UI** even though they exist!
 - **FIX**: After HTTP 404 error, run `sf project deploy start` to deploy the AiAuthoringBundle metadata:
@@ -928,7 +467,7 @@ sf project deploy start --source-dir force-app/main/default/classes --target-org
 # 2. Publish agent (may show HTTP 404 but BotDefinition is still created)
 sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 
-# 3. ⚠️ CRITICAL: Deploy AiAuthoringBundle metadata (required for UI visibility!)
+# 3. CRITICAL: Deploy AiAuthoringBundle metadata (required for UI visibility!)
 # This step is REQUIRED if you got HTTP 404 error above
 sf project deploy start --source-dir force-app/main/default/aiAuthoringBundles/[AgentName] --target-org [alias]
 
@@ -968,7 +507,7 @@ sf agent activate --api-name [AgentName] --target-org [alias]
 ### Phase 5: Verification
 
 ```
-✓ Agent Complete: [AgentName]
+Agent Complete: [AgentName]
   Type: Agentforce Agent | API: 65.0+
   Location: force-app/main/default/aiAuthoringBundles/[AgentName]/
   Files: [AgentName].agent, [AgentName].bundle-meta.xml
@@ -986,12 +525,12 @@ Next Steps:
 
 ## Agent Script Syntax Reference (Essentials)
 
-> **📖 Complete Reference**: See [agent-script-reference.md](docs/agent-script-reference.md) for full documentation.
+> **Complete Reference**: See [agent-script-reference.md](docs/agent-script-reference.md) for full documentation.
 
 ### Block Order (CRITICAL)
 
 Blocks MUST appear in this order:
-1. `system:` → 2. `config:` → 3. `variables:` → 4. `language:` → 5. `start_agent [name]:` → 6. `topic [name]:`
+1. `system:` -> 2. `config:` -> 3. `variables:` -> 4. `language:` -> 5. `start_agent [name]:` -> 6. `topic [name]:`
 
 ### Minimal Working Example
 
@@ -1052,28 +591,28 @@ topic help:
 | **variables** | Use `number` not `integer/long`. Use `timestamp` not `datetime`. Use `list[type]` not `list<type>`. Linked vars don't support lists/objects. |
 | **language** | Required block - include even if only `en_US`. |
 | **topics** | Each topic MUST have both `label:` and `description:`. |
-| **instructions** | Use `instructions: ->` (space before arrow). |
+| **instructions** | Use `instructions: ->` syntax (space before arrow). |
 
-### ⚠️ AiAuthoringBundle Limitations (Tested Dec 2025)
+### AiAuthoringBundle Limitations (Tested Dec 2025)
 
 | Feature | Status | Workaround |
 |---------|--------|------------|
-| `run` keyword | ❌ NOT Supported | Define actions in topic, LLM chooses when to call |
-| `with`/`set` in `reasoning.actions` | ❌ NOT Supported | Define actions in topic `actions:` block only |
-| `{!@actions.x}` | ❌ NOT Supported | Define actions with descriptions, LLM auto-selects |
-| `@utils.setVariables` | ❌ NOT Supported | Use `set @variables.x = ...` in instructions |
-| `@utils.escalate with reason` | ❌ NOT Supported | Use basic `@utils.escalate` with `description:` |
-| `integer`, `long` types | ❌ NOT Supported | Use `number` type |
-| `list<type>` syntax | ❌ NOT Supported | Use `list[type]` syntax |
-| Nested if statements | ❌ NOT Supported | Use flat `and` conditionals |
-| `filter_from_agent` | ❌ NOT Supported | Use `available when @var == val` syntax |
+| `run` keyword | NOT Supported | Define actions in topic, LLM chooses when to call |
+| `with`/`set` in `reasoning.actions` | NOT Supported | Define actions in topic `actions:` block only |
+| `{!@actions.x}` | NOT Supported | Define actions with descriptions, LLM auto-selects |
+| `@utils.setVariables` | NOT Supported | Use `set @variables.x = ...` in instructions |
+| `@utils.escalate with reason` | NOT Supported | Use basic `@utils.escalate` with `description:` |
+| `integer`, `long` types | NOT Supported | Use `number` type |
+| `list<type>` syntax | NOT Supported | Use `list[type]` syntax |
+| Nested if statements | NOT Supported | Use flat `and` conditionals |
+| `filter_from_agent` | NOT Supported | Use `available when @var == val` syntax |
 
-### ⚠️ CRITICAL: Flow Actions in AiAuthoringBundle (Tested Dec 2025)
+### CRITICAL: Flow Actions in AiAuthoringBundle (Tested Dec 2025)
 
 **Flow actions (`flow://`) DO work in AiAuthoringBundle**, but require a specific pattern:
 
 ```agentscript
-# ✅ CORRECT PATTERN FOR AiAuthoringBundle
+# CORRECT PATTERN FOR AiAuthoringBundle
 # 1. Define actions in topic blocks (NOT start_agent)
 # 2. Use simple action definition (no with/set in reasoning.actions)
 # 3. Let the LLM decide when to call the action based on description
@@ -1082,7 +621,7 @@ start_agent topic_selector:
    label: "Topic Selector"
    description: "Routes users to topics"
 
-   # ✅ start_agent should ONLY have @utils.transition actions
+   # start_agent should ONLY have @utils.transition actions
    reasoning:
       instructions: ->
          | Route the user to the appropriate topic.
@@ -1093,7 +632,7 @@ topic order_lookup:
    label: "Order Lookup"
    description: "Looks up order information"
 
-   # ✅ Define flow actions in the topic's actions: block
+   # Define flow actions in the topic's actions: block
    actions:
       get_order:
          description: "Retrieves order details by order number"
@@ -1107,7 +646,7 @@ topic order_lookup:
                description: "Total amount of the order"
          target: "flow://Get_Order_Details"
 
-   # ✅ Simple reasoning - no with/set in reasoning.actions
+   # Simple reasoning - no with/set in reasoning.actions
    reasoning:
       instructions: ->
          | Help the user look up their order.
@@ -1117,27 +656,29 @@ topic order_lookup:
          back_to_menu: @utils.transition to @topic.topic_selector
 ```
 
-**❌ WRONG PATTERN (causes "Internal Error" at publish):**
+**WRONG PATTERN (causes "Internal Error" at publish):**
 
 ```agentscript
-# ❌ DO NOT put flow actions in start_agent
+# DO NOT put flow actions in start_agent
 start_agent topic_selector:
    actions:
-      my_flow_action:    # ❌ WRONG - actions in start_agent fail
+      my_flow_action:    # WRONG - actions in start_agent fail
          target: "flow://..."
 
-# ❌ DO NOT use with/set in reasoning.actions (AiAuthoringBundle only)
+# DO NOT use with/set in reasoning.actions FOR AiAuthoringBundle
+# with/set WORKS in GenAiPlannerBundle (production-validated pattern)
 reasoning:
    actions:
       lookup: @actions.get_order
-         with inp_OrderNumber=...              # ❌ WRONG - causes Internal Error
-         set @variables.status = @outputs...   # ❌ WRONG - causes Internal Error
+         with inp_OrderNumber=...              # AiAuthoringBundle: Internal Error
+         set @variables.status = @outputs...   # AiAuthoringBundle: Internal Error
+         # GenAiPlannerBundle: works correctly (see action-invocation-patterns.md)
 ```
 
 **Key Requirements:**
 1. **Flow actions in `topic` blocks only** - NOT in `start_agent`
 2. **`start_agent` uses only `@utils.transition`** - for routing to topics
-3. **No `with`/`set` in `reasoning.actions`** - just define actions, LLM auto-calls
+3. **No `with`/`set` in `reasoning.actions`** for AiAuthoringBundle - just define actions, LLM auto-calls
 4. **Input/output names must match Flow exactly** - Case-sensitive!
 
 ### Connection Block (for Escalation)
@@ -1229,17 +770,17 @@ reasoning:
 
 | Score | Rating | Action |
 |-------|--------|--------|
-| 90-100 | ⭐⭐⭐⭐⭐ Excellent | Deploy with confidence |
-| 80-89 | ⭐⭐⭐⭐ Very Good | Minor improvements suggested |
-| 70-79 | ⭐⭐⭐ Good | Review before deploy |
-| 60-69 | ⭐⭐ Needs Work | Address issues before deploy |
-| <60 | ⭐ Critical | **Block deployment** |
+| 90-100 | Excellent | Deploy with confidence |
+| 80-89 | Very Good | Minor improvements suggested |
+| 70-79 | Good | Review before deploy |
+| 60-69 | Needs Work | Address issues before deploy |
+| <60 | Critical | **Block deployment** |
 
 ---
 
 ## Cross-Skill Integration
 
-### ⚠️ MANDATORY Delegations
+### MANDATORY Delegations
 
 | Requirement | Skill/Agent | Why | Never Do |
 |-------------|-------------|-----|----------|
@@ -1250,45 +791,45 @@ reasoning:
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | `Skill(skill="sf-flow")` → Create Autolaunched Flow | Build Flow with inputs/outputs |
-| 2 | `Skill(skill="sf-deploy")` → Deploy Flow | Validate and deploy Flow |
+| 1 | `Skill(skill="sf-flow")` -> Create Autolaunched Flow | Build Flow with inputs/outputs |
+| 2 | `Skill(skill="sf-deploy")` -> Deploy Flow | Validate and deploy Flow |
 | 3 | Use `target: "flow://FlowApiName"` in Agent Script | Reference Flow as action |
-| 4 | `Skill(skill="sf-deploy")` → Publish agent | Deploy agent |
+| 4 | `Skill(skill="sf-deploy")` -> Publish agent | Deploy agent |
 
 ### Apex Integration (via Flow Wrapper)
 
-**⚠️ `apex://` targets DON'T work in Agent Script. Use Flow Wrapper pattern.**
+**`apex://` targets DON'T work in Agent Script. Use Flow Wrapper pattern.**
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | `Skill(skill="sf-apex")` → Create `@InvocableMethod` class | Build callable Apex |
+| 1 | `Skill(skill="sf-apex")` -> Create `@InvocableMethod` class | Build callable Apex |
 | 2 | Deploy Apex via sf-deploy | Get Apex in org |
-| 3 | `Skill(skill="sf-flow")` → Create wrapper Flow calling Apex | Bridge to Agent Script |
+| 3 | `Skill(skill="sf-flow")` -> Create wrapper Flow calling Apex | Bridge to Agent Script |
 | 4 | Deploy Flow + Publish agent via sf-deploy | Complete deployment |
 | 5 | Use `target: "flow://WrapperFlowName"` in Agent Script | Reference wrapper Flow |
 
 | Direction | Pattern | Supported |
 |-----------|---------|-----------|
-| sf-agentforce → sf-flow | Create Flow-based actions | ✅ Full |
-| sf-agentforce → sf-apex | Create Apex via Flow wrapper | ✅ Via Flow |
-| sf-agentforce → sf-deploy | Deploy agent metadata | ✅ Full |
-| sf-agentforce → sf-metadata | Query object structure | ✅ Full |
-| sf-agentforce → sf-integration | External API actions | ✅ Via Flow |
+| sf-agentforce -> sf-flow | Create Flow-based actions | Full |
+| sf-agentforce -> sf-apex | Create Apex via Flow wrapper | Via Flow |
+| sf-agentforce -> sf-deploy | Deploy agent metadata | Full |
+| sf-agentforce -> sf-metadata | Query object structure | Full |
+| sf-agentforce -> sf-integration | External API actions | Via Flow |
 
 ---
 
 ## Agent Actions (Summary)
 
-> **📖 Complete Reference**: See [actions-reference.md](docs/actions-reference.md) for detailed implementation of all action types.
+> **Complete Reference**: See [actions-reference.md](docs/actions-reference.md) for detailed implementation of all action types.
 
 ### Action Target Summary
 
 | Action Type | Target Syntax | Recommended |
 |-------------|---------------|-------------|
-| **Flow** (native) | `flow://FlowAPIName` | ✅ Best choice |
-| **Apex** (via Flow) | `flow://ApexWrapperFlow` | ✅ Recommended |
-| **External API** | `flow://HttpCalloutFlow` | ✅ Via sf-integration |
-| **Prompt Template** | Deploy via metadata | ✅ For LLM tasks |
+| **Flow** (native) | `flow://FlowAPIName` | Best choice |
+| **Apex** (via Flow) | `flow://ApexWrapperFlow` | Recommended |
+| **External API** | `flow://HttpCalloutFlow` | Via sf-integration |
+| **Prompt Template** | Deploy via metadata | For LLM tasks |
 
 ### Key Requirements for Flow Actions
 
@@ -1410,6 +951,48 @@ topic order_processing:
             available when @variables.needs_approval == True
 ```
 
+### Pattern 4: Prompt Builder Action (Generative AI)
+```agentscript
+topic meeting_prep:
+   label: "Meeting Prep"
+   description: "Generate AI-powered meeting briefings"
+
+   actions:
+      get_account_details:
+         description: "Retrieves account details by name or ID"
+         inputs:
+            inp_AccountNameOrId: string
+               description: "Account name or ID"
+         outputs:
+            out_AccountName: string
+            out_AccountId: string
+            out_IsFound: boolean
+         target: "flow://Agent_Get_Account_Details"
+
+      generate_meeting_prep:
+         description: "Generates a meeting prep briefing using AI"
+         inputs:
+            "Input:Account": object
+               complex_data_type_name: "lightning__recordInfoType"
+               description: "Account record for the briefing"
+         outputs:
+            promptResponse: string
+               description: "The generated briefing"
+         target: "generatePromptResponse://Agent_Meeting_Prep"
+
+   reasoning:
+      instructions: ->
+         | Generate a meeting prep briefing.
+         | First look up the account if needed, then generate the briefing.
+      actions:
+         lookup: @actions.get_account_details
+            with inp_AccountNameOrId=...
+            set @variables.current_account_name = @outputs.out_AccountName
+            set @variables.current_account_id = @outputs.out_AccountId
+         prep: @actions.generate_meeting_prep
+            with "Input:Account"=@variables.current_account_id
+```
+
 ---
 
 ## SF CLI Agent Commands Reference
@@ -1430,7 +1013,7 @@ Complete CLI reference for Agentforce agent DevOps. For detailed guides, see:
 | `sf project retrieve start --metadata Agent:Name` | Sync agent from org |
 | `sf project deploy start --metadata Agent:Name` | Deploy agent to org |
 
-> ⚠️ Commands are in beta. Use `--help` to verify flags. See [cli-guide.md](docs/cli-guide.md).
+> Commands are in beta. Use `--help` to verify flags. See [cli-guide.md](docs/cli-guide.md).
 
 ### Authoring Commands
 
@@ -1442,7 +1025,7 @@ sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
 sf agent publish authoring-bundle --api-name [AgentName] --target-org [alias]
 ```
 
-> ⚠️ **No `--source-dir` or `--async` flags!** Commands auto-find bundles in DX project.
+> **No `--source-dir` or `--async` flags!** Commands auto-find bundles in DX project.
 
 ### Preview Commands
 
@@ -1478,7 +1061,7 @@ sf agent activate --api-name [AgentName] --target-org [alias]
 sf agent deactivate --api-name [AgentName] --target-org [alias]
 ```
 
-**⚠️ Deactivation Required:** You MUST deactivate an agent before modifying topics, actions, or system instructions. After changes, re-publish and re-activate.
+**Deactivation Required:** You MUST deactivate an agent before modifying topics, actions, or system instructions. After changes, re-publish and re-activate.
 
 ### Sync Commands (Agent Pseudo Metadata Type)
 
@@ -1513,7 +1096,7 @@ sf project deploy start --metadata ApexClass --target-org [alias]
 # 2. Deploy Flows
 sf project deploy start --metadata Flow --target-org [alias]
 
-# 3. ⚠️ VALIDATE Agent Script (MANDATORY - DO NOT SKIP!)
+# 3. VALIDATE Agent Script (MANDATORY - DO NOT SKIP!)
 sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
 # If validation fails, fix errors before proceeding!
 
@@ -1583,13 +1166,13 @@ sf project retrieve start --metadata GenAiFunction --target-org [alias]
 
 ```
 Bot (Agent Definition)
-└── BotVersion (Version Config)
-    └── GenAiPlannerBundle (Reasoning Engine)
-        ├── GenAiPlugin (Topic 1)
-        │   ├── GenAiFunction (Action 1)
-        │   └── GenAiFunction (Action 2)
-        └── GenAiPlugin (Topic 2)
-            └── GenAiFunction (Action 3)
+|- BotVersion (Version Config)
+    |- GenAiPlannerBundle (Reasoning Engine)
+        |- GenAiPlugin (Topic 1)
+        |   |- GenAiFunction (Action 1)
+        |   |- GenAiFunction (Action 2)
+        |- GenAiPlugin (Topic 2)
+            |- GenAiFunction (Action 3)
 ```
 
 ---
@@ -1607,7 +1190,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 
 ---
 
-## 🔑 Key Insights
+## Key Insights
 
 | Insight | Issue | Fix |
 |---------|-------|-----|
@@ -1621,7 +1204,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Indentation Consistency** | **Mixing tabs/spaces causes parse errors** | **Use TABS consistently (recommended) - easier for manual editing** |
 | `@variables` is plural | `@variable.x` fails | Use `@variables.x` |
 | Boolean capitalization | `true/false` invalid | Use `True/False` |
-| **⚠️ Validation Required** | **Skipping validation causes late-stage failures** | **ALWAYS run `sf agent validate authoring-bundle` BEFORE deploy** |
+| **Validation Required** | **Skipping validation causes late-stage failures** | **ALWAYS run `sf agent validate authoring-bundle` BEFORE deploy** |
 | Deploy Command | `sf agent publish` may fail with HTTP 404 | Use `sf project deploy start --source-dir` as reliable alternative |
 | **HTTP 404 UI Visibility** | **HTTP 404 creates Bot but NOT AiAuthoringBundle** | **Run `sf project deploy start` after HTTP 404 to deploy metadata** |
 | **System Instructions** | Pipe `\|` syntax fails in system: block | Use single quoted string only |
@@ -1631,7 +1214,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Flow Variable Names** | **Mismatched names cause "Internal Error"** | **Agent Script input/output names MUST match Flow variable API names exactly** |
 | **Action Location** | Top-level actions fail | Define actions inside topics |
 | **Flow Targets** | `flow://` works in both deployment methods | Ensure Flow deployed before agent publish, names match exactly |
-| **AiAuthoringBundle Flow Actions** | `with`/`set` in `reasoning.actions` causes "Internal Error" | Define actions in topic `actions:` block, let LLM auto-call (no `with`/`set`) |
+| **AiAuthoringBundle Limitations** | `with`/`set` in `reasoning.actions` NOT supported in AiAuthoringBundle | Use GenAiPlannerBundle for `with`/`set` slot-filling (production-validated). For AiAuthoringBundle: define actions in topic `actions:` block, let LLM auto-call |
 | **start_agent Actions** | Flow actions in `start_agent` fail in AiAuthoringBundle | Use `start_agent` only for `@utils.transition`, put flow actions in `topic` blocks |
 | **`run` Keyword** | Action chaining syntax | Use `run @actions.x` for callbacks (GenAiPlannerBundle only) |
 | **Lifecycle Blocks** | before/after_reasoning available | Use bare `transition to` (not `@utils.transition`) in lifecycle blocks |
@@ -1641,7 +1224,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Connection `escalation_message`** | Missing field causes parse errors | REQUIRED when other connection fields are present |
 | **Connection OmniChannelFlow** | HTTP 404 at "Publish Agent" step | Referenced flow must exist in org or BotDefinition NOT created |
 | **Nested if statements** | Parse errors ("Missing required element", "Unexpected 'else'") | Use flat conditionals with `and` operators instead |
-| **N-ary boolean operations** | Need 3+ conditions | ✅ Fully supported: `@variables.a and @variables.b and @variables.c` works |
+| **N-ary boolean operations** | Need 3+ conditions | Fully supported: `@variables.a and @variables.b and @variables.c` works |
 | **Topic delegation vs transition** | `@utils.transition` = permanent; `@topic.*` = can return | See [agent-script-reference.md](docs/agent-script-reference.md#topic-delegation-vs-transition) |
 | **Math operators (`+`, `-`)** | Works in set and conditions | `set @variables.x = @variables.x + 1` is valid |
 | **Action attributes** | `require_user_confirmation`, `include_in_progress_indicator`, `label` | Work in AiAuthoringBundle (validated Dec 2025) |
@@ -1658,21 +1241,21 @@ Before deployment, ensure you have:
 - [ ] Valid `default_agent_user` in config block
 - [ ] All linked variables (EndUserId, RoutableId, ContactId)
 - [ ] Language block present
-- [ ] **⚠️ Validation passed**: `sf agent validate authoring-bundle --api-name [AgentName]` returns 0 errors
+- [ ] **Validation passed**: `sf agent validate authoring-bundle --api-name [AgentName]` returns 0 errors
 - [ ] All topics have `label:` and `description:`
 - [ ] No reserved words used as input/output names
 - [ ] Flow/Apex dependencies deployed to org first
 
 ---
 
-## 🔧 LSP Integration (Real-Time Validation)
+## LSP Integration (Real-Time Validation)
 
 This skill includes **Language Server Protocol (LSP)** integration for real-time Agent Script validation.
 
 ### Prerequisites
 
 1. **VS Code with Agent Script Extension** (Required)
-   - Open VS Code → Extensions (Cmd+Shift+X)
+   - Open VS Code -> Extensions (Cmd+Shift+X)
    - Search: "Agent Script" by Salesforce
    - Install the extension
 
@@ -1686,24 +1269,24 @@ When you edit `.agent` files, the LSP automatically provides:
 
 | Feature | Description |
 |---------|-------------|
-| ✅ Syntax Validation | Real-time error detection |
-| ✅ Auto-Fix Loop | Claude automatically fixes errors (max 3 attempts) |
-| ✅ Fast Feedback | ~50ms response time |
+| Syntax Validation | Real-time error detection |
+| Auto-Fix Loop | Claude automatically fixes errors (max 3 attempts) |
+| Fast Feedback | ~50ms response time |
 
 ### How It Works
 
 ```
 1. Claude writes/edits .agent file
-       │
-       ▼
+       |
+       v
 2. PostToolUse hook triggers
-       │
-       ▼
+       |
+       v
 3. LSP validates syntax
-       │
-       ▼
-4. If errors → Output to Claude → Auto-fix
-   If valid → Silent success
+       |
+       v
+4. If errors -> Output to Claude -> Auto-fix
+   If valid -> Silent success
 ```
 
 ### Troubleshooting

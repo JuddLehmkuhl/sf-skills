@@ -60,7 +60,7 @@ start_agent topic_selector:
     reasoning:
         instructions: ->
             | Route the user to the right topic based on their request.
-              IMPORTANT: If the user mentions ANY account name (like 'Tell me about Acme Agency' or 'Look up Midwest'), route to account_intel immediately. Do NOT ask for clarification or more details — account_intel will handle the lookup.
+              IMPORTANT: If the user mentions ANY account name (like 'Tell me about Acme Corp' or 'Look up Midwest'), route to account_intel immediately. Do NOT ask for clarification or more details — account_intel will handle the lookup.
               If the user asks about onboarding progress, documents, or action plan status, route to onboarding_status.
               If the user asks to prepare for a meeting or wants a briefing, route to meeting_prep.
               If the user asks about relationships, who to contact, stale accounts, partner networks, or hierarchy, route to relationship_advisor.

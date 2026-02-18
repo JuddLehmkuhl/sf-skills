@@ -71,16 +71,51 @@ External Sources --> Data Streams --> DSO (staging, raw)
 
 ```
 1. Data Kit (DevOps)    --> Create in sandbox UI first
-2. Data Streams         --> Configure connectors + ingestion sources
-3. DLO Objects          --> Materialized schema-typed objects (auto-created by streams)
-4. DMO Objects          --> Canonical model + field mappings
-5. Identity Resolution  --> Match + reconciliation rules
-6. Calculated Insights  --> SQL aggregations on DMOs
-7. Segments             --> Filter criteria for activation
-8. Activations          --> Push to Marketing Cloud, Google Ads, S3, etc.
+2. Connectors           --> Authorize connector (UI-only, then retrieve metadata)
+3. Data Streams         --> Configure streams linking connectors to source objects
+4. DLO Objects          --> Materialized schema-typed objects (auto-created by streams)
+5. DMO Objects          --> Canonical model + field mappings
+6. Identity Resolution  --> Match + reconciliation rules
+7. Calculated Insights  --> SQL aggregations on DMOs
+8. Segments             --> Filter criteria for activation
+9. Activations          --> Push to Marketing Cloud, Google Ads, S3, etc.
 ```
 
 Deploy order matters. DMOs depend on DLOs. Identity Resolution depends on DMOs. Calculated Insights and Segments depend on resolved profiles.
+
+---
+
+## UI-Only vs. Deployable Components
+
+Understanding what requires the UI and what can be fully automated via metadata is critical.
+
+| Component | Create via Metadata? | Deploy Between Orgs? | Notes |
+|---|---|---|---|
+| **Data Kit** | No | Yes (after UI creation) | Must create DevOps Data Kit in UI first, then retrieve/deploy |
+| **Connector (CRM)** | No | Yes (deploys INACTIVE) | Auth requires UI; re-authorize after deploy |
+| **Connector (Ingestion API)** | Yes | Yes | `DataConnectorIngestApi` XML is simple; no auth needed |
+| **Connector (S3)** | Partial | Yes (deploys INACTIVE) | `DataConnectorS3` XML deploys config; credentials require UI |
+| **Data Source** | Yes | Yes | `DataSource` XML is simple (label + prefix) |
+| **Data Stream** | Yes | Yes | `DataStreamDefinition` XML; references a connector that must exist |
+| **DMO (__dlm objects)** | Yes | Yes | Full metadata control via `CustomObject` + `mktDataModelAttributes` |
+| **DLO** | No (auto-created) | Yes (via Data Kit) | Auto-created by data streams; deployable within Data Kit |
+| **Identity Resolution** | No | Yes (via Data Kit) | Rules created in UI; retrievable and deployable |
+| **Calculated Insights** | Yes | Yes (via Data Kit) | SQL-defined; must be wrapped in Data Kit for deploy |
+| **Segments** | Partial | Yes | `MarketSegmentDefinition` XML; complex segments easier via UI |
+| **Activations** | No | Yes | `ActivationPlatform` metadata; initial setup requires UI |
+
+### Practical Workflow
+
+**First org (manual setup):**
+1. Create Data Kit, connectors, and authorize in UI
+2. Configure data streams and field mappings
+3. Retrieve all metadata via `sf project retrieve start`
+
+**Subsequent orgs (automated deploy):**
+1. Create DevOps Data Kit in target org (UI, one-time)
+2. Deploy retrieved metadata via `sf project deploy start`
+3. Re-authorize connectors in target org (UI)
+4. Redeploy Data Kit after re-authorization
 
 ---
 
@@ -299,21 +334,23 @@ See `references/apis.md` for complete Apex patterns, error handling, and test ex
 
 ```
 force-app/main/default/
-├── dataStreamDefinitions/         # Data stream configs
-├── dataPackageKitDefinitions/     # Data Kit definitions
-├── DataPackageKitObjects/         # Data Kit object mappings
+├── mktDataSources/                # Data source definitions (label + prefix)
+├── dataconnectors/                # Generic connector configs
 ├── dataConnectorIngestApis/       # Ingestion API connector configs
 ├── s3DataConnectors/              # S3 connector configs
-├── mktCalcInsightObjectDefs/      # Calculated Insight definitions
-├── marketSegmentDefinitions/      # Segment definitions
+├── dataStreamDefinitions/         # Data stream configs (link connector to source)
+├── dataSourceBundleDefinitions/   # Data source bundle configs
+├── dataSourceObjects/             # Data source object mappings
+├── dataPackageKitDefinitions/     # Data Kit definitions
+├── DataPackageKitObjects/         # Data Kit object mappings
 ├── objects/
 │   └── My_Object__dlm/           # DLM object directory
 │       ├── My_Object__dlm.object-meta.xml
 │       └── fields/
 │           └── MyField__c.field-meta.xml
-├── mktDataSources/                # Data source definitions
-├── dataSourceBundleDefinitions/   # Data source bundle configs
-├── dataSourceObjects/             # Data source object mappings
+├── mktCalcInsightObjectDefs/      # Calculated Insight definitions
+├── marketSegmentDefinitions/      # Segment definitions
+├── activationPlatforms/           # Activation target configs
 ├── fieldSrcTrgtRelationships/     # Field source-target mappings
 └── objectSourceTargetMaps/        # Object source-target mappings
 ```
@@ -338,6 +375,9 @@ force-app/main/default/
 | 12 | CRM Permission Set manual | `sfdc_a360_sfcrm_data_extrac` permission set cannot be deployed via Metadata API |
 | 13 | Identity Resolution order | Must deploy DMOs and field mappings before identity resolution rulesets |
 | 14 | Calculated Insight SQL validation | SQL in calculated insights is validated at deploy time -- invalid SQL blocks deployment |
+| 15 | Data streams require connectors | DataStreamDefinition references a `dataConnector` that must already exist in the target org |
+| 16 | DataConnectorIngestApi no wildcard | `DataConnectorIngestApi` does NOT support `*` wildcard in package.xml -- must list by name |
+| 17 | DLO suffix is `__dll` not `__dlm` | DLO (Data Lake Object) suffix is `__dll`; DMO (Data Model Object) suffix is `__dlm` |
 
 ---
 

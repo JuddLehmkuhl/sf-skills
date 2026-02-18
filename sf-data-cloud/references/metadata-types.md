@@ -28,6 +28,14 @@ Complete reference for all Data Cloud metadata types supported by Salesforce Met
 | MktCalcInsightObjectDef | mktCalcInsightObjectDefs | .mktCalcInsightObjectDef | U / 1GP |
 | MarketSegmentDefinition | marketSegmentDefinitions | .marketSegmentDefinition | U / 1GP |
 | ActivationPlatform | activationPlatforms | .activationPlatform | U / 1GP |
+| ActivationPlatformActvAttr | activationPlatformActvAttrs | .activationPlatformActvAttr | U |
+| ActivationPlatformField | activationPlatformFields | .activationPlatformField | U |
+| ActvPfrmDataConnectorS3 | actvPfrmDataConnectorS3s | .actvPfrmDataConnectorS3 | U |
+| ActvPlatformAdncIdentifier | actvPlatformAdncIdentifiers | .actvPlatformAdncIdentifier | U |
+| ActvPlatformFieldValue | actvPlatformFieldValues | .actvPlatformFieldValue | U |
+| DataSourceField | dataSourceFields | .dataSourceField | U / 2GP |
+| ExternalDataTransportFieldTemplate | externalDataTransportFieldTemplates | .externalDataTransportFieldTemplate | U |
+| ExternalDataTransportObjectTemplate | externalDataTransportObjectTemplates | .externalDataTransportObjectTemplate | U |
 | MktDataTranField | mktDataTranFields | .mktDataTranField | U |
 | MktDataTranObject | mktDataTranObjects | .mktDataTranObject | U / 2GP |
 | MktDataConnection | mktDataConnections | .mktDataConnection | U |
@@ -89,10 +97,14 @@ force-app/main/default/
     MyDataKit.dataPackageKitDefinition-meta.xml
   DataPackageKitObjects/
     MyDataKit_MyObject.DataPackageKitObject-meta.xml
+  mktDataSources/
+    Salesforce_Home.dataSource-meta.xml
   dataconnectors/
     MyConnector.dataconnector-meta.xml
   dataConnectorIngestApis/
     MyIngestApi.dataConnectorIngestApi-meta.xml
+  s3DataConnectors/
+    MyS3Connector.s3DataConnector-meta.xml
   objects/
     My_Object__dlm/
       My_Object__dlm.object-meta.xml
@@ -124,6 +136,10 @@ force-app/main/default/
     <types>
         <members>*</members>
         <name>DataStreamDefinition</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>DataSource</name>
     </types>
     <types>
         <members>*</members>

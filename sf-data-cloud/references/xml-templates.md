@@ -138,6 +138,171 @@ The `referenceObjectName` and `referenceFieldName` attributes establish the fore
 
 ---
 
+## DataStreamDefinition
+
+Defines a data stream that links a connector to a source object and specifies how data flows into Data Cloud.
+
+### CRM Connector Stream (Retrieved from psa-ai-agent org)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DataStreamDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <areHeadersIncludedInFile>false</areHeadersIncludedInFile>
+    <bulkIngest>false</bulkIngest>
+    <creationType>Custom</creationType>
+    <dataConnector>SalesforceDotCom_Home</dataConnector>
+    <dataConnectorType>SalesforceDotCom</dataConnectorType>
+    <dataExtractMethods>FULL_REFRESH</dataExtractMethods>
+    <dataPlatformDataSetItemName>SFDC</dataPlatformDataSetItemName>
+    <dataSource>Salesforce_Home</dataSource>
+    <isLimitedToNewFiles>false</isLimitedToNewFiles>
+    <isMissingFileFailure>false</isMissingFileFailure>
+    <masterLabel>Account_Home</masterLabel>
+    <mktDataLakeObject>Account_Home__dll</mktDataLakeObject>
+    <mktDataTranObject>Account_Home</mktDataTranObject>
+</DataStreamDefinition>
+```
+
+### Ingestion API Stream
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DataStreamDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <areHeadersIncludedInFile>false</areHeadersIncludedInFile>
+    <bulkIngest>false</bulkIngest>
+    <creationType>Custom</creationType>
+    <dataConnector>MyIngestConnector</dataConnector>
+    <dataConnectorType>IngestApi</dataConnectorType>
+    <dataExtractMethods>FULL_REFRESH</dataExtractMethods>
+    <dataSource>MyIngestSource</dataSource>
+    <isLimitedToNewFiles>false</isLimitedToNewFiles>
+    <isMissingFileFailure>false</isMissingFileFailure>
+    <masterLabel>Customer_Events</masterLabel>
+    <mktDataLakeObject>Customer_Events__dll</mktDataLakeObject>
+    <mktDataTranObject>Customer_Events</mktDataTranObject>
+</DataStreamDefinition>
+```
+
+### S3 Connector Stream
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DataStreamDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <areHeadersIncludedInFile>true</areHeadersIncludedInFile>
+    <bulkIngest>false</bulkIngest>
+    <creationType>Custom</creationType>
+    <dataConnector>MyS3Connector</dataConnector>
+    <dataConnectorType>AwsS3</dataConnectorType>
+    <dataExtractMethods>FULL_REFRESH</dataExtractMethods>
+    <dataSource>MyS3Source</dataSource>
+    <fileNameWildcard>*.csv</fileNameWildcard>
+    <isLimitedToNewFiles>false</isLimitedToNewFiles>
+    <isMissingFileFailure>false</isMissingFileFailure>
+    <masterLabel>S3_Customer_Data</masterLabel>
+    <mktDataLakeObject>S3_Customer_Data__dll</mktDataLakeObject>
+    <mktDataTranObject>S3_Customer_Data</mktDataTranObject>
+</DataStreamDefinition>
+```
+
+### DataStreamDefinition Field Reference
+
+| Field | Type | Description |
+|---|---|---|
+| `areHeadersIncludedInFile` | boolean | If true, headers are included in the file for single-file streams |
+| `bulkIngest` | boolean | If true, files are aggregated before ingestion (wildcard file names) |
+| `creationType` | string | `Custom` or `Standard` |
+| `dataConnector` | string | Required. Name of the connector this stream uses |
+| `dataConnectorType` | enum | Required. Connector type (see enum table below) |
+| `dataExtractMethods` | enum | `FULL_REFRESH`, `DATETIME_CDC`, `NUMERIC_CDC`, `BINARY_CDC` |
+| `dataExtractField` | string | Transport field name used when extract method is CDC |
+| `dataPlatformDataSetItemName` | string | Data Platform Set Item name (e.g., `SFDC` for CRM streams) |
+| `dataSource` | string | Required. Reference to the data source |
+| `fileNameWildcard` | string | File or wildcard pattern for file-based streams (e.g., `*.csv`) |
+| `isLimitedToNewFiles` | boolean | If true, only new files are retrieved |
+| `isMissingFileFailure` | boolean | If true, missing files cause failure |
+| `masterLabel` | string | Required. UI label for this stream |
+| `mktDataLakeObject` | string | Required. Target DLO where data lands (ends with `__dll`) |
+| `mktDataTranObject` | string | Transport object name |
+
+### dataConnectorType Enum Values
+
+| Value | Connector |
+|---|---|
+| `SalesforceDotCom` | Salesforce CRM |
+| `IngestApi` | Ingestion API |
+| `AwsS3` | Amazon S3 |
+| `AzureBlob` | Azure Blob Storage |
+| `GoogleCloudStorage` | Google Cloud Storage |
+| `Snowflake` | Snowflake |
+| `BIG_QUERY` | Google BigQuery |
+| `REDSHIFT` | Amazon Redshift |
+| `DataCloud` | Data Cloud (cross-org) |
+| `SalesforceMarketingCloud` | Marketing Cloud |
+| `SalesforceCommerceCloud` | B2C Commerce Cloud |
+| `SalesforceInteractionStudio` | Interaction Studio / Personalization |
+| `ACCOUNTENGAGEMENT` | Account Engagement (Pardot) |
+| `StreamingApp` | Streaming App |
+| `ExternalPlatform` | External Platform |
+| `CuratedEntity` | Curated Entity (internal) |
+| `SFTP` | SFTP |
+| `UPLOAD` | File Upload |
+
+---
+
+## Data Connectors
+
+### DataConnectorIngestApi
+
+Defines an Ingestion API connector. Available API version 54.0+. Does NOT support wildcard (`*`) in package.xml.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DataConnectorIngestApi xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sourceName>MyConnector</sourceName>
+    <masterLabel>MyConnector</masterLabel>
+</DataConnectorIngestApi>
+```
+
+### DataConnectorS3
+
+Defines an Amazon S3 connector. Available API version 50.0+.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DataConnectorS3 xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fileNameWildcard>*.csv</fileNameWildcard>
+    <importFromDirectory>data/customer-events/</importFromDirectory>
+    <masterLabel>Customer Events S3</masterLabel>
+    <s3BucketName>my-data-cloud-bucket</s3BucketName>
+</DataConnectorS3>
+```
+
+| Field | Description |
+|---|---|
+| `fileNameWildcard` | Optional. File pattern (e.g., `*.csv`, `profiles*.csv`) |
+| `importFromDirectory` | Required. S3 directory path to import from |
+| `masterLabel` | Required. UI label |
+| `s3BucketName` | Optional. S3 bucket name |
+
+### DataSource
+
+Defines a data source that groups related data streams.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DataSource xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>Salesforce_Home</masterLabel>
+    <prefix>Sal</prefix>
+</DataSource>
+```
+
+| Field | Description |
+|---|---|
+| `masterLabel` | Required. UI label and API name for the data source |
+| `prefix` | Required. Short prefix used in naming derived objects |
+
+---
+
 ## Data Kit Components
 
 ### DataPackageKitDefinition
@@ -375,5 +540,7 @@ GROUP BY
 | Data Kit Object | `{KitName}_{ObjectRef}.DataPackageKitObject-meta.xml` | `CustomerDataKit_MyObject.DataPackageKitObject-meta.xml` |
 | Data Stream | `{StreamName}.dataStreamDefinition-meta.xml` | `CRM_Contacts.dataStreamDefinition-meta.xml` |
 | Ingest Connector | `{ConnectorName}.dataConnectorIngestApi-meta.xml` | `CustomerEvents.dataConnectorIngestApi-meta.xml` |
+| S3 Connector | `{ConnectorName}.s3DataConnector-meta.xml` | `CustomerData.s3DataConnector-meta.xml` |
+| Data Source | `{SourceName}.dataSource-meta.xml` | `Salesforce_Home.dataSource-meta.xml` |
 | Calc Insight | `{InsightName}.mktCalcInsightObjectDef-meta.xml` | `EmailScore.mktCalcInsightObjectDef-meta.xml` |
 | Segment | `{SegmentName}.marketSegmentDefinition-meta.xml` | `HighValueCustomers.marketSegmentDefinition-meta.xml` |

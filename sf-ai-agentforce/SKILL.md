@@ -8,7 +8,7 @@ license: MIT
 compatibility: "Requires API v65.0+ (Winter '26) for deployment"
 metadata:
   version: "1.0.0"
-  author: "Judd Lehmkuhl"
+  author: "Jag Valaiyapathy"
   scoring: "100 points across 6 categories"
 ---
 

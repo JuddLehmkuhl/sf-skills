@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   version: "3.0.0"
-  author: "Judd Lehmkuhl"
+  author: "Jag Valaiyapathy"
   scoring: "165 points across 8 categories (SLDS 2 + Dark Mode compliant)"
 ---
 

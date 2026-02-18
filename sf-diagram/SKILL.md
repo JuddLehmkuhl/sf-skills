@@ -8,7 +8,7 @@ license: MIT
 compatibility: "Requires Mermaid-capable renderer for diagram previews"
 metadata:
   version: "2.0.0"
-  author: "Judd Lehmkuhl"
+  author: "Jag Valaiyapathy"
   scoring: "80 points across 5 categories"
 ---
 

@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   version: "1.0.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
 ---
 
 # sf-data-cloud: Salesforce Data Cloud (Data 360) Development

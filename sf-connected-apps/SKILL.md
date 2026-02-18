@@ -9,7 +9,7 @@ license: MIT
 allowed-tools: Bash Read Write Edit Glob Grep WebFetch AskUserQuestion TodoWrite
 metadata:
   version: "2.0.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
   scoring: "120 points across 6 categories"
   last-updated: "2026-02-18"
 ---

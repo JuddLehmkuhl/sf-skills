@@ -12,7 +12,7 @@ description: >
 license: MIT
 metadata:
   version: "1.0.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
   enriched: "2026-02-18"
 ---
 

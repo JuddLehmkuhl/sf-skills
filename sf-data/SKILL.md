@@ -6,7 +6,7 @@ description: >
   sf CLI, or generating test data factories.
 metadata:
   version: "2.1.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
   enriched_by: "Claude Opus 4.6"
   last_updated: "2026-02-18"
 ---

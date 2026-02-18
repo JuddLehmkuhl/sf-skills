@@ -7,7 +7,7 @@ description: >
 license: MIT
 metadata:
   version: "2.0.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
   scoring: "110 points across 6 categories"
 ---
 

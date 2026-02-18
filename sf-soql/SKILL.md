@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   version: "2.0.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
   enriched_by: "PS Advisory"
   scoring: "100 points across 5 categories"
 ---

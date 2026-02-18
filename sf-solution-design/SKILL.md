@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   version: "2.1.0"
-  author: "Jag Valaiyapathy"
+  author: "Judd Lehmkuhl"
   scoring: "Qualitative -- pass/fail on checklist completion"
 ---
 

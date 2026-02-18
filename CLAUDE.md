@@ -6,7 +6,10 @@ This configuration provides Claude Code with comprehensive Salesforce developmen
 
 Load skills based on the task at hand. Skills are organized by domain:
 
-### Foundation Skills (Load First)
+### Solution Design (Load First for ANY New Work)
+- `sf-solution-design` - **MANDATORY before designing solutions** - Feature discovery, PSL-to-capability mapping, 8-question checklist to leverage platform features before building custom
+
+### Foundation Skills
 - `sf-metadata` - Custom objects, fields, permission sets, validation rules
 - `sf-data` - SOQL, data operations, test data factories
 - `sf-soql` - SOQL query generation, optimization, and validation
@@ -41,12 +44,15 @@ Load skills based on the task at hand. Skills are organized by domain:
 When creating Salesforce solutions, follow this dependency order:
 
 ```
-1. sf-metadata     → Create objects/fields first
-2. sf-apex         → Create Apex classes (InvocableMethods, Services, DAL)
-3. sf-flow         → Create Flows that reference Apex/metadata
-4. sf-deploy       → Deploy all metadata to org
-5. sf-ai-agentforce → Publish agents (requires deployed dependencies)
+0. sf-solution-design → RUN FIRST: Discover available features, answer 8-question checklist
+1. sf-metadata        → Create objects/fields (only if needed after checklist)
+2. sf-apex            → Create Apex classes (only if needed after checklist)
+3. sf-flow            → Create Flows that reference Apex/metadata
+4. sf-deploy          → Deploy all metadata to org
+5. sf-ai-agentforce   → Publish agents (requires deployed dependencies)
 ```
+
+> ⚠️ **Step 0 is mandatory.** Many solutions can be achieved with configuration instead of code. The Solution Design Framework ensures you leverage what's already available.
 
 ## PS Advisory Conventions
 
@@ -99,6 +105,7 @@ force-app/main/default/
 
 When working on a specific domain, read the relevant SKILL.md file first:
 
+- **Solution Design**: Read `sf-solution-design/SKILL.md` - **START HERE for any new feature/solution**
 - **Triggers**: Read `salesforce-trigger-framework/SKILL.md`
 - **Agentforce**: Read `sf-ai-agentforce/SKILL.md`
 - **Apex**: Read `sf-apex/SKILL.md`

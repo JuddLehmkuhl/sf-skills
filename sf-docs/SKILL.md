@@ -8,7 +8,7 @@ description: >
   or any changes that require stakeholder communication.
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "2.0.0"
   author: "Jag Valaiyapathy"
   outputs: "Feature Summary, Technical Record, Change Entry"
 ---
@@ -17,15 +17,90 @@ metadata:
 
 Generates documentation automatically from code, metadata, and context during development.
 
-## What This Produces
+## Quick Reference
 
-Three documentation outputs, all auto-generated, each for a different audience:
+| Item | Details |
+|------|---------|
+| **Commands** | `/docs`, `/docs summary`, `/docs tech`, `/docs entry` |
+| **Outputs** | Feature Summary, Technical Record, Change Entry |
+| **Runs after** | `sf-apex`, `sf-flow`, `sf-metadata`, `salesforce-trigger-framework`, `sf-deploy` |
+| **Orchestration position** | Step 6 -- documentation pass after implementation and deployment |
+| **Input sources** | Apex classes, Flow XML, Custom Metadata, trigger actions, deploy logs |
+| **Output locations** | `/docs/features/`, `/docs/technical/`, `/docs/changelog/` |
+| **Related skills** | `sf-diagram` (architecture visuals), `sf-testing` (coverage data), `sf-deploy` (deploy manifests) |
 
-| Output | Audience | Language | Focus |
-|--------|----------|----------|-------|
-| **Feature Summary** | Business stakeholders, PMs | Zero jargon, outcome-focused | What changed and why it matters |
-| **Technical Record** | Developers, Admins | Technical, precise | How it works, how to maintain |
-| **Change Entry** | Release notes readers | Brief, scannable | What shipped |
+---
+
+## Orchestration Position
+
+**sf-docs runs AFTER implementation is complete.** It is NOT part of the build pipeline -- it is the documentation pass that follows it.
+
+```
+0. sf-solution-design  -> Discover features, answer 8-question checklist
+1. sf-metadata         -> Create objects/fields
+2. sf-apex             -> Create Apex classes, trigger actions
+3. sf-flow             -> Create Flows referencing Apex/metadata
+4. sf-deploy           -> Deploy all metadata to org
+5. sf-testing          -> Validate tests pass, coverage meets threshold
+6. sf-docs             -> YOU ARE HERE: Generate documentation from what was built
+```
+
+### When to Invoke sf-docs
+
+| Trigger | Action |
+|---------|--------|
+| Feature completed and deployed | `/docs` -- generate all three outputs |
+| Sprint review approaching | `/docs summary` -- business-facing summary for stakeholders |
+| Pull request ready | `/docs tech` -- technical record for reviewers |
+| Release cut | `/docs entry` -- change entry for release notes |
+| Post-hotfix | `/docs entry` + `/docs tech` -- document the fix and its technical footprint |
+
+### What sf-docs Reads from Other Skills
+
+sf-docs does not operate in isolation. It pulls context from the artifacts produced by upstream skills:
+
+| Upstream Skill | What sf-docs Reads | Used In |
+|----------------|-------------------|---------|
+| **sf-apex** | Apex classes, trigger actions, ApexDoc comments, test classes | Technical Record (components, architecture, test coverage) |
+| **sf-flow** | Flow XML metadata, flow descriptions, entry conditions | Technical Record (behavior), Feature Summary (automation descriptions) |
+| **sf-metadata** | Custom Objects, Custom Fields, Custom Metadata, Permission Sets | Technical Record (dependencies), Feature Summary (what changed for users) |
+| **salesforce-trigger-framework** | TA_* classes, Custom Metadata trigger configs, execution order | Technical Record (architecture pattern, execution order) |
+| **sf-deploy** | Deploy logs, manifest files, deployment order | Technical Record (deployment section, rollback steps) |
+| **sf-testing** | Test results JSON, coverage percentages, test scenarios | Technical Record (testing section) |
+| **sf-diagram** | Mermaid diagrams (ERD, sequence, architecture) | Technical Record (embedded architecture diagrams) |
+
+---
+
+## Decision Framework: Which Output to Generate
+
+Not every change needs all three outputs. Use this decision tree:
+
+```
+Is this a user-facing change?
+  YES -> Generate Feature Summary
+  NO  -> Skip Feature Summary
+
+Does this touch code, metadata, or architecture?
+  YES -> Generate Technical Record
+  NO  -> Skip Technical Record (config-only changes may not need one)
+
+Is this shipping in a release?
+  YES -> Generate Change Entry
+  NO  -> Skip Change Entry (internal refactors, tech debt)
+```
+
+### Common Scenarios
+
+| Scenario | Feature Summary | Technical Record | Change Entry |
+|----------|:-:|:-:|:-:|
+| New feature (trigger + flow + metadata) | Yes | Yes | Yes |
+| Bug fix affecting users | Yes | Yes | Yes |
+| Internal refactor (no user impact) | No | Yes | No |
+| New trigger action on existing object | Maybe | Yes | Yes |
+| Permission set change | Yes | No | Yes |
+| Data migration / data fix | No | Yes | No |
+| New integration endpoint | Yes | Yes | Yes |
+| Performance optimization | No | Yes | Maybe |
 
 ---
 
@@ -36,6 +111,27 @@ Three documentation outputs, all auto-generated, each for a different audience:
 /docs summary      # Feature Summary only (business-facing)
 /docs tech         # Technical Record only (developer-facing)
 /docs entry        # Change Entry only (release notes)
+/docs review       # Review existing docs against quality checklist
+```
+
+### CLI Integration
+
+After generating documentation, use these commands to manage the output:
+
+```bash
+# Create docs directories if they don't exist
+mkdir -p docs/features docs/technical docs/changelog
+
+# Stage documentation for commit
+git add docs/
+
+# Commit with conventional message
+git commit -m "docs: add documentation for [feature-name]"
+
+# View generated docs in terminal
+cat docs/features/[feature-name].md
+cat docs/technical/[feature-name].md
+cat docs/changelog/$(date +%Y-%m).md
 ```
 
 ---
@@ -243,6 +339,35 @@ Contact the project team for questions about this change.
 - Include deployment and rollback procedures
 - Assume reader knows Salesforce but not this project
 
+### Cross-Referencing Upstream Skills
+
+When generating the Technical Record, pull data from upstream skill artifacts:
+
+**From sf-apex / salesforce-trigger-framework:**
+- List every Apex class, trigger, and trigger action created
+- Include the `TA_*` execution order from Custom Metadata
+- Document the architecture pattern: `Trigger -> MetadataTriggerHandler -> TA_* -> Services -> DAL`
+- Reference test classes and their coverage percentages
+
+**From sf-flow:**
+- List every Flow with its type (Record-Triggered, Screen, Autolaunched, Scheduled)
+- Include entry conditions and trigger context (Before Save vs After Save)
+- Note any Apex Actions invoked from Flows
+
+**From sf-metadata:**
+- List all Custom Objects, Custom Fields, Custom Metadata Types created
+- Document field-level security requirements
+- Include Permission Set assignments
+
+**From sf-deploy:**
+- Include the exact deployment order used
+- Document any deployment flags or special considerations
+- Provide the rollback procedure
+
+**From sf-diagram (optional):**
+- Embed Mermaid diagrams for architecture visualization
+- Include ERD diagrams for data model documentation
+
 ### Template
 
 ```markdown
@@ -250,6 +375,7 @@ Contact the project team for questions about this change.
 
 **Generated:** [Timestamp]
 **Commit/Branch:** [If known]
+**Upstream skills used:** [sf-apex, sf-flow, sf-metadata, etc.]
 
 ---
 
@@ -403,6 +529,7 @@ force-app/main/default/
 - 3-5 bullet points of specific changes
 - Keep entire entry under 75 words
 - Lead with user impact, not technical details
+- Follow Salesforce release notes conventions: state what changed, who benefits, and any action required
 
 ### Template
 
@@ -426,6 +553,41 @@ force-app/main/default/
 - Leads saved without a Lead Source get a default value automatically
 - Leads saved without a Status get a default value automatically
 - Applies to all new leads created in any way (manual, import, web form)
+```
+
+### Changelog File Convention
+
+Change entries are appended to monthly changelog files:
+
+```
+docs/changelog/
+├── 2024-12.md    # December 2024 changes
+├── 2025-01.md    # January 2025 changes
+└── 2025-02.md    # February 2025 changes
+```
+
+Each monthly file follows this structure:
+
+```markdown
+# Release Notes - [Month Year]
+
+## [Date] - [Release Name or Sprint]
+
+### [Feature 1]
+**[Summary sentence]**
+- [Change]
+- [Change]
+
+### [Feature 2]
+**[Summary sentence]**
+- [Change]
+- [Change]
+
+---
+
+## [Earlier Date] - [Release Name or Sprint]
+
+...
 ```
 
 ---
@@ -480,6 +642,19 @@ When generating Feature Summary, translate technical concepts:
 | "Metadata-driven configuration" | "Settings can be adjusted without code changes" |
 | "Enabled bypass mechanism" | "Can be turned off during data imports" |
 
+### Trigger Actions Framework Translations
+
+When documenting features built with the `salesforce-trigger-framework` skill, apply these specific translations:
+
+| TAF Concept | Business Translation |
+|-------------|---------------------|
+| TA_Lead_SetDefaults (BeforeInsert) | "When a new lead is created, the system fills in default values" |
+| TA_Account_ValidateFields (BeforeUpdate) | "When someone edits an account, the system checks the data is valid" |
+| TA_Opportunity_CreateTasks (AfterInsert) | "When a new opportunity is created, the system creates follow-up tasks" |
+| sObject_Trigger_Setting__mdt bypass | "This behavior can be temporarily turned off for bulk data imports" |
+| Trigger_Action__mdt ordering | [Omit - internal execution detail] |
+| MetadataTriggerHandler dispatch | [Omit - internal plumbing] |
+
 ---
 
 ## Inferring Business Impact from Code
@@ -528,18 +703,21 @@ Customize this table for your project's industry/context:
 
 ### Technical Record (Developer)
 
-- [ ] All components listed with correct paths?
+- [ ] All components listed with correct file paths?
 - [ ] Architecture and patterns documented?
 - [ ] Dependencies explicit and complete?
 - [ ] Deployment order accurate?
 - [ ] Rollback procedure would actually work?
 - [ ] Extension points documented?
+- [ ] Cross-references to upstream skills included?
+- [ ] sf-diagram visuals embedded where helpful?
 
 ### Change Entry (Release Notes)
 
 - [ ] Under 75 words total?
 - [ ] Lead sentence describes user impact (not technical implementation)?
 - [ ] Bullet points are user-facing changes?
+- [ ] Appended to correct monthly changelog file?
 
 ---
 
@@ -553,63 +731,112 @@ Customize this table for your project's industry/context:
 
 ---
 
-## Generation Prompt: Feature Summary
+## Integration with sf-deploy
 
-When generating Feature Summary, use this internal guidance:
+When sf-deploy completes a deployment, sf-docs can auto-generate documentation from the deploy results:
+
+```bash
+# After a successful deployment, generate docs from the deploy manifest
+sf project deploy start --source-dir force-app --target-org sandbox \
+  --json > deploy-result.json
+
+# Then invoke sf-docs to read the deploy result and generate Technical Record
+/docs tech
+# sf-docs reads deploy-result.json to populate:
+#   - Components list
+#   - Deployment order
+#   - Verification commands
+```
+
+### Post-Deployment Documentation Workflow
 
 ```
-You are writing for a business audience who will never look at Salesforce Setup.
-
-RULES:
-- No technical jargon. None. Zero.
-- Translate every technical concept to user experience.
-- "Trigger" → "When someone creates/edits a [record]"
-- "Flow" → "The system automatically"
-- "Custom Metadata" → "Settings" or omit
-- "Object" → Use the business name (Lead, Account, Policy)
-- "Field" → Use the label users see
-- Focus on WHAT CHANGED FOR USERS, not what developers built.
-- Keep sentences under 20 words.
-- Active voice only.
-- One page maximum.
-
-STRUCTURE:
-1. What's New (2-3 sentences - the headline)
-2. Why This Matters (the user problem solved)
-3. What Changed (before/after table)
-4. Who This Affects (job titles and plain descriptions)
-5. What Happens Automatically (when X, system does Y)
-6. What's NOT Included (manage expectations)
-
-If you catch yourself writing a technical term, stop and translate it.
+1. sf-deploy completes successfully
+2. sf-testing confirms all tests pass
+3. Run `/docs` to generate all documentation
+4. Review generated docs against Quality Checklist
+5. Stage and commit: git add docs/ && git commit -m "docs: [feature-name]"
+6. Include doc links in PR description or sprint review
 ```
 
 ---
 
-## Generation Prompt: Technical Record
+## Integration with sf-diagram
 
-When generating Technical Record, use this internal guidance:
+For Technical Records that describe complex architectures, invoke sf-diagram to generate visuals:
 
 ```
-You are writing for developers and admins who need to maintain and extend this.
+# Generate ERD for the data model documented in Technical Record
+/diagram erd Account Contact Opportunity
 
-INCLUDE:
-- Every component with file paths
-- Architecture pattern and rationale
-- All dependencies (packages, objects, permissions)
-- Complete deployment sequence
-- Rollback procedure
-- Extension points
-- Known limitations
+# Generate sequence diagram for an integration flow
+/diagram sequence "External System -> Named Credential -> Apex -> Platform Event"
 
-ASSUME:
-- Reader knows Salesforce development
-- Reader does NOT know this specific project's context
-- Reader may need to troubleshoot at 2am
-
-FORMAT:
-- Tables for component lists
-- Code blocks for commands and paths
-- Clear headers for scanning
-- Diagrams for complex flows
+# Embed the resulting Mermaid code directly in the Technical Record
 ```
+
+The sf-diagram output can be embedded in the Technical Record's Architecture section:
+
+```markdown
+## Architecture
+
+**Pattern:** Trigger Actions Framework
+
+```mermaid
+flowchart LR
+    A[DML Event] --> B[LeadTrigger]
+    B --> C[MetadataTriggerHandler]
+    C --> D[TA_Lead_SetDefaults]
+    C --> E[TA_Lead_ValidateFields]
+    D --> F[LeadService]
+    E --> F
+```
+```
+
+---
+
+## Versioning and Document Lifecycle
+
+### When to Update Existing Documentation
+
+| Change Type | Feature Summary | Technical Record | Change Entry |
+|-------------|:-:|:-:|:-:|
+| Bug fix to documented feature | Update | Update | New entry |
+| Enhancement to documented feature | Update | Update | New entry |
+| Breaking change | New version | Update + migration notes | New entry |
+| Deprecation | Update with sunset date | Update with removal plan | New entry |
+| Configuration change only | No change | Update | Optional |
+
+### Document Naming Convention
+
+```
+docs/
+├── features/
+│   ├── automatic-lead-completion.md
+│   ├── opportunity-stage-validation.md
+│   └── case-auto-assignment.md
+├── technical/
+│   ├── automatic-lead-completion.md
+│   ├── opportunity-stage-validation.md
+│   └── case-auto-assignment.md
+└── changelog/
+    ├── 2024-12.md
+    ├── 2025-01.md
+    └── 2025-02.md
+```
+
+Use kebab-case for file names. Match names between features/ and technical/ directories so they are easy to cross-reference.
+
+---
+
+## Sources
+
+This skill's documentation standards are informed by:
+
+- [Complete Guide to Salesforce Documentation - Salesforce Ben](https://www.salesforceben.com/complete-guide-to-salesforce-documentation/)
+- [Functional and Technical Documentation for Salesforce Projects - Salesforce Ben](https://www.salesforceben.com/functional-and-technical-documentation-for-salesforce-projects-whats-the-difference/)
+- [Salesforce Best Practices: System Documentation - Cloud Giants](https://www.cloudgiants.com/blog-detailed/salesforce-best-practices-system-documentation)
+- [Salesforce DevOps Documentation Best Practices - DevOps Launchpad](https://devopslaunchpad.com/blog/salesforce-devops-documentation-best-practices/)
+- [Effective Documentation Strategies for Large Salesforce DevOps Teams - Gearset](https://gearset.com/blog/documentation-for-large-teams/)
+- [Salesforce Release Management Best Practices - Minuscule Technologies](https://www.minusculetechnologies.com/blogs/salesforce-release-management-best-practices)
+- [Documentation Ideas and Best Practices - Trailhead Community](https://trailhead.salesforce.com/trailblazer-community/feed/0D54S00000BtiCUSAZ)

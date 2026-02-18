@@ -188,6 +188,52 @@ See [examples/deployment-report-template.md](examples/deployment-report-template
 3. Suggest specific fixes with code examples
 4. Provide rollback options if needed
 
+## Post-Deployment Checklist (CRITICAL)
+
+**After every deployment, run through this checklist.** These are real issues discovered in production that deployment status alone does NOT catch.
+
+### 1. Flow Activation Verification
+Flows may deploy successfully but remain **inactive** even with `<status>Active</status>` in XML.
+```bash
+# Check if flow is active
+sf data query -q "SELECT Id, ActiveVersionId, Label FROM FlowDefinitionView WHERE Label = 'YOUR_FLOW_NAME'" -o alias --result-format csv
+# If ActiveVersionId is empty → flow is INACTIVE despite successful deploy
+```
+**Fix**: Open Flow Builder in Setup > Flows > click flow > click "Activate" button. Or redeploy after bumping version.
+
+### 2. Permission Set Assignment
+Deploying a Permission Set does NOT assign it to users. Fields will be invisible.
+```bash
+# Assign permission set to a user
+sf org assign permset --name YOUR_PERM_SET --target-org alias
+# OR for specific user:
+sf data create record --sobject PermissionSetAssignment \
+  --values "AssigneeId='USER_ID' PermissionSetId='PS_ID'" --target-org alias
+```
+
+### 3. Org-Level Feature Toggles
+Some features require **org-level enablement** that can't be deployed via metadata:
+- **Path Settings**: Setup > User Interface > Path Settings > Enable
+- **Account Teams**: Setup > Account Teams > Enable
+- **Field History Tracking**: May need manual toggle per object
+
+### 4. Browser Cache
+Salesforce Lightning aggressively caches layouts, compact layouts, and related lists.
+- **Always `Cmd+Shift+R`** (hard refresh) after layout deployments
+- Navigate away and back if hard refresh doesn't work
+- Some changes require user to log out and back in
+
+### 5. Record-Type Picklist Defaults
+Record-type-level picklist defaults **override** field-level defaults. Check via UI API:
+```bash
+sf api request rest "/services/data/v62.0/ui-api/object-info/OBJECT/picklist-values/RECORD_TYPE_ID/FIELD_NAME" --target-org alias
+```
+
+### 6. Naming Gotchas
+- Person Account layouts: `PersonAccount-Person Account Layout` (NOT `Account-`)
+- Compact layout assignment requires BOTH the layout file AND `compactLayoutAssignment` in object XML
+- SOQL in bash: use single quotes to avoid `!` escaping issues
+
 ## Best Practices
 
 - **Always validate first**: Use `--dry-run` for production

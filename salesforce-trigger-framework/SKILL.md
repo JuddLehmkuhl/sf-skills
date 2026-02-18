@@ -1,15 +1,18 @@
 ---
 name: salesforce-trigger-framework
-description: "Salesforce Apex Trigger Actions Framework implementation for PS Advisory projects. Use this skill when: (1) Creating new Apex triggers, (2) Adding trigger logic to existing objects, (3) Implementing bypass mechanisms, (4) Setting up trigger framework in a new org, (5) Creating trigger handler/action classes, (6) Coordinating Apex triggers with Flow automations, (7) Any task involving Salesforce trigger patterns or trigger frameworks. This skill enforces PS Advisory conventions including naming standards (TA_*, *Trigger), layered architecture (Trigger → Action → Service → DAL), Custom Metadata configuration, and comprehensive test coverage requirements."
+description: "Salesforce Apex Trigger Actions Framework implementation for PS Advisory projects. Use this skill when: (1) Creating new Apex triggers, (2) Adding trigger logic to existing objects, (3) Implementing bypass mechanisms, (4) Setting up trigger framework in a new org, (5) Creating trigger handler/action classes, (6) Coordinating Apex triggers with Flow automations, (7) Any task involving Salesforce trigger patterns or trigger frameworks. This skill enforces PS Advisory conventions including naming standards (TA_*, *Trigger), layered architecture (Trigger -> Action -> Service -> DAL), Custom Metadata configuration, and comprehensive test coverage requirements."
+license: MIT
+metadata:
+  version: "2.1"
+  author: "PS Advisory"
+  framework_author: "Mitch Spano"
+  enriched_date: "2026-02-18"
+  framework_repo: "https://github.com/mitchspano/trigger-actions-framework"
 ---
 
 # Salesforce Trigger Actions Framework
 
-## Overview
-
-This skill implements **Mitch Spano's Trigger Actions Framework** with PS Advisory conventions. The framework provides metadata-driven trigger orchestration, enabling declarative control over execution order, bypass mechanisms, and Apex/Flow coordination.
-
-**Architecture**: `Trigger → MetadataTriggerHandler → Trigger Actions (TA_*) → Services → DAL`
+**Architecture**: `Trigger -> MetadataTriggerHandler -> Trigger Actions (TA_*) -> Services -> DAL`
 
 ## When to Use This Skill
 
@@ -19,73 +22,61 @@ This skill implements **Mitch Spano's Trigger Actions Framework** with PS Adviso
 - Coordinating Apex and Flow automations
 - Implementing bypass mechanisms for data loads
 
+## Cross-Skill References
+
+| Skill | When to Load Together |
+|-------|----------------------|
+| `sf-apex` | Always -- every TA_* class follows sf-apex coding standards |
+| `sf-testing` | When writing or running tests for trigger actions |
+| `sf-flow` | When orchestrating Flows alongside Apex in trigger context |
+| `sf-deploy` | When deploying trigger framework components to an org |
+| `sf-metadata` | When creating or modifying framework metadata records |
+| `sf-debug` | When troubleshooting trigger actions not firing or firing incorrectly |
+| `sf-data` | When building test data for 200+ record bulk trigger tests |
+| `sf-soql` | When building or optimizing DAL query methods |
+
+**Loading order**: `salesforce-trigger-framework` -> `sf-apex` -> `sf-testing` -> `sf-deploy` -> `sf-debug`
+
 ## Framework Installation
 
-### Step 1: Deploy Framework Core
-
-The framework requires deployment from the official repository. Run:
-
 ```bash
-# Clone the framework
-git clone https://github.com/mitchspano/trigger-actions-framework.git
+# Option 1: Unlocked package
+sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10
 
-# Deploy to target org (adjust for your auth method)
+# Option 2: Source deployment
+git clone https://github.com/mitchspano/trigger-actions-framework.git
 cd trigger-actions-framework
 sf project deploy start --source-dir trigger-actions-framework --target-org <alias>
 ```
 
-**Alternative**: Use the unlocked package installation:
-```bash
-sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10
-```
-
-### Step 2: Verify Installation
-
-Confirm these components exist in the org:
-- `TriggerBase` (Apex Class)
-- `MetadataTriggerHandler` (Apex Class)
-- `TriggerActionFlow` (Apex Class)
-- `sObject_Trigger_Setting__mdt` (Custom Metadata Type)
-- `Trigger_Action__mdt` (Custom Metadata Type)
+Verify these exist in org: `TriggerBase`, `MetadataTriggerHandler`, `TriggerActionFlow`, `sObject_Trigger_Setting__mdt`, `Trigger_Action__mdt`.
 
 ## PS Advisory Conventions
 
-### Naming Standards
-
 | Component | Convention | Example |
 |-----------|------------|---------|
-| Trigger | `<ObjectName>Trigger` | `LeadTrigger`, `OpportunityTrigger` |
+| Trigger | `<ObjectName>Trigger` | `LeadTrigger` |
 | Trigger Action | `TA_<ObjectName>_<ActionDescription>` | `TA_Lead_ValidateRequiredFields` |
 | Test Class | `TA_<ObjectName>_<ActionDescription>_Test` | `TA_Lead_ValidateRequiredFields_Test` |
 | Service Class | `<ObjectName>Service` | `LeadService` |
 | DAL Class | `DAL_<ObjectName>` | `DAL_Lead` |
 
-### Execution Order Spacing
-
-Use increments of **10** for order values to allow insertion of new actions:
-- 10, 20, 30... (not 1, 2, 3)
-
-### Test Coverage Requirement
-
-Maintain **95%+ code coverage** on all trigger actions and services.
+- **Execution order spacing**: increments of 10 (10, 20, 30...)
+- **Test coverage**: 95%+ on all trigger actions and services
 
 ## Workflow: Adding Trigger Logic to an Object
 
 ### Step 1: Check if Trigger Exists
 
 ```bash
-# Search for existing trigger
 grep -r "trigger.*on <ObjectName>" force-app/main/default/triggers/
 ```
 
-**If trigger exists**: Skip to Step 3
-**If no trigger**: Continue to Step 2
+If trigger exists, skip to Step 3.
 
 ### Step 2: Create the Trigger
 
-Create a logic-less trigger that delegates to MetadataTriggerHandler.
-
-**Template location**: `assets/templates/ObjectTrigger.trigger`
+**File**: `force-app/main/default/triggers/<ObjectName>Trigger.trigger`
 
 ```apex
 trigger <ObjectName>Trigger on <ObjectName> (
@@ -96,9 +87,7 @@ trigger <ObjectName>Trigger on <ObjectName> (
 }
 ```
 
-**File path**: `force-app/main/default/triggers/<ObjectName>Trigger.trigger`
-
-Also create the meta file:
+**Meta file**: `force-app/main/default/triggers/<ObjectName>Trigger.trigger-meta.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -108,13 +97,9 @@ Also create the meta file:
 </ApexTrigger>
 ```
 
-**File path**: `force-app/main/default/triggers/<ObjectName>Trigger.trigger-meta.xml`
-
 ### Step 3: Create sObject Trigger Setting (if new object)
 
-Create Custom Metadata record to enable the framework for this object.
-
-**File path**: `force-app/main/default/customMetadata/sObject_Trigger_Setting.<ObjectName>.md-meta.xml`
+**File**: `force-app/main/default/customMetadata/sObject_Trigger_Setting.<ObjectName>.md-meta.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -138,49 +123,25 @@ Create Custom Metadata record to enable the framework for this object.
 
 ### Step 4: Create the Trigger Action Class
 
-Each discrete piece of business logic gets its own action class.
-
-**Read the full reference**: See [trigger-action-patterns.md](references/trigger-action-patterns.md) for all context interfaces and patterns.
-
-**Basic template**:
+**File**: `force-app/main/default/classes/TA_<ObjectName>_<ActionDescription>.cls`
 
 ```apex
 public with sharing class TA_<ObjectName>_<ActionDescription> implements TriggerAction.BeforeInsert {
-    
     public void beforeInsert(List<<ObjectName>> newList) {
-        // Delegate to service layer
         <ObjectName>Service.methodName(newList);
     }
 }
 ```
 
-**Available interfaces** (implement only what you need):
-- `TriggerAction.BeforeInsert`
-- `TriggerAction.AfterInsert`
-- `TriggerAction.BeforeUpdate`
-- `TriggerAction.AfterUpdate`
-- `TriggerAction.BeforeDelete`
-- `TriggerAction.AfterDelete`
-- `TriggerAction.AfterUndelete`
+**Available interfaces**: `TriggerAction.BeforeInsert`, `.AfterInsert`, `.BeforeUpdate`, `.AfterUpdate`, `.BeforeDelete`, `.AfterDelete`, `.AfterUndelete`.
 
-**File path**: `force-app/main/default/classes/TA_<ObjectName>_<ActionDescription>.cls`
+For full patterns per context, see [trigger-action-patterns.md](references/trigger-action-patterns.md).
 
 ### Step 5: Create the Trigger Action Metadata Record
 
-Register the action with the framework using **context-specific lookup fields**.
+**File**: `force-app/main/default/customMetadata/Trigger_Action.<ObjectName>_<Context>_<Order>_<ActionName>.md-meta.xml`
 
-**IMPORTANT**: The framework uses context-specific fields (`Before_Insert__c`, `After_Update__c`, etc.) to link actions to their trigger context. This is NOT a generic `sObject__c` lookup - you must use the correct field for your trigger context.
-
-**File path**: `force-app/main/default/customMetadata/Trigger_Action.<ObjectName>_<Context>_<Order>_<ActionName>.md-meta.xml`
-
-**Available context fields** (use ONE that matches your trigger context):
-- `Before_Insert__c` - for beforeInsert actions
-- `After_Insert__c` - for afterInsert actions
-- `Before_Update__c` - for beforeUpdate actions
-- `After_Update__c` - for afterUpdate actions
-- `Before_Delete__c` - for beforeDelete actions
-- `After_Delete__c` - for afterDelete actions
-- `After_Undelete__c` - for afterUndelete actions
+**IMPORTANT**: Use context-specific fields (`Before_Insert__c`, `After_Update__c`, etc.) -- NOT a generic `sObject__c` lookup.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -211,68 +172,25 @@ Register the action with the framework using **context-specific lookup fields**.
 </CustomMetadata>
 ```
 
-**Example** - Before Insert action for Lead:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <label>Lead Before_Insert 10 SetDefaults</label>
-    <protected>false</protected>
-    <values>
-        <field>Apex_Class_Name__c</field>
-        <value xsi:type="xsd:string">TA_Lead_SetDefaults</value>
-    </values>
-    <values>
-        <field>Order__c</field>
-        <value xsi:type="xsd:double">10</value>
-    </values>
-    <values>
-        <field>Before_Insert__c</field>
-        <value xsi:type="xsd:string">Lead</value>
-    </values>
-    <values>
-        <field>Description__c</field>
-        <value xsi:type="xsd:string">Sets default LeadSource and Status values</value>
-    </values>
-    <values>
-        <field>Allow_Flow_Recursion__c</field>
-        <value xsi:type="xsd:boolean">false</value>
-    </values>
-</CustomMetadata>
-```
-
-**Context values for label**: `Before_Insert`, `After_Insert`, `Before_Update`, `After_Update`, `Before_Delete`, `After_Delete`, `After_Undelete`
+**Context field values**: `Before_Insert`, `After_Insert`, `Before_Update`, `After_Update`, `Before_Delete`, `After_Delete`, `After_Undelete`.
 
 ### Step 6: Create the Test Class
 
-Every trigger action requires a corresponding test class.
-
-**Read the full reference**: See [testing-patterns.md](references/testing-patterns.md) for comprehensive testing strategies.
+**File**: `force-app/main/default/classes/TA_<ObjectName>_<ActionDescription>_Test.cls`
 
 ```apex
 @IsTest
 private class TA_<ObjectName>_<ActionDescription>_Test {
-    
     @TestSetup
     static void makeData() {
         // Create test data
     }
-    
+
     @IsTest
     static void testBeforeInsert_positiveCase() {
-        // Arrange
-        List<<ObjectName>> records = new List<<ObjectName>>();
-        // Add test records
-        
-        // Act
-        Test.startTest();
-        insert records;
-        Test.stopTest();
-        
-        // Assert
-        // Verify expected behavior
+        // Arrange, Act (insert records), Assert
     }
-    
+
     @IsTest
     static void testBeforeInsert_negativeCase() {
         // Test edge cases and error conditions
@@ -280,123 +198,148 @@ private class TA_<ObjectName>_<ActionDescription>_Test {
 }
 ```
 
+For comprehensive testing strategies, see [testing-patterns.md](references/testing-patterns.md).
+
 ### Step 7: Verify the Implementation
 
 ```bash
-# Deploy and run tests
 sf project deploy start --source-dir force-app --target-org <alias>
 sf apex run test --class-names TA_<ObjectName>_<ActionDescription>_Test --target-org <alias> --result-format human
 ```
 
-## Workflow: Integrating Flow with Trigger Actions
-
-The framework can orchestrate Flows alongside Apex actions.
-
-### Step 1: Create the Flow
-
-Create an Auto-Launched Flow with these required variables:
-- `newList` (Record Collection, Input)
-- `oldList` (Record Collection, Input) - for update/delete contexts
-- `newListAfterFlow` (Record Collection, Output) - for before contexts only
-
-### Step 2: Register the Flow as a Trigger Action
-
-Use `TriggerActionFlow` as the Apex class and specify the Flow API name.
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <label>Lead Before_Insert 25 Enrich_From_External</label>
-    <protected>false</protected>
-    <values>
-        <field>Apex_Class_Name__c</field>
-        <value xsi:type="xsd:string">TriggerActionFlow</value>
-    </values>
-    <values>
-        <field>Flow_Name__c</field>
-        <value xsi:type="xsd:string">Lead_Enrich_From_External</value>
-    </values>
-    <values>
-        <field>Order__c</field>
-        <value xsi:type="xsd:double">25</value>
-    </values>
-    <values>
-        <field>Before_Insert__c</field>
-        <value xsi:type="xsd:string">Lead</value>
-    </values>
-    <values>
-        <field>Description__c</field>
-        <value xsi:type="xsd:string">Enriches Lead data from external source via Flow</value>
-    </values>
-    <values>
-        <field>Allow_Flow_Recursion__c</field>
-        <value xsi:type="xsd:boolean">false</value>
-    </values>
-</CustomMetadata>
-```
-
 ## Bypass Mechanisms
 
-### Permission-Based Bypass
-
-Add a Custom Permission and reference it in the metadata:
-
-```xml
-<values>
-    <field>Bypass_Permission__c</field>
-    <value xsi:type="xsd:string">Bypass_Lead_Triggers</value>
-</values>
-```
-
-### Code-Level Bypass
-
 ```apex
-// Bypass a specific action
+// Action-level bypass
 TriggerBase.bypass('TA_Lead_ValidateRequiredFields');
-
-// Perform DML without that action running
 insert leads;
-
-// Clear the bypass
 TriggerBase.clearBypass('TA_Lead_ValidateRequiredFields');
-```
 
-### Object-Level Bypass
-
-```apex
-// Bypass all actions for an object
+// Object-level bypass
 MetadataTriggerHandler.bypass('Lead');
-
-// Perform DML
 insert leads;
-
-// Clear bypass
 MetadataTriggerHandler.clearBypass('Lead');
 ```
 
-## Layered Architecture Integration
+For permission-based bypass, flow bypass, and comprehensive patterns, see [bypass-strategies.md](references/bypass-strategies.md).
 
-### Pattern: Action → Service → DAL
+## Layered Architecture: Action -> Service -> DAL
+
+| Layer | Responsibility | Queries/DML? | Reusable? |
+|-------|---------------|:---:|:---:|
+| Trigger Action (TA_*) | Filter records, delegate to service | No | No |
+| Service | Business logic, orchestrate DAL calls | Via DAL | Yes |
+| DAL | All SOQL queries and DML operations | Yes | Yes |
+
+For full service and DAL class examples, see [service-dal-patterns.md](references/service-dal-patterns.md).
+
+## Anti-Patterns
+
+| Anti-Pattern | Why It Fails | Correct Approach |
+|-------------|-------------|-----------------|
+| SOQL inside a loop | Hits 100 query limit at scale | Collect criteria, query once outside loop |
+| DML in before context | Record Ids are null in before insert; wrong place for child DML | Use after context for related record DML |
+| Business logic in TA_* class | Not reusable from Batch/LWC/API | Delegate to Service class |
+| Single record method signatures | Fails bulkification | Always accept `List<SObject>` or `Set<Id>` |
+| Not clearing bypass | Subsequent DML in same transaction skips triggers silently | Always use `try/finally` with `clearBypass()` |
+| Same `Order__c` on two actions | Non-deterministic execution order | Use unique values with spacing of 10 |
+| Modifying `newList` records in after context | `Trigger.new` is read-only in after context | Use before context for field changes; DML separately in after |
+| Callouts in trigger context | Not allowed synchronously | Enqueue Queueable or publish Platform Event |
+| Static variables assumed to reset between batches | They persist across 200-record chunks in one DML | Clear static collections if needed between batches |
+| Using `sObject__c` field in Trigger_Action__mdt | Wrong field -- framework uses context-specific lookups | Use `Before_Insert__c`, `After_Update__c`, etc. |
+
+## Before vs After Context Decision
+
+| Need | Context |
+|------|---------|
+| Set/compute field values on triggering record | Before Insert / Before Update |
+| Validate and block save with `addError()` | Before Insert / Before Update / Before Delete |
+| Create/update related records (need Id) | After Insert / After Update |
+| Publish platform events | After Insert / After Update |
+| Audit deletion | After Delete |
+| Restore related data | After Undelete |
+
+For recursion control, DmlFinalizer, dynamic entry criteria, Queueable/Platform Event/Batch patterns, see [advanced-patterns.md](references/advanced-patterns.md).
+
+## Trigger Context Variable Availability
+
+| Variable | BI | AI | BU | AU | BD | AD | AUnd |
+|----------|:--:|:--:|:--:|:--:|:--:|:--:|:----:|
+| `newList` | Y | Y | Y | Y | -- | -- | Y |
+| `newMap` | -- | Y | Y | Y | -- | -- | Y |
+| `oldList` | -- | -- | Y | Y | Y | Y | -- |
+| `oldMap` | -- | -- | Y | Y | Y | Y | -- |
+| Record Ids | -- | Y | Y | Y | Y | Y | Y |
+| Can modify directly | Y | -- | Y | -- | -- | -- | -- |
+| `addError()` | Y | Y | Y | Y | Y | Y | Y |
+
+## Salesforce Order of Execution (where triggers fit)
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ TA_Lead_AssignOwner (Trigger Action)                │
-│   └── LeadService.assignOwnerByTerritory(newList)  │
-│         └── DAL_Lead.getLeadsByTerritory(...)      │
-│         └── DAL_User.getActiveUsersByRole(...)     │
-└─────────────────────────────────────────────────────┘
+1. System validation rules
+2. Before-save record-triggered flows
+3. Apex BEFORE triggers          <-- your Before actions
+4. Custom validation rules
+5. Duplicate rules
+6. Record saved (not committed)
+7. Apex AFTER triggers           <-- your After actions
+8. Assignment/auto-response rules
+9. Workflow rules
+10. After-save record-triggered flows
+11. Roll-up summaries, cross-object workflow (can re-trigger)
+12. DML committed
 ```
 
-**Rules**:
-1. Trigger Actions call Services, never DAL directly
-2. Services contain business logic, call DAL for data access
-3. DAL classes contain all SOQL/DML operations
-4. Services and DAL are reusable from Batch, Queueable, LWC, etc.
+## Gotchas
+
+| Gotcha | Mitigation |
+|--------|------------|
+| Validation rules fire AFTER before triggers | Before-trigger field changes are visible to validation rules |
+| Before-save flows run BEFORE Apex triggers | Account for Flow modifications in action logic |
+| Mixed DML in tests (User + SObject) | Use `System.runAs()` or separate `@future` method |
+| `Trigger.newMap` null in before insert | Records have no Id yet -- do not build Map from Ids |
+| `addError` in after context rolls back entire batch | Prefer validation in before context |
+| Static variables persist across 200-record chunks | Clear collections between batches if needed |
+| `Order__c` ties are non-deterministic | Always use unique Order values |
+| Custom Metadata deploys are all-or-nothing | Validate all records locally before deploying |
+| Flow recursion limit is 3 (not 16 like Apex) | Set `Allow_Flow_Recursion__c = false` |
+
+## Common Deployment Errors
+
+| Error | Fix |
+|-------|-----|
+| `Invalid type: MetadataTriggerHandler` | Install framework: `sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10` |
+| `Duplicate developer name` on Custom Metadata | Ensure unique DeveloperName per record |
+| `Required field missing: Object_API_Name__c` | Add `Object_API_Name__c` to sObject_Trigger_Setting record |
+| `Entity is not org-accessible` | Deploy CMT types before CMT records |
+| Test: `FIELD_CUSTOM_VALIDATION_EXCEPTION` | Use `TriggerBase.bypass()` in test setup or satisfy validation rules |
+| Test: `List has no rows for assignment` | Include Custom Metadata records in deployment package |
+| `Apex CPU time limit exceeded` | Profile actions, move heavy logic to async |
+
+**Deployment order**: Framework classes -> CMT types -> Triggers -> Action classes -> Service/DAL classes -> Test classes -> CMT records.
+
+## Metadata Fields Reference
+
+**sObject_Trigger_Setting__mdt**: `Object_API_Name__c`, `Bypass_Execution__c` (checkbox), `Bypass_Permission__c`, `Required_Permission__c`.
+
+**Trigger_Action__mdt**: `Apex_Class_Name__c`, `Order__c`, `Before_Insert__c`/`After_Insert__c`/etc. (context lookup), `Description__c`, `Flow_Name__c`, `Entry_Criteria__c` (formula), `Allow_Flow_Recursion__c`, `Bypass_Execution__c` (checkbox), `Bypass_Permission__c`, `Required_Permission__c`.
+
+## Troubleshooting: Action Not Firing
+
+1. **Wrong context field** -- Must use `Before_Insert__c`, not `sObject__c`
+2. **Missing sObject_Trigger_Setting__mdt** -- `Object_API_Name__c` must match exactly (case-sensitive, include `__c` for custom objects)
+3. **Trigger not calling MetadataTriggerHandler** -- Verify `new MetadataTriggerHandler().run();`
+4. **Bypass checkbox checked** -- Check `Bypass_Execution__c` on both setting and action records
+
+```bash
+# Debug: check sObject setting
+sf data query --query "SELECT DeveloperName, Object_API_Name__c, Bypass_Execution__c FROM sObject_Trigger_Setting__mdt WHERE Object_API_Name__c = '<ObjectName>'" --target-org <alias>
+
+# Debug: check trigger action config
+sf data query --query "SELECT Label, Apex_Class_Name__c, Before_Insert__c, After_Insert__c, Before_Update__c, After_Update__c, Bypass_Execution__c FROM Trigger_Action__mdt WHERE Apex_Class_Name__c LIKE '%<ObjectName>%'" --target-org <alias>
+```
 
 ## File Checklist for New Trigger Logic
-
-When adding trigger logic, ensure ALL these files are created:
 
 - [ ] `triggers/<ObjectName>Trigger.trigger` (if new object)
 - [ ] `triggers/<ObjectName>Trigger.trigger-meta.xml` (if new object)
@@ -409,124 +352,27 @@ When adding trigger logic, ensure ALL these files are created:
 - [ ] Service class if new business logic domain
 - [ ] DAL class if new data access patterns
 
+## Flow Integration
+
+Register Flows as trigger actions using `TriggerActionFlow` as the Apex class and `Flow_Name__c` for the Flow API name. Flows share execution order with Apex actions via `Order__c`.
+
+For Flow variable requirements, before-context rules, and complete examples, see [flow-integration.md](references/flow-integration.md).
+
+## Migration from Legacy Frameworks
+
+For step-by-step migration from Kevin O'Hara, fflib, SBLI, or no-framework triggers, see [migration-guide.md](references/migration-guide.md).
+
 ## References
 
-- [trigger-action-patterns.md](references/trigger-action-patterns.md) - All interface patterns with examples
-- [testing-patterns.md](references/testing-patterns.md) - Testing strategies and mocking
-- [bypass-strategies.md](references/bypass-strategies.md) - Comprehensive bypass documentation
-- [migration-guide.md](references/migration-guide.md) - Migrating from legacy frameworks
-- [flow-integration.md](references/flow-integration.md) - Detailed Flow coordination patterns
-
-## Quick Reference: Common Patterns
-
-### Before Insert with Validation
-
-```apex
-public with sharing class TA_Lead_ValidateRequiredFields implements TriggerAction.BeforeInsert {
-    public void beforeInsert(List<Lead> newList) {
-        for (Lead l : newList) {
-            if (String.isBlank(l.Company)) {
-                l.addError('Company is required');
-            }
-        }
-    }
-}
-```
-
-### After Insert with Related Record Creation
-
-```apex
-public with sharing class TA_Opportunity_CreateDefaultLineItems implements TriggerAction.AfterInsert {
-    public void afterInsert(List<Opportunity> newList) {
-        OpportunityService.createDefaultLineItems(newList);
-    }
-}
-```
-
-### Before Update with Field Change Detection
-
-```apex
-public with sharing class TA_Case_EscalateOnPriorityChange implements TriggerAction.BeforeUpdate {
-    public void beforeUpdate(List<Case> newList, List<Case> oldList) {
-        Map<Id, Case> oldMap = new Map<Id, Case>(oldList);
-        List<Case> priorityChangedCases = new List<Case>();
-        
-        for (Case c : newList) {
-            Case oldCase = oldMap.get(c.Id);
-            if (c.Priority != oldCase.Priority && c.Priority == 'High') {
-                priorityChangedCases.add(c);
-            }
-        }
-        
-        if (!priorityChangedCases.isEmpty()) {
-            CaseService.escalate(priorityChangedCases);
-        }
-    }
-}
-```
-
-## Troubleshooting
-
-### Trigger Action Not Firing
-
-**Symptom**: You deployed the trigger, action class, and metadata, but the action doesn't execute.
-
-**Common Causes**:
-
-1. **Wrong context field in Trigger_Action__mdt**
-   - The framework uses context-specific lookup fields (`Before_Insert__c`, `After_Update__c`, etc.)
-   - **Wrong**: `<field>sObject__c</field>` (this field doesn't exist)
-   - **Correct**: `<field>Before_Insert__c</field>` with value `<ObjectName>`
-
-2. **Missing sObject_Trigger_Setting__mdt record**
-   - Every object needs an sObject_Trigger_Setting record
-   - The `Object_API_Name__c` must match exactly (case-sensitive)
-   - For custom objects, include the `__c` suffix
-
-3. **Trigger not calling MetadataTriggerHandler**
-   - Verify trigger body contains `new MetadataTriggerHandler().run();`
-
-4. **Bypass checkbox is checked**
-   - Check `Bypass_Execution__c` on both `sObject_Trigger_Setting__mdt` AND `Trigger_Action__mdt`
-   - These checkboxes provide immediate on/off control from Setup
-
-**Debugging Steps**:
-```bash
-# Verify sObject Trigger Setting exists and bypass is off
-sf data query --query "SELECT DeveloperName, Object_API_Name__c, Bypass_Execution__c FROM sObject_Trigger_Setting__mdt WHERE Object_API_Name__c = '<ObjectName>'" --target-org <alias>
-
-# Verify Trigger Action is configured correctly and bypass is off
-sf data query --query "SELECT Label, Apex_Class_Name__c, Before_Insert__c, After_Insert__c, Before_Update__c, After_Update__c, Bypass_Execution__c FROM Trigger_Action__mdt WHERE Apex_Class_Name__c LIKE '%<ObjectName>%'" --target-org <alias>
-```
-
-### Framework Package Not Installed
-
-**Symptom**: Deployment fails with "Invalid type: MetadataTriggerHandler" or similar.
-
-**Solution**: Install the framework package first:
-```bash
-sf package install --package 04t8b000001Hep2AAC --target-org <alias> --wait 10
-```
-
-### Metadata Fields Reference
-
-**sObject_Trigger_Setting__mdt fields**:
-- `Object_API_Name__c` - The SObject API name (e.g., "Lead", "Custom_Object__c")
-- `Bypass_Execution__c` - **Checkbox** to bypass ALL triggers for this object (immediate on/off)
-- `Bypass_Permission__c` - Custom Permission API name to bypass all triggers for this object
-- `Required_Permission__c` - Custom Permission required to run triggers
-
-**Trigger_Action__mdt fields**:
-- `Apex_Class_Name__c` - The trigger action class name
-- `Order__c` - Execution order (use increments of 10)
-- `Before_Insert__c` / `After_Insert__c` / etc. - Context lookup to sObject_Trigger_Setting
-- `Description__c` - Description of what this action does
-- `Flow_Name__c` - Flow API name (for Flow-based actions)
-- `Entry_Criteria__c` - Formula to determine if action should execute (dynamic entry criteria)
-- `Allow_Flow_Recursion__c` - **Checkbox** to allow Flow recursion
-- `Bypass_Execution__c` - **Checkbox** to bypass this specific action (immediate on/off)
-- `Bypass_Permission__c` - Custom Permission to bypass this specific action
-- `Required_Permission__c` - Custom Permission required to run this action
+| File | Contents |
+|------|----------|
+| [trigger-action-patterns.md](references/trigger-action-patterns.md) | All interface patterns with context-specific examples and anti-patterns |
+| [testing-patterns.md](references/testing-patterns.md) | Testing strategies, bypass testing, bulk testing, mocking, TestDataFactory |
+| [bypass-strategies.md](references/bypass-strategies.md) | Permission-based, code-level, object-level, and Flow bypass patterns |
+| [migration-guide.md](references/migration-guide.md) | Migrating from O'Hara, fflib, SBLI, or no-framework triggers |
+| [flow-integration.md](references/flow-integration.md) | Flow variable requirements, registration, ordering, and limitations |
+| [service-dal-patterns.md](references/service-dal-patterns.md) | Service class structure, DAL patterns, selectors, mocking, lazy loading |
+| [advanced-patterns.md](references/advanced-patterns.md) | Recursion control, DmlFinalizer, entry criteria, Queueable/Platform Event/Batch patterns |
 
 ## Dependencies
 

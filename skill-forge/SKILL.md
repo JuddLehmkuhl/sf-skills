@@ -7,6 +7,11 @@ description: >
   use for Salesforce-specific skill patterns (orchestration chains, 5-phase
   workflows, template directories, gotcha tables). Combines Anthropic's official
   skill-creator design philosophy with production tooling.
+license: MIT
+metadata:
+  version: "1.0.0"
+  author: "Jag Valaiyapathy"
+  enriched: "2026-02-18"
 ---
 
 # Skill Forge
@@ -83,7 +88,7 @@ Choose a structure pattern:
 
 | Pattern | Best For | Example |
 |---------|----------|---------|
-| **Workflow** | Sequential processes | Phase 1 → Phase 2 → Phase 3 |
+| **Workflow** | Sequential processes | Phase 1 -> Phase 2 -> Phase 3 |
 | **Task-based** | Tool collections | "Merge PDFs" / "Split PDFs" / "Extract Text" |
 | **Reference** | Standards, specs | "Colors" / "Typography" / "Voice" |
 | **Capabilities** | Integrated systems | "### 1. Feature" / "### 2. Feature" |
@@ -122,9 +127,9 @@ Before building, gather concrete usage examples:
 ### Step 2: Plan Resources
 
 For each example, identify:
-- Code that gets rewritten → `scripts/`
-- Documentation Claude needs → `references/`
-- Files used in output → `assets/`
+- Code that gets rewritten -> `scripts/`
+- Documentation Claude needs -> `references/`
+- Files used in output -> `assets/`
 
 ### Step 3: Initialize
 
@@ -165,61 +170,246 @@ Discovers and validates all skills in `~/.claude/skills/` and `./.claude/skills/
 
 ---
 
-## Salesforce Skill Patterns
+## Quality Scoring Framework
 
-When building skills for Salesforce development, apply these proven patterns.
-See `references/salesforce-skill-patterns.md` for complete documentation.
+Every skill can be measured against four dimensions. Use this framework when
+creating, reviewing, or deciding whether to enrich a skill.
 
-### Orchestration Chain
+### Scoring Dimensions
 
-Every SF skill must declare where it sits in the dependency pipeline:
+| Dimension | Points | What It Measures |
+|-----------|--------|------------------|
+| Structure | 0-25 | Frontmatter quality, SKILL.md organization, resource usage |
+| Content Density | 0-25 | Token-to-value ratio, actionability, no filler |
+| Completeness | 0-25 | All necessary sections for the skill type |
+| Integration | 0-25 | Cross-skill references, orchestration, deployment path |
+| **Total** | **0-100** | **Minimum 70 for production use** |
 
-```markdown
-## CRITICAL: Orchestration Order
-**sf-metadata → sf-flow → sf-deploy → sf-data** (you are here: sf-flow)
+### Structure Score Rubric (0-25)
+
+| Score | Criteria |
+|-------|----------|
+| 0-5 | Missing frontmatter or broken YAML; no section headings |
+| 6-10 | Frontmatter present but description vague; flat structure, no sections |
+| 11-15 | Valid frontmatter with specific triggers; headings present but inconsistent |
+| 16-20 | Well-organized sections; resources directory exists; templates separated |
+| 21-25 | Progressive disclosure fully applied; scripts/, references/, assets/ used correctly; SKILL.md under 500 lines with heavy content in references |
+
+### Content Density Score Rubric (0-25)
+
+| Score | Criteria |
+|-------|----------|
+| 0-5 | Mostly conceptual explanation; reads like a README; no actionable instructions |
+| 6-10 | Some actionable content but padded with "why" explanations Claude does not need |
+| 11-15 | Actionable instructions dominate; occasional filler paragraphs remain |
+| 16-20 | Every section provides instructions, tables, or commands; examples are concise |
+| 21-25 | Zero filler; every line is either a command, a table row, or a decision point; completion summaries and boilerplate moved to references/ |
+
+### Completeness Score Rubric (0-25)
+
+| Score | Criteria |
+|-------|----------|
+| 0-5 | Covers only one use case; missing critical sections |
+| 6-10 | Covers primary workflow but no error handling or edge cases |
+| 11-15 | Primary workflow + some gotchas; missing CLI commands or anti-patterns |
+| 16-20 | Full workflow + gotcha table + CLI reference + common errors |
+| 21-25 | All sections present including anti-patterns, correct-vs-wrong examples, decision trees, and verification steps |
+
+### Integration Score Rubric (0-25)
+
+| Score | Criteria |
+|-------|----------|
+| 0-5 | No mention of other skills; operates in isolation |
+| 6-10 | Mentions related skills in prose but no structured references |
+| 11-15 | Cross-skill table present; orchestration order declared |
+| 16-20 | Inbound/outbound skill references; Skill() invocation syntax used; deployment path clear |
+| 21-25 | Full integration map with direction, relationship type, and key integration points; works seamlessly in orchestration chains |
+
+### Scoring for Salesforce Skills
+
+Salesforce skills have additional completeness requirements beyond generic skills:
+
+| Required Section | Points Deducted If Missing |
+|------------------|---------------------------|
+| Orchestration Order | -5 |
+| Gotcha Table (5+ entries) | -5 |
+| Cross-Skill Integration Table | -3 |
+| CLI Quick Reference | -3 |
+| Common Errors Table | -3 |
+| FLS Warning (if field/object skill) | -3 |
+| Anti-Patterns Section | -2 |
+| Correct vs Wrong Examples | -1 |
+
+---
+
+## Skill Improvement Decision Framework
+
+### When to Enrich
+
+Trigger an enrichment pass when any of these conditions are true:
+
+| Condition | Action |
+|-----------|--------|
+| Quality score < 70/100 | Full enrichment pass |
+| Cross-skill references missing | Add integration table and orchestration order |
+| Gotcha table absent or < 3 entries | Research production failures and add entries |
+| CLI commands use `sfdx` (v1) syntax | Update all commands to `sf` (v2) |
+| SKILL.md > 500 lines | Split to references/; reduce inline content |
+| No anti-pattern section | Add top 5 anti-patterns for the domain |
+| Completion summary inline in SKILL.md | Move to references/completion-summary.md |
+
+### Decision Tree: Enrich vs Rewrite vs Split
+
+```
+Is the skill fundamentally about one topic?
+├── YES: Is >50% of existing content usable?
+│   ├── YES → ENRICH (add missing sections, preserve existing)
+│   └── NO → REWRITE (start from scratch, import any good tables)
+└── NO: Does it cover 2+ distinct domains?
+    └── YES → SPLIT into separate skills, then enrich each
 ```
 
-### 5-Phase Workflow
+**Enrich**: Add new sections to existing SKILL.md. Never remove working content.
+Typical enrichment adds 200-400 lines to a 200-line skill.
 
-| Phase | Name | Purpose |
-|-------|------|---------|
-| 1 | Requirements | `AskUserQuestion` to gather inputs; `Glob` existing files |
-| 2 | Design | Template selection table mapping type → file |
-| 3 | Generation | Create artifacts in `force-app/`; validate |
-| 4 | Deployment | `--dry-run` first, then deploy; invoke `sf-deploy` |
-| 5 | Verification | Completion summary; CLI verification commands |
+**Rewrite**: When the skill structure is wrong (e.g., README format instead of
+skill format), start over. Copy any gotcha tables or CLI references from the
+original — those represent production lessons.
 
-### Required Sections for SF Skills
+**Split**: When a skill tries to cover too much (e.g., "sf-data" covering SOQL,
+DML, data loading, and test factories). Extract each concern into its own skill
+with proper cross-references.
 
-- **Orchestration Order** — where this skill fits
-- **Key Insights / Gotchas Table** — `| Gotcha | Details |` format
-- **Cross-Skill Integration Table** — who calls this skill, who it calls
-- **CLI Quick Reference** — `sf` v2 commands in fenced bash blocks
-- **Common Errors Table** — `| Error | Fix |` pairs
-- **FLS Warning** (if creating fields/objects) — "Fields invisible without Permission Set"
-- **templates/ directory** (if generating metadata XML)
+---
+
+## Token Efficiency Guidelines
+
+See `references/token-efficiency.md` for the full what-goes-where table, token budgets, and the inline template anti-pattern.
+
+**Key rule**: SKILL.md body should be 1,500-3,000 tokens (300-500 lines). Move templates, large tables, and completion summaries to `references/` or `assets/`.
+
+---
+
+## Skill Anti-Patterns
+
+See `references/anti-patterns.md` for detailed examples and fixes.
+
+**Quick checklist** — flag a skill if any of these are true:
+
+| # | Anti-Pattern | Test |
+|---|-------------|------|
+| 1 | Kitchen Sink | Covers 3+ unrelated workflows |
+| 2 | README Disguised as Skill | Paragraphs explain concepts instead of giving instructions |
+| 3 | Template Bloat | Code blocks exceed 30% of SKILL.md lines |
+| 4 | Missing Cross-References | Zero mentions of other skill names |
+| 5 | Outdated CLI | Uses `sfdx` (v1) instead of `sf` (v2) |
+| 6 | No Guardrails | No gotcha table, no common errors, no anti-patterns |
+
+---
+
+## Enrichment Workflow
+
+See `references/enrichment-workflow.md` for the full 7-step process (read, score, identify gaps, research, write, validate, re-score).
+
+**Summary**: Score the skill -> fix the lowest dimension -> validate -> confirm score improved by 15+ points.
+
+---
+
+## Bulk Audit Workflow
+
+See `references/bulk-audit-workflow.md` for the 5-phase library audit process (discover, score, prioritize, parallel enrich, regression check).
+
+**Summary**: Score all skills -> sort ascending -> enrich in batches of 4-6 -> validate between batches.
+
+---
+
+## Cross-Skill Reference Standard
+
+See `references/cross-skill-reference-standard.md` for the full standard (table format, direction values, relationship types, invocation syntax, bidirectional verification).
+
+**Key rule**: Every skill interacting with other skills needs a Cross-Skill Integration table with Direction (UPSTREAM/DOWNSTREAM/LATERAL) and Relationship (PRIMARY/SECONDARY).
+
+---
+
+## Salesforce Skill Patterns
+
+See `references/salesforce-skill-patterns.md` for complete patterns including orchestration chains, 5-phase workflow, gotcha tables, CLI references, template directories, FLS warnings, and correct-vs-wrong examples.
+
+**Required sections for every SF skill**: Orchestration Order, Gotcha Table (5+), Cross-Skill Integration, CLI Quick Reference, Common Errors.
 
 ---
 
 ## Gotcha Tables: Design Pattern
 
-Gotcha tables are the highest-value section of any Salesforce skill. They encode
-production lessons that prevent repeated failures:
+Gotcha tables are the highest-value section of any Salesforce skill:
 
 ```markdown
-## Gotchas
-
 | Gotcha | Details |
 |--------|---------|
 | Short label | Concise explanation with the fix inline |
-| Another gotcha | What goes wrong and exactly how to fix it |
 ```
 
-Rules:
-- Keep labels under 5 words
-- Include the fix IN the details column, not separately
-- Order by frequency (most common first)
-- Add new gotchas as they're discovered in production
+Rules: labels under 5 words, include fix inline, order by frequency.
+
+---
+
+## Skill Forge Gotchas
+
+| Gotcha | Details |
+|--------|---------|
+| Frontmatter YAML parse failure | Ensure `---` delimiters are on their own lines with no leading spaces; use `>` for multi-line description |
+| validate_skill.py path must be directory | Pass the skill directory path, not the SKILL.md file path |
+| Description too generic | "Use for Salesforce stuff" will never trigger. Be specific: "Use when creating custom fields, objects, or permission sets" |
+| Resources not loading | Reference files must be explicitly read by Claude via `Read` tool. Just existing in references/ does not auto-load them |
+| Skill > 500 lines | Split to references/ immediately. SKILL.md beyond 500 lines hurts context economy for all other skills |
+| init_skill.py creates example files | Delete the example placeholder files after scaffolding. They waste tokens if left in place |
+| Package excludes hidden files | `.skill` packaging ignores dotfiles. Do not put critical content in hidden files |
+
+---
+
+## Common Errors
+
+| Error | Fix |
+|-------|-----|
+| `YAML parse error in frontmatter` | Check for tabs (use spaces only), unescaped colons in description, or missing closing `---` |
+| `Missing required field: name` | Add `name:` as first field in frontmatter |
+| `Missing required field: description` | Add `description:` field. Use `>` for multi-line |
+| `SKILL.md not found` | Ensure file is named exactly `SKILL.md` (case-sensitive) |
+| `Empty references directory` | Either add reference files or delete the empty directory |
+| `Script not executable` | Run `chmod +x scripts/*.py` on script files |
+| `Bulk validate finds no skills` | Check that skills are in `~/.claude/skills/` or `./.claude/skills/` (the two default search paths) |
+
+---
+
+## CLI Quick Reference
+
+```bash
+# Validate a single skill
+python3 ~/.claude/skills/sf-skills/skill-forge/scripts/validate_skill.py /path/to/skill-dir
+
+# Validate all installed skills
+python3 ~/.claude/skills/sf-skills/skill-forge/scripts/bulk_validate.py
+
+# Validate all, show only errors
+python3 ~/.claude/skills/sf-skills/skill-forge/scripts/bulk_validate.py --errors-only
+
+# Initialize a new skill scaffold
+python3 ~/.claude/skills/sf-skills/skill-forge/scripts/init_skill.py my-skill --path ./output
+
+# Package for distribution
+python3 ~/.claude/skills/sf-skills/skill-forge/scripts/package_skill.py /path/to/skill-dir ./dist
+```
+
+---
+
+## Cross-Skill Integration
+
+| Skill | Direction | Relationship | Key Integration Point |
+|-------|-----------|-------------|----------------------|
+| All sf-* skills | DOWNSTREAM | PRIMARY | skill-forge defines structure and quality standards that all skills must follow |
+| sf-deploy | LATERAL | SECONDARY | Validates skill output artifacts before deployment |
+| sf-testing | LATERAL | SECONDARY | Test patterns apply to skill validation scripts |
+| skill-builder | UPSTREAM | SECONDARY | Legacy skill creation wizard; skill-forge supersedes it |
 
 ---
 
@@ -228,3 +418,8 @@ Rules:
 - `references/workflows.md` — Sequential and conditional workflow patterns
 - `references/output-patterns.md` — Template and example patterns for consistent output
 - `references/salesforce-skill-patterns.md` — Complete SF skill design guide with examples
+- `references/token-efficiency.md` — What-goes-where table, token budgets, inline template anti-pattern
+- `references/anti-patterns.md` — 6 common skill anti-patterns with symptoms, tests, and fixes
+- `references/enrichment-workflow.md` — 7-step process for improving an existing skill
+- `references/bulk-audit-workflow.md` — 5-phase library audit process
+- `references/cross-skill-reference-standard.md` — Direction values, relationship types, invocation syntax, bidirectional verification

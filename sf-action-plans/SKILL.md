@@ -9,13 +9,16 @@ description: >
   DocumentChecklistItem configuration. Also use when assigning Action Plans to
   records via Flow or Apex, or when troubleshooting template status issues
   (Draft, Final, ReadOnly, Obsolete).
+license: MIT
+metadata:
+  version: "1.0.0"
+  author: "Jag Valaiyapathy"
+  enriched: "2026-02-18"
 ---
 
 # sf-action-plans: Action Plan Templates & Document Checklists
 
-Manage the full lifecycle of Salesforce Action Plan Templates — creation, publishing, modification, deactivation — and the Document Checklist Items they generate. This skill encodes hard-won production lessons about status transitions, deployment pitfalls, and the REST API workaround for template creation.
-
-> **Cross-references:** This skill works with [`sf-deploy`](../sf-deploy/SKILL.md) for metadata retrieval, [`sf-flow`](../sf-flow/SKILL.md) for template assignment automation, [`sf-metadata`](../sf-metadata/SKILL.md) for custom fields on Action Plan objects, [`sf-data`](../sf-data/SKILL.md) for SOQL queries and data operations, [`sf-apex`](../sf-apex/SKILL.md) for programmatic template assignment, and [`sf-diagram`](../sf-diagram/SKILL.md) for ERD visualization of Action Plan hierarchies.
+Full lifecycle management for Action Plan Templates: REST API creation, UI publishing, metadata retrieval, template replacement, and assignment via Flow/Apex.
 
 ---
 
@@ -35,18 +38,6 @@ Manage the full lifecycle of Salesforce Action Plan Templates — creation, publ
 | Assign via Apex | Insert `ActionPlan` sObject with `ActionPlanTemplateVersionId` + `TargetId` + `StartDate` |
 | Assign via Flow | Get Records (ActionPlanTemplateVersion WHERE Status='Final') then Create Records (ActionPlan) |
 | Delete template | `sf data delete record -s ActionPlanTemplate -i <id> -o <alias>` (only if no active instances) |
-
----
-
-## Core Responsibilities
-
-1. **Template Creation**: Create Action Plan Templates via REST API (the only reliable method)
-2. **Template Publishing**: Publish Draft templates to Final/Published via Setup UI
-3. **Template Retrieval**: Retrieve templates into source control via Metadata API
-4. **Template Lifecycle**: Deactivate, replace, and manage template versions
-5. **Document Checklists**: Configure DocumentChecklistItem records for document collection workflows
-6. **Action Plan Assignment**: Assign templates to records via Flow, Apex, or REST API
-7. **Querying & Debugging**: Query template status, items, and instances
 
 ---
 
@@ -266,130 +257,9 @@ Query for the published template version, then create an ActionPlan:
 
 ## Workflow: Assigning Templates via Apex
 
-Use Apex to programmatically assign Action Plan Templates to records. This is essential for bulk operations, trigger-based assignment, and complex business logic.
+Insert an `ActionPlan` sObject referencing the Final `ActionPlanTemplateVersionId` + `TargetId` + `StartDate`. ActionPlanTemplate objects cannot be DML-created in Apex test context; use integration tests or `SeeAllData=true`.
 
-### Basic Apex Assignment
-
-```apex
-/**
- * Assigns an Action Plan Template to a target record.
- * Requires the template to be in Final/Published status.
- */
-public class ActionPlanService {
-
-    /**
-     * Create an Action Plan from a published template.
-     * @param templateName  The Name of the ActionPlanTemplate
-     * @param targetId      The record to assign the plan to (Account, Lead, etc.)
-     * @return ActionPlan   The created ActionPlan record
-     */
-    public static ActionPlan assignTemplate(String templateName, Id targetId) {
-        // Query the published template version
-        ActionPlanTemplateVersion version = [
-            SELECT Id, ActionPlanTemplateId, ActionPlanTemplate.ActionPlanType
-            FROM ActionPlanTemplateVersion
-            WHERE ActionPlanTemplate.Name = :templateName
-              AND Status = 'Final'
-            LIMIT 1
-        ];
-
-        // Create the Action Plan instance
-        ActionPlan plan = new ActionPlan(
-            Name                         = templateName + ' - ' + Date.today().format(),
-            ActionPlanTemplateVersionId   = version.Id,
-            TargetId                      = targetId,
-            StartDate                     = Date.today(),
-            ActionPlanType                = version.ActionPlanTemplate.ActionPlanType,
-            ActionPlanState               = 'Not Started'
-        );
-
-        insert plan;
-        return plan;
-    }
-}
-```
-
-### Bulk Apex Assignment (Trigger or Batch)
-
-```apex
-/**
- * Bulk-assigns Action Plans to multiple records.
- * Use in triggers, batch Apex, or scheduled jobs.
- * Follows PS Advisory conventions: no SOQL/DML in loops.
- *
- * See also: sf-apex skill for Apex patterns and sf-data skill for SOQL.
- */
-public class ActionPlanBulkService {
-
-    public static List<ActionPlan> assignTemplateToRecords(
-        String templateName,
-        List<Id> targetIds
-    ) {
-        // Single query for the template version
-        ActionPlanTemplateVersion version = [
-            SELECT Id, ActionPlanTemplateId, ActionPlanTemplate.ActionPlanType
-            FROM ActionPlanTemplateVersion
-            WHERE ActionPlanTemplate.Name = :templateName
-              AND Status = 'Final'
-            LIMIT 1
-        ];
-
-        // Build all Action Plans in memory (no DML in loop)
-        List<ActionPlan> plans = new List<ActionPlan>();
-        for (Id targetId : targetIds) {
-            plans.add(new ActionPlan(
-                Name                         = templateName + ' - ' + Date.today().format(),
-                ActionPlanTemplateVersionId   = version.Id,
-                TargetId                      = targetId,
-                StartDate                     = Date.today(),
-                ActionPlanType                = version.ActionPlanTemplate.ActionPlanType,
-                ActionPlanState               = 'Not Started'
-            ));
-        }
-
-        insert plans;
-        return plans;
-    }
-}
-```
-
-### Apex Test Class
-
-```apex
-@IsTest
-private class ActionPlanServiceTest {
-
-    @TestSetup
-    static void setup() {
-        // Action Plan Templates cannot be created in test context via DML.
-        // Use @TestVisible or mock patterns. In integration tests against
-        // a real org, ensure a published template exists.
-    }
-
-    @IsTest
-    static void testAssignTemplate() {
-        // Create test Account
-        Account acc = new Account(Name = 'Test Account');
-        insert acc;
-
-        // In a real test, you would query an existing published template.
-        // Action Plan objects are not DML-creatable in pure unit tests
-        // without SeeAllData=true or an existing template in the org.
-        //
-        // Integration test pattern:
-        // ActionPlan result = ActionPlanService.assignTemplate(
-        //     'Agency Onboarding - Independent',
-        //     acc.Id
-        // );
-        // System.assertNotEquals(null, result.Id);
-        // System.assertEquals('Not Started', result.ActionPlanState);
-    }
-}
-```
-
-> **Testing note:** ActionPlanTemplate, ActionPlanTemplateVersion, and related objects are not DML-creatable in Apex test context. Integration tests that use `@IsTest(SeeAllData=true)` or org-specific test utilities are required. See [`sf-testing`](../sf-testing/SKILL.md) for test patterns.
-
-> **See also:** [`sf-apex`](../sf-apex/SKILL.md) for Apex class conventions, bulkification, and trigger architecture.
+> **Full patterns:** `references/apex-assignment-patterns.md` -- single-record service, bulk service, and test class.
 
 ---
 
@@ -491,53 +361,15 @@ Action Plan Templates can target 18+ object types. Common values for `TargetEnti
 
 ## Integration with Other Skills
 
-### With sf-flow (Template Auto-Assignment)
+| Skill | Integration Point |
+|-------|------------------|
+| [`sf-flow`](../sf-flow/SKILL.md) | Record-Triggered Flows to auto-assign templates on record create/update |
+| [`sf-deploy`](../sf-deploy/SKILL.md) | Retrieve templates AFTER publishing; never deploy for creation |
+| [`sf-apex`](../sf-apex/SKILL.md) | Programmatic assignment -- see `references/apex-assignment-patterns.md` |
+| [`sf-metadata`](../sf-metadata/SKILL.md) | Custom fields on `DocumentChecklistItem` (not `ActionPlan`/`ActionPlanItem`) |
+| [`sf-diagram`](../sf-diagram/SKILL.md) | Mermaid ERD for Action Plan object hierarchies |
 
-Use Record-Triggered Flows to auto-assign templates when records are created or meet criteria. See [`sf-flow`](../sf-flow/SKILL.md) for flow building patterns.
-
-```
-// Record-Triggered Flow on Account (After Create)
-// Condition: Account.Type = 'Broker'
-// 1. Get Records: ActionPlanTemplate WHERE Name = 'Broker Onboarding'
-// 2. Get Records: ActionPlanTemplateVersion WHERE ActionPlanTemplateId = {!template.Id} AND Status = 'Final'
-// 3. Create Records: ActionPlan with TargetId = {!$Record.Id}
-```
-
-### With sf-deploy (Metadata Retrieval)
-
-Always retrieve templates AFTER publishing them in the org. Never deploy templates expecting them to be usable. See [`sf-deploy`](../sf-deploy/SKILL.md).
-
-```bash
-# Retrieve all Action Plan Templates
-sf project retrieve start -m ActionPlanTemplate -o <org-alias>
-
-# Retrieve specific template by name
-sf project retrieve start -m "ActionPlanTemplate:My_Template" -o <org-alias>
-```
-
-### With sf-metadata (Custom Fields and Permission Sets)
-
-Action Plan objects support standard fields only -- you cannot add custom fields to `ActionPlan` or `ActionPlanItem`. However, you can add custom fields to `DocumentChecklistItem` for extended document tracking. See [`sf-metadata`](../sf-metadata/SKILL.md).
-
-Permission sets required:
-- `ActionPlans` -- Standard Action Plans
-- `IndustriesActionPlans` -- Industries Action Plans with DCI support
-- `DocumentChecklist` -- DocumentChecklistItem access
-
-### With sf-diagram (Architecture Visualization)
-
-Use [`sf-diagram`](../sf-diagram/SKILL.md) to generate Mermaid ERD diagrams for Action Plan object hierarchies:
-
-```mermaid
-erDiagram
-    ActionPlanTemplate ||--|| ActionPlanTemplateVersion : "has one"
-    ActionPlanTemplateVersion ||--o{ ActionPlanTemplateItem : "contains"
-    ActionPlanTemplateItem ||--o{ ActionPlanTemplateItemValue : "has values"
-    ActionPlanTemplateVersion ||--o{ ActionPlan : "instantiates"
-    ActionPlan ||--o{ ActionPlanItem : "contains"
-    ActionPlanItem ||--o| DocumentChecklistItem : "creates"
-    ActionPlanItem ||--o| Task : "creates"
-```
+**Permission sets required:** `ActionPlans`, `IndustriesActionPlans`, `DocumentChecklist`
 
 ---
 
@@ -550,6 +382,7 @@ erDiagram
 | Deployed Templates | `references/deployed-templates.md` -- IDs, items, instructions for all production templates |
 | Object Schema | `references/object-schema.md` -- Complete field reference for all 7 Action Plan objects |
 | Status Lifecycle | `references/status-lifecycle.md` -- Template version status state machine |
+| Apex Assignment | `references/apex-assignment-patterns.md` -- Single-record, bulk, and test class patterns |
 | Creation Script | `scripts/create_action_plan_template.py` -- Production-tested Python REST API script |
 
 ### External (Salesforce Documentation)

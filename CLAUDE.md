@@ -24,6 +24,9 @@ Load skills based on the task at hand. Skills are organized by domain:
 - `sf-connected-apps` - Connected Apps, OAuth configuration, External Client Apps
 - `sf-integration` - Named Credentials, External Services, REST/SOAP callouts, Platform Events
 
+### Data Cloud
+- `sf-data-cloud` - Data Cloud (Data 360) — DMO/DLO objects, data streams, calculated insights, identity resolution, segments, Data Kit deployment, Ingestion API, ANSI SQL queries, Apex ConnectApi
+
 ### AI & Automation
 - `sf-ai-agentforce` - Agentforce agents, Agent Script, Topics, Actions (API v65+)
 
@@ -120,3 +123,4 @@ When working on a specific domain, read the relevant SKILL.md file first:
 - **Documentation**: Read `sf-docs/SKILL.md`
 - **Integrations**: Read `sf-integration/SKILL.md`
 - **Connected Apps**: Read `sf-connected-apps/SKILL.md`
+- **Data Cloud**: Read `sf-data-cloud/SKILL.md` — Data Cloud (Data 360) DMOs, DLOs, data streams, Data Kits, Ingestion API, ANSI SQL

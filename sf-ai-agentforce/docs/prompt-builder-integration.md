@@ -67,7 +67,7 @@ Prompt Builder calls consume Einstein AI credits. Using a Flow for deterministic
 
 ```
 force-app/main/default/genAiPromptTemplates/
-    TemplateName.promptTemplate-meta.xml
+    TemplateName.genAiPromptTemplate-meta.xml
 ```
 
 ### XML Structure
@@ -561,6 +561,81 @@ topic activity_summary:
 ```
 
 In this pattern, the Flow handles the deterministic lookup (finding the Account by name, getting the ID), while the Prompt Template handles the generative synthesis (summarizing activity, suggesting next steps).
+
+---
+
+## 8. Model Selection and Programmatic Management
+
+### Available Models (as of Feb 2026)
+
+Model API names follow the pattern `sfdc_ai__Default<Provider><ModelName>`:
+
+| UI Name | API Name | Best For |
+|---------|----------|----------|
+| Claude Sonnet 4.5 on Amazon | `sfdc_ai__DefaultBedrockAnthropicClaude45Sonnet` | Synthesis, briefings, structured output |
+| GPT 4 Omni | `sfdc_ai__DefaultGPT4Omni` | General purpose (older) |
+
+> **Note**: The full model list is only visible in the Prompt Builder UI at `/lightning/setup/EinsteinPromptStudio/home`. There is no SOQL, Tooling API, or Connect API endpoint to query available models programmatically. However, once you know the API name, you can manage everything via metadata.
+
+### Active Models (non-beta, non-rerouted)
+
+**Top tier**: GPT 5, Claude Sonnet 4.5, Gemini 2.5 Pro, O3
+
+**Strong**: GPT 4.1, Claude Sonnet 4, GPT 5 Mini, O4 Mini
+
+**Lightweight**: Claude Haiku 4.5, GPT 4.1 Mini, GPT 4 Omni Mini, Gemini 2.5 Flash, Amazon Nova Pro/Lite
+
+### Model Recommendations by Use Case
+
+| Use Case | Recommended Model | Why |
+|----------|-------------------|-----|
+| Meeting prep / briefings | Claude Sonnet 4.5 | Best instruction following, concise synthesis |
+| Complex analysis / reasoning | GPT 5 or O3 | Strongest reasoning capabilities |
+| Simple summaries | Claude Haiku 4.5 or GPT 4.1 Mini | Fast, cost-effective |
+| General purpose | GPT 4.1 | Good balance of capability and speed |
+
+### Changing Models Programmatically
+
+You do **not** need the Prompt Builder UI to change models. Edit the `<primaryModel>` tag in the XML and deploy:
+
+```xml
+<!-- Before: GPT-4o -->
+<primaryModel>sfdc_ai__DefaultGPT4Omni</primaryModel>
+
+<!-- After: Claude Sonnet 4.5 -->
+<primaryModel>sfdc_ai__DefaultBedrockAnthropicClaude45Sonnet</primaryModel>
+```
+
+Then deploy:
+```bash
+sf project deploy start --source-dir force-app/main/default/genAiPromptTemplates --target-org MyOrg
+```
+
+### Version Management
+
+Each save in Prompt Builder creates a new `<templateVersions>` entry. The `<activeVersionIdentifier>` controls which version is live.
+
+To create a new version programmatically:
+1. Add a new `<templateVersions>` block with updated `<content>`, `<primaryModel>`, or both
+2. Update `<activeVersionIdentifier>` to match the new version's `<versionIdentifier>`
+3. Deploy
+
+### Retrieve/Deploy Workflow
+
+```bash
+# Retrieve current state from org
+sf project retrieve start -m "GenAiPromptTemplate:Template_Name" --target-org MyOrg
+
+# Edit the XML (change model, prompt, inputs, etc.)
+
+# Deploy changes back
+sf project deploy start --source-dir force-app/main/default/genAiPromptTemplates --target-org MyOrg
+
+# Retrieve again to capture org-generated version identifiers
+sf project retrieve start -m "GenAiPromptTemplate:Template_Name" --target-org MyOrg
+```
+
+> **Tip**: After deploying, retrieve again -- the org generates version identifiers and may adjust metadata fields that you'll want in source control.
 
 ---
 

@@ -109,6 +109,8 @@ actions:
 
 **Critical**: Input MUST use `object` type with `lightning__recordInfoType`, NOT string.
 
+**Model management**: Change models programmatically by editing `<primaryModel>` in the GenAiPromptTemplate XML. API name pattern: `sfdc_ai__Default<Provider><ModelName>` (e.g., `sfdc_ai__DefaultBedrockAnthropicClaude45Sonnet`).
+
 ### Agent Flow Design
 > **Full guide**: [agent-flow-design.md](docs/agent-flow-design.md)
 

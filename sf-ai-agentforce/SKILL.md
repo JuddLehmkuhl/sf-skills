@@ -598,7 +598,7 @@ topic help:
 | Feature | Status | Workaround |
 |---------|--------|------------|
 | `run` keyword | NOT Supported | Define actions in topic, LLM chooses when to call |
-| `with`/`set` in `reasoning.actions` | NOT Supported | Define actions in topic `actions:` block only |
+| `with`/`set` in `reasoning.actions` | Supported (production-validated) | See [action-invocation-patterns.md](docs/action-invocation-patterns.md) |
 | `{!@actions.x}` | NOT Supported | Define actions with descriptions, LLM auto-selects |
 | `@utils.setVariables` | NOT Supported | Use `set @variables.x = ...` in instructions |
 | `@utils.escalate with reason` | NOT Supported | Use basic `@utils.escalate` with `description:` |
@@ -614,7 +614,7 @@ topic help:
 ```agentscript
 # CORRECT PATTERN FOR AiAuthoringBundle
 # 1. Define actions in topic blocks (NOT start_agent)
-# 2. Use simple action definition (no with/set in reasoning.actions)
+# 2. Define actions in topic blocks with optional with/set for slot-filling
 # 3. Let the LLM decide when to call the action based on description
 
 start_agent topic_selector:
@@ -646,7 +646,7 @@ topic order_lookup:
                description: "Total amount of the order"
          target: "flow://Get_Order_Details"
 
-   # Simple reasoning - no with/set in reasoning.actions
+   # Simple reasoning - with/set also supported (see Pattern 2 and action-invocation-patterns.md)
    reasoning:
       instructions: ->
          | Help the user look up their order.
@@ -656,7 +656,7 @@ topic order_lookup:
          back_to_menu: @utils.transition to @topic.topic_selector
 ```
 
-**WRONG PATTERN (causes "Internal Error" at publish):**
+**WRONG PATTERN:**
 
 ```agentscript
 # DO NOT put flow actions in start_agent
@@ -664,21 +664,12 @@ start_agent topic_selector:
    actions:
       my_flow_action:    # WRONG - actions in start_agent fail
          target: "flow://..."
-
-# DO NOT use with/set in reasoning.actions FOR AiAuthoringBundle
-# with/set WORKS in GenAiPlannerBundle (production-validated pattern)
-reasoning:
-   actions:
-      lookup: @actions.get_order
-         with inp_OrderNumber=...              # AiAuthoringBundle: Internal Error
-         set @variables.status = @outputs...   # AiAuthoringBundle: Internal Error
-         # GenAiPlannerBundle: works correctly (see action-invocation-patterns.md)
 ```
 
 **Key Requirements:**
 1. **Flow actions in `topic` blocks only** - NOT in `start_agent`
 2. **`start_agent` uses only `@utils.transition`** - for routing to topics
-3. **No `with`/`set` in `reasoning.actions`** for AiAuthoringBundle - just define actions, LLM auto-calls
+3. **`with`/`set` in `reasoning.actions` works in both AiAuthoringBundle and GenAiPlannerBundle** - production-validated. See [action-invocation-patterns.md](docs/action-invocation-patterns.md)
 4. **Input/output names must match Flow exactly** - Case-sensitive!
 
 ### Connection Block (for Escalation)
@@ -1214,7 +1205,7 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Flow Variable Names** | **Mismatched names cause "Internal Error"** | **Agent Script input/output names MUST match Flow variable API names exactly** |
 | **Action Location** | Top-level actions fail | Define actions inside topics |
 | **Flow Targets** | `flow://` works in both deployment methods | Ensure Flow deployed before agent publish, names match exactly |
-| **AiAuthoringBundle Limitations** | `with`/`set` in `reasoning.actions` NOT supported in AiAuthoringBundle | Use GenAiPlannerBundle for `with`/`set` slot-filling (production-validated). For AiAuthoringBundle: define actions in topic `actions:` block, let LLM auto-call |
+| **`with`/`set` Slot-Filling** | `with`/`set` in `reasoning.actions` works in both AiAuthoringBundle and GenAiPlannerBundle | Production-validated pattern. See [action-invocation-patterns.md](docs/action-invocation-patterns.md) for the doomprompting fix and slot-filling syntax |
 | **start_agent Actions** | Flow actions in `start_agent` fail in AiAuthoringBundle | Use `start_agent` only for `@utils.transition`, put flow actions in `topic` blocks |
 | **`run` Keyword** | Action chaining syntax | Use `run @actions.x` for callbacks (GenAiPlannerBundle only) |
 | **Lifecycle Blocks** | before/after_reasoning available | Use bare `transition to` (not `@utils.transition`) in lifecycle blocks |
